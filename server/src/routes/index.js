@@ -1,0 +1,30 @@
+import { Router } from "express";
+import { authRouter } from "../modules/auth/auth.routes.js";
+import { lectureRouter } from "../modules/lectures/lecture.routes.js";
+import { noteRouter } from "../modules/notes/note.routes.js";
+import { aiRouter } from "../modules/ai/ai.routes.js";
+import { plagiarismRouter } from "../modules/plagiarism/plagiarism.routes.js";
+import { ratingRouter } from "../modules/ratings/rating.routes.js";
+import { marketplaceRouter } from "../modules/marketplace/marketplace.routes.js";
+import { communityRouter } from "../modules/community/community.routes.js";
+import { governanceRouter } from "../modules/governance/governance.routes.js";
+import { resourceRouter } from "../modules/resources/resource.routes.js";
+import { academicRouter } from "../modules/academic/academic.routes.js";
+import { noticeRouter } from "../modules/notices/notice.routes.js";
+import { auditRouter } from "../modules/audit/audit.routes.js";
+
+export const apiRouter = Router();
+
+apiRouter.use("/auth", authRouter);
+apiRouter.use("/lectures", lectureRouter);
+apiRouter.use("/notes", noteRouter);
+apiRouter.use("/ai", aiRouter);
+apiRouter.use("/plagiarism", plagiarismRouter);
+apiRouter.use("/ratings", ratingRouter);
+apiRouter.use("/marketplace", marketplaceRouter);
+apiRouter.use("/community", communityRouter);
+apiRouter.use("/governance", governanceRouter);
+apiRouter.use("/resources", resourceRouter);
+apiRouter.use("/academic", academicRouter);
+apiRouter.use("/notices", noticeRouter);
+apiRouter.use("/audit", auditRouter);

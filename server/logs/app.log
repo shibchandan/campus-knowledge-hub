@@ -1,0 +1,6 @@
+{"timestamp":"2026-03-27T11:32:44.014Z","level":"info","message":"mongodb_connected","metadata":{}}
+{"timestamp":"2026-03-27T11:32:44.041Z","level":"info","message":"server_started","metadata":{"port":5000}}
+{"timestamp":"2026-03-27T13:00:45.484Z","level":"info","message":"mongodb_connected","metadata":{}}
+{"timestamp":"2026-03-27T13:00:45.516Z","level":"info","message":"server_started","metadata":{"port":5000}}
+{"timestamp":"2026-03-27T13:03:14.733Z","level":"info","message":"mongodb_connected","metadata":{}}
+{"timestamp":"2026-03-27T13:03:14.746Z","level":"info","message":"server_started","metadata":{"port":5000}}

@@ -1,0 +1,17 @@
+{
+  "name": "campus-knowledge-hub",
+  "private": true,
+  "version": "1.0.0",
+  "workspaces": [
+    "client",
+    "server"
+  ],
+  "scripts": {
+    "dev": "npm run dev:server",
+    "dev:client": "npm --workspace client run dev",
+    "dev:server": "npm --workspace server run dev",
+    "build:client": "npm --workspace client run build",
+    "start:server": "npm --workspace server run start",
+    "test:server": "npm --workspace server run test"
+  }
+}
