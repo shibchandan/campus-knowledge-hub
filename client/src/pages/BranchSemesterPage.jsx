@@ -9,7 +9,7 @@ import { apiClient } from "../lib/apiClient";
 export function BranchSemesterPage() {
   const { programId, branchId } = useParams();
   const { selectedCollege } = useCollege();
-  const fallbackProgram = getProgramById(programId);
+  const fallbackProgram = getProgramById(programId, selectedCollege?.name || "");
   const fallbackBranch = getBranchById(fallbackProgram, branchId);
   const [dynamicPrograms, setDynamicPrograms] = useState([]);
   const [dynamicSubjects, setDynamicSubjects] = useState([]);
@@ -121,7 +121,7 @@ export function BranchSemesterPage() {
         description={
           dynamicBranch
             ? "Admin-managed semester and subject structure is active for this college."
-            : "Each semester contains five subjects."
+            : "Fallback semester-wise subject structure is shown for the selected college."
         }
       >
         <div className="semester-grid">

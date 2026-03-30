@@ -9,7 +9,7 @@ import { apiClient } from "../lib/apiClient";
 export function ProgramDetailPage() {
   const { programId } = useParams();
   const { selectedCollege } = useCollege();
-  const fallbackProgram = getProgramById(programId);
+  const fallbackProgram = getProgramById(programId, selectedCollege?.name || "");
   const [dynamicPrograms, setDynamicPrograms] = useState([]);
 
   useEffect(() => {

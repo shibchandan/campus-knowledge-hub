@@ -10,6 +10,6 @@ import {
 export const noticeRouter = Router();
 
 noticeRouter.get("/", protect, listNotices);
-noticeRouter.post("/", protect, authorize("admin"), createNotice);
-noticeRouter.patch("/:noticeId", protect, authorize("admin"), updateNotice);
-noticeRouter.delete("/:noticeId", protect, authorize("admin"), deleteNotice);
+noticeRouter.post("/", protect, authorize("representative", "admin"), createNotice);
+noticeRouter.patch("/:noticeId", protect, authorize("representative", "admin"), updateNotice);
+noticeRouter.delete("/:noticeId", protect, authorize("representative", "admin"), deleteNotice);

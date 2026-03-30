@@ -40,10 +40,10 @@ export function AuthPage() {
   const [success, setSuccess] = useState("");
 
   if (isAuthenticated) {
-    return <Navigate to="/panel" replace />;
+    return <Navigate to="/colleges" replace />;
   }
 
-  const redirectTo = location.state?.from?.pathname || "/panel";
+  const redirectTo = location.state?.from?.pathname || "/colleges";
 
   function getAuthErrorMessage(requestError, fallbackMessage) {
     if (requestError?.response?.data?.message) {
@@ -87,7 +87,7 @@ export function AuthPage() {
 
     try {
       await register(registerForm);
-      navigate("/panel", { replace: true });
+      navigate("/colleges", { replace: true });
     } catch (requestError) {
       setError(getAuthErrorMessage(requestError, "Registration failed. Try a different email."));
     } finally {

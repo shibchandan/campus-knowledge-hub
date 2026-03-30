@@ -21,6 +21,31 @@ const initialProfileForm = {
   highestPackageLpa: ""
 };
 
+const initialNoticeForm = {
+  collegeName: "",
+  title: "",
+  content: "",
+  isPublished: true
+};
+
+const initialQuizQuestion = {
+  prompt: "",
+  options: ["", "", "", ""],
+  answer: ""
+};
+
+const initialQuizForm = {
+  collegeName: "",
+  title: "",
+  duration: "",
+  difficulty: "Medium",
+  mode: "",
+  note: "",
+  resourceMatch: "",
+  isPublished: true,
+  questions: [initialQuizQuestion]
+};
+
 function mapProfileToForm(profile) {
   if (!profile) {
     return initialProfileForm;
@@ -40,22 +65,59 @@ function mapProfileToForm(profile) {
   };
 }
 
+function mapQuizToForm(quiz) {
+  if (!quiz) {
+    return initialQuizForm;
+  }
+
+  return {
+    collegeName: quiz.collegeName || "",
+    title: quiz.title || "",
+    duration: quiz.duration || "",
+    difficulty: quiz.difficulty || "Medium",
+    mode: quiz.mode || "",
+    note: quiz.note || "",
+    resourceMatch: quiz.resourceMatch || "",
+    isPublished: Boolean(quiz.isPublished),
+    questions:
+      Array.isArray(quiz.questions) && quiz.questions.length
+        ? quiz.questions.map((question) => ({
+            prompt: question.prompt || "",
+            options: Array.isArray(question.options)
+              ? [...question.options, "", "", "", ""].slice(0, 4)
+              : ["", "", "", ""],
+            answer: question.answer || ""
+          }))
+        : [initialQuizQuestion]
+  };
+}
+
 export function RepresentativePanelPage() {
   const [form, setForm] = useState(initialForm);
   const [profileForm, setProfileForm] = useState(initialProfileForm);
   const [requests, setRequests] = useState([]);
   const [myColleges, setMyColleges] = useState([]);
+  const [notices, setNotices] = useState([]);
+  const [quizzes, setQuizzes] = useState([]);
   const [loading, setLoading] = useState(true);
   const [submitting, setSubmitting] = useState(false);
   const [profileSubmitting, setProfileSubmitting] = useState(false);
+  const [noticeSubmitting, setNoticeSubmitting] = useState(false);
   const [editingCourseId, setEditingCourseId] = useState("");
   const [editingProfileId, setEditingProfileId] = useState("");
+  const [editingNoticeId, setEditingNoticeId] = useState("");
+  const [editingQuizId, setEditingQuizId] = useState("");
   const [error, setError] = useState("");
   const [success, setSuccess] = useState("");
   const [collegeSearch, setCollegeSearch] = useState("");
   const [requestSearch, setRequestSearch] = useState("");
   const [requestFilter, setRequestFilter] = useState("all");
   const [collegeSort, setCollegeSort] = useState("college-asc");
+  const [noticeForm, setNoticeForm] = useState(initialNoticeForm);
+  const [noticeSearch, setNoticeSearch] = useState("");
+  const [quizForm, setQuizForm] = useState(initialQuizForm);
+  const [quizSubmitting, setQuizSubmitting] = useState(false);
+  const [quizSearch, setQuizSearch] = useState("");
 
   async function loadRepresentativeData() {
     setLoading(true);
@@ -68,7 +130,37 @@ export function RepresentativePanelPage() {
       ]);
 
       setRequests(requestsResponse.data.data);
-      setMyColleges(collegesResponse.data.data);
+      const collegeItems = collegesResponse.data.data || [];
+      setMyColleges(collegeItems);
+
+      const collegeNames = [...new Set(collegeItems.map((item) => item.collegeName).filter(Boolean))];
+      if (collegeNames.length) {
+        const [noticeResponses, quizResponses] = await Promise.all([
+          Promise.all(
+          collegeNames.map((collegeName) =>
+            apiClient.get("/notices", {
+              params: { collegeName, includeUnpublished: true }
+            })
+          )
+          ),
+          Promise.all(
+            collegeNames.map((collegeName) =>
+              apiClient.get("/quizzes", {
+                params: { collegeName, includeUnpublished: true }
+              })
+            )
+          )
+        ]);
+        const allNotices = noticeResponses.flatMap((response) => response.data.data || []);
+        const uniqueNotices = Array.from(new Map(allNotices.map((item) => [item._id, item])).values());
+        setNotices(uniqueNotices);
+        const allQuizzes = quizResponses.flatMap((response) => response.data.data || []);
+        const uniqueQuizzes = Array.from(new Map(allQuizzes.map((item) => [item._id, item])).values());
+        setQuizzes(uniqueQuizzes);
+      } else {
+        setNotices([]);
+        setQuizzes([]);
+      }
     } catch (requestError) {
       setError(
         requestError.response?.data?.message || "Failed to load your representative data."
@@ -90,6 +182,16 @@ export function RepresentativePanelPage() {
   function resetProfileForm() {
     setProfileForm(initialProfileForm);
     setEditingProfileId("");
+  }
+
+  function resetNoticeForm() {
+    setNoticeForm(initialNoticeForm);
+    setEditingNoticeId("");
+  }
+
+  function resetQuizForm() {
+    setQuizForm(initialQuizForm);
+    setEditingQuizId("");
   }
 
   async function handleSubmit(event) {
@@ -220,6 +322,154 @@ export function RepresentativePanelPage() {
     }
   }
 
+  async function handleNoticeSubmit(event) {
+    event.preventDefault();
+    setNoticeSubmitting(true);
+    setError("");
+    setSuccess("");
+
+    try {
+      if (editingNoticeId) {
+        await apiClient.patch(`/notices/${editingNoticeId}`, noticeForm);
+        setSuccess("Notice updated successfully.");
+      } else {
+        await apiClient.post("/notices", noticeForm);
+        setSuccess("Notice created successfully.");
+      }
+
+      resetNoticeForm();
+      await loadRepresentativeData();
+    } catch (requestError) {
+      setError(requestError.response?.data?.message || "Failed to save notice.");
+    } finally {
+      setNoticeSubmitting(false);
+    }
+  }
+
+  function handleEditNotice(notice) {
+    setEditingNoticeId(notice._id);
+    setNoticeForm({
+      collegeName: notice.collegeName || "",
+      title: notice.title || "",
+      content: notice.content || "",
+      isPublished: Boolean(notice.isPublished)
+    });
+    setError("");
+    setSuccess("");
+  }
+
+  async function handleDeleteNotice(noticeId) {
+    setError("");
+    setSuccess("");
+
+    try {
+      await apiClient.delete(`/notices/${noticeId}`);
+      if (editingNoticeId === noticeId) {
+        resetNoticeForm();
+      }
+      setSuccess("Notice deleted successfully.");
+      await loadRepresentativeData();
+    } catch (requestError) {
+      setError(requestError.response?.data?.message || "Failed to delete notice.");
+    }
+  }
+
+  function handleQuizQuestionChange(questionIndex, key, value) {
+    setQuizForm((current) => ({
+      ...current,
+      questions: current.questions.map((question, index) =>
+        index === questionIndex ? { ...question, [key]: value } : question
+      )
+    }));
+  }
+
+  function handleQuizOptionChange(questionIndex, optionIndex, value) {
+    setQuizForm((current) => ({
+      ...current,
+      questions: current.questions.map((question, index) =>
+        index === questionIndex
+          ? {
+              ...question,
+              options: question.options.map((option, idx) => (idx === optionIndex ? value : option))
+            }
+          : question
+      )
+    }));
+  }
+
+  function addQuizQuestion() {
+    setQuizForm((current) => ({
+      ...current,
+      questions: [...current.questions, { ...initialQuizQuestion, options: [...initialQuizQuestion.options] }]
+    }));
+  }
+
+  function removeQuizQuestion(questionIndex) {
+    setQuizForm((current) => ({
+      ...current,
+      questions:
+        current.questions.length === 1
+          ? current.questions
+          : current.questions.filter((_, index) => index !== questionIndex)
+    }));
+  }
+
+  async function handleQuizSubmit(event) {
+    event.preventDefault();
+    setQuizSubmitting(true);
+    setError("");
+    setSuccess("");
+
+    try {
+      const payload = {
+        ...quizForm,
+        questions: quizForm.questions.map((question) => ({
+          prompt: question.prompt,
+          options: question.options.filter((option) => option.trim()),
+          answer: question.answer
+        }))
+      };
+
+      if (editingQuizId) {
+        await apiClient.patch(`/quizzes/${editingQuizId}`, payload);
+        setSuccess("Quiz arrangement updated successfully.");
+      } else {
+        await apiClient.post("/quizzes", payload);
+        setSuccess("Quiz arrangement created successfully.");
+      }
+
+      resetQuizForm();
+      await loadRepresentativeData();
+    } catch (requestError) {
+      setError(requestError.response?.data?.message || "Failed to save quiz arrangement.");
+    } finally {
+      setQuizSubmitting(false);
+    }
+  }
+
+  function handleEditQuiz(quiz) {
+    setEditingQuizId(quiz._id);
+    setQuizForm(mapQuizToForm(quiz));
+    setError("");
+    setSuccess("");
+  }
+
+  async function handleDeleteQuiz(quizId) {
+    setError("");
+    setSuccess("");
+
+    try {
+      await apiClient.delete(`/quizzes/${quizId}`);
+      if (editingQuizId === quizId) {
+        resetQuizForm();
+      }
+      setSuccess("Quiz arrangement deleted successfully.");
+      await loadRepresentativeData();
+    } catch (requestError) {
+      setError(requestError.response?.data?.message || "Failed to delete quiz arrangement.");
+    }
+  }
+
   const filteredColleges = useMemo(() => {
     const term = collegeSearch.trim().toLowerCase();
     const items = myColleges.filter((item) => {
@@ -262,6 +512,39 @@ export function RepresentativePanelPage() {
       return matchesFilter && matchesSearch;
     });
   }, [requestFilter, requestSearch, requests]);
+
+  const filteredNotices = useMemo(() => {
+    const term = noticeSearch.trim().toLowerCase();
+
+    return notices.filter((notice) => {
+      if (!term) {
+        return true;
+      }
+
+      return (
+        notice.title?.toLowerCase().includes(term) ||
+        notice.content?.toLowerCase().includes(term) ||
+        (notice.collegeName || "").toLowerCase().includes(term)
+      );
+    });
+  }, [noticeSearch, notices]);
+
+  const filteredQuizzes = useMemo(() => {
+    const term = quizSearch.trim().toLowerCase();
+
+    return quizzes.filter((quiz) => {
+      if (!term) {
+        return true;
+      }
+
+      return (
+        quiz.title?.toLowerCase().includes(term) ||
+        quiz.mode?.toLowerCase().includes(term) ||
+        quiz.difficulty?.toLowerCase().includes(term) ||
+        (quiz.collegeName || "").toLowerCase().includes(term)
+      );
+    });
+  }, [quizSearch, quizzes]);
 
   const stats = useMemo(
     () => [
@@ -500,6 +783,339 @@ export function RepresentativePanelPage() {
             ) : null}
           </div>
         </form>
+      </SectionCard>
+
+      <SectionCard
+        title="College Notices"
+        description="Create and manage published or draft notices only for colleges assigned to your account."
+      >
+        <form className="panel-form" onSubmit={handleNoticeSubmit}>
+          <div className="panel-form-grid">
+            <label className="auth-field">
+              <span>College Name</span>
+              <select
+                onChange={(event) =>
+                  setNoticeForm((current) => ({ ...current, collegeName: event.target.value }))
+                }
+                required
+                value={noticeForm.collegeName}
+              >
+                <option value="">Select college</option>
+                {[...new Set(myColleges.map((item) => item.collegeName))].map((collegeName) => (
+                  <option key={collegeName} value={collegeName}>
+                    {collegeName}
+                  </option>
+                ))}
+              </select>
+            </label>
+            <label className="auth-field">
+              <span>Status</span>
+              <select
+                onChange={(event) =>
+                  setNoticeForm((current) => ({
+                    ...current,
+                    isPublished: event.target.value === "published"
+                  }))
+                }
+                value={noticeForm.isPublished ? "published" : "draft"}
+              >
+                <option value="published">Published</option>
+                <option value="draft">Draft</option>
+              </select>
+            </label>
+          </div>
+          <label className="auth-field">
+            <span>Notice Title</span>
+            <input
+              onChange={(event) => setNoticeForm((current) => ({ ...current, title: event.target.value }))}
+              required
+              type="text"
+              value={noticeForm.title}
+            />
+          </label>
+          <label className="auth-field">
+            <span>Notice Content</span>
+            <textarea
+              className="panel-textarea"
+              onChange={(event) => setNoticeForm((current) => ({ ...current, content: event.target.value }))}
+              required
+              rows={4}
+              value={noticeForm.content}
+            />
+          </label>
+          <div className="panel-actions">
+            <button className="auth-submit" disabled={noticeSubmitting} type="submit">
+              {noticeSubmitting
+                ? "Saving..."
+                : editingNoticeId
+                  ? "Update Notice"
+                  : "Create Notice"}
+            </button>
+            {editingNoticeId ? (
+              <button className="action-button neutral" onClick={resetNoticeForm} type="button">
+                Cancel Edit
+              </button>
+            ) : null}
+          </div>
+        </form>
+
+        <div className="toolbar-grid">
+          <input
+            className="college-search"
+            onChange={(event) => setNoticeSearch(event.target.value)}
+            placeholder="Search notice title, content, or college..."
+            type="text"
+            value={noticeSearch}
+          />
+          <p className="muted">{filteredNotices.length} notices visible</p>
+        </div>
+
+        {!loading && filteredNotices.length === 0 ? (
+          <p className="muted">No notices created for your colleges yet.</p>
+        ) : null}
+
+        <div className="panel-list">
+          {filteredNotices.map((notice) => (
+            <article className="panel-card" key={notice._id}>
+              <h3>{notice.title}</h3>
+              <p className="muted">
+                {notice.collegeName || "Global"} | {notice.isPublished ? "Published" : "Draft"}
+              </p>
+              <p>{notice.content}</p>
+              <div className="panel-actions">
+                <button className="action-button approve" onClick={() => handleEditNotice(notice)} type="button">
+                  Edit Notice
+                </button>
+                <button className="action-button reject" onClick={() => handleDeleteNotice(notice._id)} type="button">
+                  Delete Notice
+                </button>
+              </div>
+            </article>
+          ))}
+        </div>
+      </SectionCard>
+
+      <SectionCard
+        title="Quiz Management"
+        description="Create dynamic quiz arrangements for your assigned colleges from the representative panel."
+      >
+        <form className="panel-form" onSubmit={handleQuizSubmit}>
+          <div className="panel-form-grid">
+            <label className="auth-field">
+              <span>College Name</span>
+              <select
+                onChange={(event) =>
+                  setQuizForm((current) => ({ ...current, collegeName: event.target.value }))
+                }
+                required
+                value={quizForm.collegeName}
+              >
+                <option value="">Select college</option>
+                {[...new Set(myColleges.map((item) => item.collegeName))].map((collegeName) => (
+                  <option key={collegeName} value={collegeName}>
+                    {collegeName}
+                  </option>
+                ))}
+              </select>
+            </label>
+            <label className="auth-field">
+              <span>Duration</span>
+              <input
+                onChange={(event) =>
+                  setQuizForm((current) => ({ ...current, duration: event.target.value }))
+                }
+                placeholder="20 min"
+                required
+                type="text"
+                value={quizForm.duration}
+              />
+            </label>
+            <label className="auth-field">
+              <span>Difficulty</span>
+              <select
+                onChange={(event) =>
+                  setQuizForm((current) => ({ ...current, difficulty: event.target.value }))
+                }
+                value={quizForm.difficulty}
+              >
+                <option value="Easy">Easy</option>
+                <option value="Medium">Medium</option>
+                <option value="Hard">Hard</option>
+              </select>
+            </label>
+          </div>
+          <div className="panel-form-grid">
+            <label className="auth-field">
+              <span>Quiz Title</span>
+              <input
+                onChange={(event) =>
+                  setQuizForm((current) => ({ ...current, title: event.target.value }))
+                }
+                required
+                type="text"
+                value={quizForm.title}
+              />
+            </label>
+            <label className="auth-field">
+              <span>Quiz Mode</span>
+              <input
+                onChange={(event) =>
+                  setQuizForm((current) => ({ ...current, mode: event.target.value }))
+                }
+                placeholder="PYQ sprint, notes recall, timed MCQ"
+                required
+                type="text"
+                value={quizForm.mode}
+              />
+            </label>
+            <label className="auth-field">
+              <span>Status</span>
+              <select
+                onChange={(event) =>
+                  setQuizForm((current) => ({
+                    ...current,
+                    isPublished: event.target.value === "published"
+                  }))
+                }
+                value={quizForm.isPublished ? "published" : "draft"}
+              >
+                <option value="published">Published</option>
+                <option value="draft">Draft</option>
+              </select>
+            </label>
+          </div>
+          <label className="auth-field">
+            <span>Arrangement Note</span>
+            <textarea
+              className="panel-textarea"
+              onChange={(event) =>
+                setQuizForm((current) => ({ ...current, note: event.target.value }))
+              }
+              rows={2}
+              value={quizForm.note}
+            />
+          </label>
+          <label className="auth-field">
+            <span>Resource Match</span>
+            <input
+              onChange={(event) =>
+                setQuizForm((current) => ({ ...current, resourceMatch: event.target.value }))
+              }
+              placeholder="CN Topper Notes, DBMS PYQ"
+              type="text"
+              value={quizForm.resourceMatch}
+            />
+          </label>
+
+          <div className="panel-list">
+            {quizForm.questions.map((question, questionIndex) => (
+              <article className="panel-card" key={`quiz-question-${questionIndex}`}>
+                <h3>Question {questionIndex + 1}</h3>
+                <label className="auth-field">
+                  <span>Prompt</span>
+                  <textarea
+                    className="panel-textarea"
+                    onChange={(event) =>
+                      handleQuizQuestionChange(questionIndex, "prompt", event.target.value)
+                    }
+                    rows={2}
+                    value={question.prompt}
+                  />
+                </label>
+                <div className="panel-form-grid">
+                  {question.options.map((option, optionIndex) => (
+                    <label className="auth-field" key={`q${questionIndex}-opt${optionIndex}`}>
+                      <span>Option {optionIndex + 1}</span>
+                      <input
+                        onChange={(event) =>
+                          handleQuizOptionChange(questionIndex, optionIndex, event.target.value)
+                        }
+                        type="text"
+                        value={option}
+                      />
+                    </label>
+                  ))}
+                </div>
+                <label className="auth-field">
+                  <span>Correct Answer</span>
+                  <input
+                    onChange={(event) =>
+                      handleQuizQuestionChange(questionIndex, "answer", event.target.value)
+                    }
+                    placeholder="Must match one option exactly"
+                    type="text"
+                    value={question.answer}
+                  />
+                </label>
+                <div className="panel-actions">
+                  <button className="action-button neutral" onClick={addQuizQuestion} type="button">
+                    Add Question
+                  </button>
+                  <button
+                    className="action-button reject"
+                    onClick={() => removeQuizQuestion(questionIndex)}
+                    type="button"
+                  >
+                    Remove Question
+                  </button>
+                </div>
+              </article>
+            ))}
+          </div>
+
+          <div className="panel-actions">
+            <button className="auth-submit" disabled={quizSubmitting} type="submit">
+              {quizSubmitting
+                ? "Saving..."
+                : editingQuizId
+                  ? "Update Quiz Arrangement"
+                  : "Create Quiz Arrangement"}
+            </button>
+            {editingQuizId ? (
+              <button className="action-button neutral" onClick={resetQuizForm} type="button">
+                Cancel Edit
+              </button>
+            ) : null}
+          </div>
+        </form>
+
+        <div className="toolbar-grid">
+          <input
+            className="college-search"
+            onChange={(event) => setQuizSearch(event.target.value)}
+            placeholder="Search quiz title, mode, difficulty, or college..."
+            type="text"
+            value={quizSearch}
+          />
+          <p className="muted">{filteredQuizzes.length} quiz arrangements visible</p>
+        </div>
+
+        {!loading && filteredQuizzes.length === 0 ? (
+          <p className="muted">No quiz arrangements created for your colleges yet.</p>
+        ) : null}
+
+        <div className="panel-list">
+          {filteredQuizzes.map((quiz) => (
+            <article className="panel-card" key={quiz._id}>
+              <h3>{quiz.title}</h3>
+              <p className="muted">
+                {quiz.collegeName} | {quiz.difficulty} | {quiz.duration} | {quiz.isPublished ? "Published" : "Draft"}
+              </p>
+              <p className="muted">
+                Mode: {quiz.mode} | Questions: {quiz.questions?.length || 0}
+              </p>
+              {quiz.note ? <p>{quiz.note}</p> : null}
+              <div className="panel-actions">
+                <button className="action-button approve" onClick={() => handleEditQuiz(quiz)} type="button">
+                  Edit Quiz
+                </button>
+                <button className="action-button reject" onClick={() => handleDeleteQuiz(quiz._id)} type="button">
+                  Delete Quiz
+                </button>
+              </div>
+            </article>
+          ))}
+        </div>
       </SectionCard>
 
       <SectionCard

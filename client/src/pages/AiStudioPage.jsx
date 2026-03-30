@@ -12,6 +12,7 @@ export function AiStudioPage() {
   const [answer, setAnswer] = useState(null);
   const [status, setStatus] = useState(null);
   const [history, setHistory] = useState([]);
+  const [historyBusyId, setHistoryBusyId] = useState("");
 
   async function loadMeta() {
     try {
@@ -49,6 +50,34 @@ export function AiStudioPage() {
       setError(requestError.response?.data?.message || "Failed to get AI response.");
     } finally {
       setLoading(false);
+    }
+  }
+
+  async function handleDeleteHistoryItem(historyId) {
+    setHistoryBusyId(historyId);
+    setError("");
+
+    try {
+      await apiClient.delete(`/ai/history/${historyId}`);
+      setHistory((current) => current.filter((item) => item._id !== historyId));
+    } catch (requestError) {
+      setError(requestError.response?.data?.message || "Failed to delete AI history item.");
+    } finally {
+      setHistoryBusyId("");
+    }
+  }
+
+  async function handleClearHistory() {
+    setHistoryBusyId("all");
+    setError("");
+
+    try {
+      await apiClient.delete("/ai/history");
+      setHistory([]);
+    } catch (requestError) {
+      setError(requestError.response?.data?.message || "Failed to clear AI history.");
+    } finally {
+      setHistoryBusyId("");
     }
   }
 
@@ -178,6 +207,18 @@ export function AiStudioPage() {
         title="My AI History"
         description="Recent questions and answers saved for this student account."
       >
+        {history.length ? (
+          <div className="panel-actions">
+            <button
+              className="action-button reject"
+              disabled={historyBusyId === "all"}
+              onClick={handleClearHistory}
+              type="button"
+            >
+              {historyBusyId === "all" ? "Clearing..." : "Clear History"}
+            </button>
+          </div>
+        ) : null}
         {!history.length ? <p className="muted">No AI history yet. Ask your first question.</p> : null}
         <div className="panel-list">
           {history.map((item) => (
@@ -192,6 +233,16 @@ export function AiStudioPage() {
                   Sources: {item.sourceResources.map((resource) => resource.title).join(" | ")}
                 </p>
               ) : null}
+              <div className="panel-actions">
+                <button
+                  className="action-button reject"
+                  disabled={historyBusyId === item._id}
+                  onClick={() => handleDeleteHistoryItem(item._id)}
+                  type="button"
+                >
+                  {historyBusyId === item._id ? "Deleting..." : "Delete"}
+                </button>
+              </div>
             </article>
           ))}
         </div>

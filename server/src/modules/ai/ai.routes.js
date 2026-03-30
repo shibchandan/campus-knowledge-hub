@@ -1,6 +1,8 @@
 import { Router } from "express";
 import {
   askAi,
+  clearAiHistory,
+  deleteAiHistoryItem,
   generatePyqAnswer,
   getAiHistory,
   getAiStatus,
@@ -25,5 +27,7 @@ aiRouter.get("/summary", summarizeLecture);
 aiRouter.get("/pyq-answer", generatePyqAnswer);
 aiRouter.get("/recommendations", getRecommendations);
 aiRouter.get("/history", getAiHistory);
+aiRouter.delete("/history", clearAiHistory);
+aiRouter.delete("/history/:historyId", deleteAiHistoryItem);
 aiRouter.get("/status", getAiStatus);
 aiRouter.post("/ask", askAi);

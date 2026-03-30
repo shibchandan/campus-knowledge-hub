@@ -44,6 +44,11 @@ function createSemesters(items) {
   return items.map((item) => createSemester(item.id, item.semester, item.subjects));
 }
 
+function isMnnitPrayagraj(collegeName = "") {
+  const normalized = String(collegeName || "").trim().toLowerCase();
+  return normalized.includes("motilal nehru national institute of technology");
+}
+
 function btechSemestersFor(branchName) {
   return createSemesters([
     {
@@ -136,6 +141,277 @@ function btechSemestersFor(branchName) {
     }
   ]);
 }
+
+const mnnitCseSemesters = createSemesters([
+  {
+    id: "semester-1",
+    semester: "Semester 1",
+    subjects: [
+      "Chemistry",
+      "Mathematics-I",
+      "English Language & Technical Communication",
+      "Computer Programming",
+      "Computer Organization",
+      "Discrete Mathematics",
+      "Environment and Climate Change",
+      "Extra Academic Activity"
+    ]
+  },
+  {
+    id: "semester-2",
+    semester: "Semester 2",
+    subjects: [
+      "Physics",
+      "Mathematics-II",
+      "Introduction to AI & ML",
+      "Data Structures",
+      "Programming Paradigms",
+      "Extra Academic Activity"
+    ]
+  },
+  {
+    id: "semester-3",
+    semester: "Semester 3",
+    subjects: [
+      "Analysis of Algorithms",
+      "Computer Architecture",
+      "Operation Research",
+      "Object Oriented Programming",
+      "Automata Theory",
+      "Extra Academic Activity"
+    ]
+  },
+  {
+    id: "semester-4",
+    semester: "Semester 4",
+    subjects: [
+      "Microprocessors & Applications",
+      "Operating System",
+      "Object Oriented Modelling",
+      "Compiler Construction",
+      "Artificial Intelligence",
+      "Minor Course",
+      "Extra Academic Activity"
+    ]
+  },
+  {
+    id: "semester-5",
+    semester: "Semester 5",
+    subjects: [
+      "Computer Networks",
+      "Database Management System",
+      "Embedded Systems",
+      "Software Engineering & Project Management",
+      "Cryptography & Network Security",
+      "Minor Course",
+      "Honours Course",
+      "Research Course"
+    ]
+  },
+  {
+    id: "semester-6",
+    semester: "Semester 6",
+    subjects: [
+      "Wireless and Mobile Networks",
+      "Data Mining and Warehousing",
+      "Distributed Systems",
+      "Professional Elective-I",
+      "Professional Elective-II",
+      "Minor Course",
+      "Honours Course",
+      "Research Course"
+    ]
+  },
+  {
+    id: "semester-7",
+    semester: "Semester 7",
+    subjects: [
+      "Image Processing & Computer Vision",
+      "Formal Methods",
+      "Machine Learning with Python",
+      "Professional Elective-III",
+      "Mini Project",
+      "Minor Course",
+      "Honours Course",
+      "Research Course"
+    ]
+  },
+  {
+    id: "semester-8",
+    semester: "Semester 8",
+    subjects: ["Industrial Training / Project / Research Project"]
+  }
+]);
+
+const mnnitBiotechnologySemesters = createSemesters([
+  {
+    id: "semester-1",
+    semester: "Semester 1",
+    subjects: [
+      "Chemistry",
+      "Mathematics-I",
+      "English Language & Technical Communication",
+      "Computer Programming",
+      "Computer Organization",
+      "Discrete Mathematics",
+      "Environment and Climate Change",
+      "Extra Academic Activity"
+    ]
+  },
+  {
+    id: "semester-2",
+    semester: "Semester 2",
+    subjects: [
+      "Physics",
+      "Mathematics-II",
+      "Introduction to AI & ML",
+      "Data Structures",
+      "Programming Paradigms",
+      "Extra Academic Activity"
+    ]
+  },
+  {
+    id: "semester-3",
+    semester: "Semester 3",
+    subjects: [
+      "Biochemistry",
+      "Microbiology",
+      "Cell and System Biology",
+      "Genetics",
+      "Biomaterial Science and Engineering",
+      "Thermodynamics of Biological System",
+      "Microbiology Lab",
+      "Genetics Lab",
+      "Biomaterial Science Lab"
+    ]
+  },
+  {
+    id: "semester-4",
+    semester: "Semester 4",
+    subjects: [
+      "Biophysics and Structural Biology",
+      "Applied Computational Methods",
+      "Instrumentation in Biotechnology",
+      "Bioprocess Engineering",
+      "Molecular Biology",
+      "Biochemistry & Molecular Analysis Lab",
+      "Computational Methods Lab",
+      "Biotechnology Techniques Lab",
+      "Bioprocess Engineering Lab"
+    ]
+  },
+  {
+    id: "semester-5",
+    semester: "Semester 5",
+    subjects: [
+      "Genetic Engineering",
+      "Microbial Biotechnology",
+      "Immunology",
+      "Molecular & Cellular Diagnostics",
+      "Principles of Management",
+      "Biostatistics",
+      "Genetic Engineering Lab",
+      "Microbial Biotechnology Lab",
+      "Immunology Lab"
+    ]
+  },
+  {
+    id: "semester-6",
+    semester: "Semester 6",
+    subjects: [
+      "Bioinformatics",
+      "Enzyme Technology and Engineering",
+      "Animal Biotechnology",
+      "Plant Biotechnology",
+      "IPR and Biotechnology",
+      "Communication Skills Workshop",
+      "Bioreactor and Plant Design",
+      "Bioinformatics Lab",
+      "Enzyme Technology Lab",
+      "Animal Biotechnology Lab"
+    ]
+  },
+  {
+    id: "semester-7",
+    semester: "Semester 7",
+    subjects: [
+      "Open Elective-I",
+      "Professional Elective-I",
+      "Professional Elective-II",
+      "Major Project (Interim)",
+      "Medical Biotechnology Lab",
+      "Plant Biotechnology Lab"
+    ]
+  },
+  {
+    id: "semester-8",
+    semester: "Semester 8",
+    subjects: [
+      "Bioprocess Control and Economics",
+      "Open Elective-II",
+      "Professional Elective-III",
+      "Professional Elective-IV",
+      "Major Project (Final)"
+    ]
+  }
+]);
+
+const mnnitBtechBranches = [
+  {
+    id: "biotechnology",
+    name: "Bio-Technology",
+    description: "Biotechnology curriculum for MNNIT Prayagraj.",
+    semesters: mnnitBiotechnologySemesters
+  },
+  {
+    id: "chemical",
+    name: "Chemical Engineering",
+    description: "Chemical Engineering curriculum for MNNIT Prayagraj.",
+    semesters: btechSemestersFor("Chemical Engineering")
+  },
+  {
+    id: "civil",
+    name: "Civil Engineering",
+    description: "Civil Engineering curriculum for MNNIT Prayagraj.",
+    semesters: btechSemestersFor("Civil Engineering")
+  },
+  {
+    id: "cse",
+    name: "Computer Science & Engineering",
+    description: "MNNIT Prayagraj CSE semester curriculum.",
+    semesters: mnnitCseSemesters
+  },
+  {
+    id: "electrical",
+    name: "Electrical Engineering",
+    description: "Electrical Engineering curriculum for MNNIT Prayagraj.",
+    semesters: btechSemestersFor("Electrical Engineering")
+  },
+  {
+    id: "ece",
+    name: "Electronics & Communication Engineering",
+    description: "ECE curriculum for MNNIT Prayagraj.",
+    semesters: btechSemestersFor("Electronics & Communication Engineering")
+  },
+  {
+    id: "it",
+    name: "Information Technology",
+    description: "Information Technology curriculum for MNNIT Prayagraj.",
+    semesters: btechSemestersFor("Information Technology")
+  },
+  {
+    id: "mechanical",
+    name: "Mechanical Engineering",
+    description: "Mechanical Engineering curriculum for MNNIT Prayagraj.",
+    semesters: btechSemestersFor("Mechanical Engineering")
+  },
+  {
+    id: "production-industrial",
+    name: "Production & Industrial Engineering",
+    description: "Production & Industrial Engineering curriculum for MNNIT Prayagraj.",
+    semesters: btechSemestersFor("Production & Industrial Engineering")
+  }
+];
 
 const mcaSemesters = createSemesters([
   {
@@ -395,6 +671,19 @@ export const programCatalog = {
   }
 };
 
+function cloneProgram(program) {
+  return {
+    ...program,
+    branches: program.branches.map((branch) => ({
+      ...branch,
+      semesters: branch.semesters.map((semester) => ({
+        ...semester,
+        subjects: semester.subjects.map((subject) => ({ ...subject }))
+      }))
+    }))
+  };
+}
+
 export const subjectCategories = [
   {
     id: "notice",
@@ -443,8 +732,20 @@ export const subjectCategories = [
   }
 ];
 
-export function getProgramById(programId) {
-  return programCatalog[programId];
+export function getProgramById(programId, collegeName = "") {
+  const baseProgram = programCatalog[programId];
+
+  if (!baseProgram) {
+    return null;
+  }
+
+  if (programId === "btech" && isMnnitPrayagraj(collegeName)) {
+    const program = cloneProgram(baseProgram);
+    program.branches = mnnitBtechBranches;
+    return program;
+  }
+
+  return baseProgram;
 }
 
 export function getBranchById(program, branchId) {

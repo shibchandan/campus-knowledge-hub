@@ -12,6 +12,7 @@ import { resourceRouter } from "../modules/resources/resource.routes.js";
 import { academicRouter } from "../modules/academic/academic.routes.js";
 import { noticeRouter } from "../modules/notices/notice.routes.js";
 import { auditRouter } from "../modules/audit/audit.routes.js";
+import { quizRouter } from "../modules/quizzes/quiz.routes.js";
 
 export const apiRouter = Router();
 
@@ -28,3 +29,4 @@ apiRouter.use("/resources", resourceRouter);
 apiRouter.use("/academic", academicRouter);
 apiRouter.use("/notices", noticeRouter);
 apiRouter.use("/audit", auditRouter);
+apiRouter.use("/quizzes", quizRouter);

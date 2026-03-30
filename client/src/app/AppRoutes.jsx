@@ -11,6 +11,7 @@ import { SubjectResourcePage } from "../pages/SubjectResourcePage";
 import { SubjectCategoryPage } from "../pages/SubjectCategoryPage";
 import { LecturesPage } from "../pages/LecturesPage";
 import { NotesPage } from "../pages/NotesPage";
+import { QuizArrangementPage } from "../pages/QuizArrangementPage";
 import { AiStudioPage } from "../pages/AiStudioPage";
 import { CommunityPage } from "../pages/CommunityPage";
 import { MarketplacePage } from "../pages/MarketplacePage";
@@ -49,6 +50,7 @@ export function AppRoutes() {
         />
         <Route path="lectures" element={<LecturesPage />} />
         <Route path="notes" element={<NotesPage />} />
+        <Route path="notes/quiz/:quizId" element={<QuizArrangementPage />} />
         <Route path="ai-studio" element={<AiStudioPage />} />
         <Route path="integrity" element={<IntegrityPage />} />
         <Route path="marketplace" element={<MarketplacePage />} />

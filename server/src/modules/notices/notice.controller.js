@@ -1,4 +1,5 @@
 import { Notice } from "./notice.model.js";
+import { CollegeCourse } from "../governance/governance.model.js";
 import { validateNoticePayload } from "./notice.validation.js";
 import { createAuditLog } from "../../services/audit.service.js";
 import {
@@ -7,6 +8,23 @@ import {
   readMongoId,
   readString
 } from "../../utils/requestValidation.js";
+
+async function assertRepresentativeCollegeAccess(userId, collegeName) {
+  const normalizedCollege = normalizeCollegeName(collegeName);
+  const course = await CollegeCourse.findOne({
+    collegeNameNormalized: normalizedCollege,
+    addedByRepresentative: userId
+  });
+
+  if (!course) {
+    throw createHttpError(
+      "Representative can manage notices only for approved colleges assigned to them.",
+      403
+    );
+  }
+
+  return normalizedCollege;
+}
 
 export async function listNotices(req, res, next) {
   try {
@@ -22,7 +40,28 @@ export async function listNotices(req, res, next) {
       delete filters.isPublished;
     }
 
-    if (collegeName) {
+    if (req.user?.role === "representative" && req.query.includeUnpublished === "true") {
+      delete filters.isPublished;
+      const ownedCourses = await CollegeCourse.find({ addedByRepresentative: req.user.id }).select(
+        "collegeNameNormalized"
+      );
+      const ownedCollegeNames = [...new Set(ownedCourses.map((course) => course.collegeNameNormalized))];
+
+      if (collegeName) {
+        const normalizedCollege = normalizeCollegeName(collegeName);
+        if (!ownedCollegeNames.includes(normalizedCollege)) {
+          throw createHttpError(
+            "Representative can view unpublished notices only for their assigned colleges.",
+            403
+          );
+        }
+        filters.collegeNameNormalized = normalizedCollege;
+      } else {
+        filters.collegeNameNormalized = { $in: ownedCollegeNames };
+      }
+    }
+
+    if (collegeName && !filters.collegeNameNormalized) {
       filters.$or = [
         { collegeNameNormalized: normalizeCollegeName(collegeName) },
         { collegeNameNormalized: "" }
@@ -42,13 +81,16 @@ export async function listNotices(req, res, next) {
 export async function createNotice(req, res, next) {
   try {
     const payload = validateNoticePayload(req.body);
+    if (req.user.role === "representative") {
+      await assertRepresentativeCollegeAccess(req.user.id, payload.collegeName);
+    }
     const notice = await Notice.create({
       ...payload,
       createdByAdmin: req.user.id
     });
     await createAuditLog({
       req,
-      action: "admin.create_notice",
+      action: `${req.user.role}.create_notice`,
       entityType: "notice",
       entityId: notice._id,
       metadata: { title: notice.title, collegeName: notice.collegeName }
@@ -71,11 +113,24 @@ export async function updateNotice(req, res, next) {
       throw createHttpError("Notice not found.", 404);
     }
 
+    if (req.user.role === "representative") {
+      const currentCollegeAllowed = await CollegeCourse.findOne({
+        collegeNameNormalized: notice.collegeNameNormalized,
+        addedByRepresentative: req.user.id
+      });
+
+      if (!currentCollegeAllowed) {
+        throw createHttpError("You are not allowed to edit this notice.", 403);
+      }
+
+      await assertRepresentativeCollegeAccess(req.user.id, payload.collegeName);
+    }
+
     Object.assign(notice, payload);
     await notice.save();
     await createAuditLog({
       req,
-      action: "admin.update_notice",
+      action: `${req.user.role}.update_notice`,
       entityType: "notice",
       entityId: notice._id,
       metadata: { title: notice.title, collegeName: notice.collegeName }
@@ -97,10 +152,21 @@ export async function deleteNotice(req, res, next) {
       throw createHttpError("Notice not found.", 404);
     }
 
+    if (req.user.role === "representative") {
+      const allowedCourse = await CollegeCourse.findOne({
+        collegeNameNormalized: notice.collegeNameNormalized,
+        addedByRepresentative: req.user.id
+      });
+
+      if (!allowedCourse) {
+        throw createHttpError("You are not allowed to delete this notice.", 403);
+      }
+    }
+
     await notice.deleteOne();
     await createAuditLog({
       req,
-      action: "admin.delete_notice",
+      action: `${req.user.role}.delete_notice`,
       entityType: "notice",
       entityId: notice._id,
       metadata: { title: notice.title, collegeName: notice.collegeName }

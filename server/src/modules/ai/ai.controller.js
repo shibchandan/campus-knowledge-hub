@@ -2,7 +2,7 @@ import { AiHistory } from "./aiHistory.model.js";
 import { generateStructuredAnswer, verifyAiProvider } from "./ai.service.js";
 import { Resource } from "../resources/resource.model.js";
 import { env } from "../../config/env.js";
-import { createHttpError, readEnum, readString } from "../../utils/requestValidation.js";
+import { createHttpError, readEnum, readMongoId, readString } from "../../utils/requestValidation.js";
 
 function tokenize(text) {
   return String(text || "")
@@ -227,6 +227,38 @@ export async function getAiHistory(req, res, next) {
       .populate("sourceResources", "title categoryId subjectId");
 
     res.json({ success: true, data: history });
+  } catch (error) {
+    next(error);
+  }
+}
+
+export async function deleteAiHistoryItem(req, res, next) {
+  try {
+    const historyId = readMongoId(req.params.historyId, { field: "historyId" });
+    const historyItem = await AiHistory.findById(historyId);
+
+    if (!historyItem) {
+      throw createHttpError("AI history entry not found.", 404);
+    }
+
+    const isOwner = String(historyItem.user) === String(req.user.id);
+    const isAdmin = req.user.role === "admin";
+
+    if (!isOwner && !isAdmin) {
+      throw createHttpError("You are not allowed to delete this AI history item.", 403);
+    }
+
+    await historyItem.deleteOne();
+    res.json({ success: true, message: "AI history item deleted." });
+  } catch (error) {
+    next(error);
+  }
+}
+
+export async function clearAiHistory(req, res, next) {
+  try {
+    await AiHistory.deleteMany({ user: req.user.id });
+    res.json({ success: true, message: "AI history cleared." });
   } catch (error) {
     next(error);
   }
