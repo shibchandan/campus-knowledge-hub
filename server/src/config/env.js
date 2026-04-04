@@ -56,6 +56,7 @@ export const env = {
   r2Folder: process.env.R2_FOLDER || "campus-knowledge-hub",
   marketplacePlatformFeePercent: Number(process.env.MARKETPLACE_PLATFORM_FEE_PERCENT || 5),
   marketplaceGstPercent: Number(process.env.MARKETPLACE_GST_PERCENT || 18),
+  marketplaceBasicSubscriptionDays: Number(process.env.MARKETPLACE_BASIC_SUBSCRIPTION_DAYS || 30),
   abuseProtectionEnabled:
     String(process.env.ABUSE_PROTECTION_ENABLED || "true").trim().toLowerCase() === "true",
   abuseRequireUserAgent:

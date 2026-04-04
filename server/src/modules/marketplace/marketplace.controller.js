@@ -79,11 +79,20 @@ function buildItemPayload(body) {
   });
   const currency = readString(body.currency || "INR", { field: "currency", min: 3, max: 5 });
   const courseTag = pricing.totalPrice === 0 ? "free-course" : "paid-course";
+  const isBasicSubscription = resourceType === "subscription";
+
+  if (isBasicSubscription && pricing.totalPrice <= 0) {
+    throw createHttpError("Monthly basic subscription must have a paid price.");
+  }
 
   return {
     title,
     description,
     resourceType,
+    subscriptionPlan: isBasicSubscription ? "basic" : "none",
+    subscriptionDurationDays: isBasicSubscription
+      ? Math.max(1, Number(env.marketplaceBasicSubscriptionDays || 30))
+      : 0,
     basePrice: pricing.basePrice,
     platformFeePercent: pricing.platformFeePercent,
     platformFeeAmount: pricing.platformFeeAmount,
@@ -236,33 +245,84 @@ export async function purchaseMarketplaceItem(req, res, next) {
     }
 
     const amount = item.price > 0 ? item.price : 0;
-    const purchaseType = amount > 0 ? "paid-purchase" : "free-enroll";
+    const isMonthlySubscription = item.resourceType === "subscription";
+    const purchaseType = isMonthlySubscription
+      ? "monthly-subscription"
+      : amount > 0
+        ? "paid-purchase"
+        : "free-enroll";
 
-    const purchase = await MarketplacePurchase.findOneAndUpdate(
-      { item: item._id, buyer: req.user.id },
-      {
-        $setOnInsert: {
+    let purchase;
+
+    if (isMonthlySubscription) {
+      const durationDays = Math.max(1, Number(item.subscriptionDurationDays || env.marketplaceBasicSubscriptionDays || 30));
+      const now = new Date();
+      const existing = await MarketplacePurchase.findOne({ item: item._id, buyer: req.user.id });
+      const baseStart =
+        existing?.accessExpiresAt && existing.accessExpiresAt > now ? existing.accessExpiresAt : now;
+      const nextExpiry = new Date(baseStart.getTime() + durationDays * 24 * 60 * 60 * 1000);
+
+      if (existing) {
+        existing.seller = item.seller._id;
+        existing.basePrice = item.basePrice || 0;
+        existing.platformFeeAmount = item.platformFeeAmount || 0;
+        existing.gstAmount = item.gstAmount || 0;
+        existing.amount = amount;
+        existing.currency = item.currency;
+        existing.purchaseType = purchaseType;
+        existing.accessStartsAt = now;
+        existing.accessExpiresAt = nextExpiry;
+        await existing.save();
+        purchase = existing;
+      } else {
+        purchase = await MarketplacePurchase.create({
+          item: item._id,
+          buyer: req.user.id,
           seller: item.seller._id,
           basePrice: item.basePrice || 0,
           platformFeeAmount: item.platformFeeAmount || 0,
           gstAmount: item.gstAmount || 0,
           amount,
           currency: item.currency,
-          purchaseType
-        }
-      },
-      { upsert: true, new: true, setDefaultsOnInsert: true }
-    )
+          purchaseType,
+          accessStartsAt: now,
+          accessExpiresAt: nextExpiry
+        });
+      }
+    } else {
+      purchase = await MarketplacePurchase.findOneAndUpdate(
+        { item: item._id, buyer: req.user.id },
+        {
+          $setOnInsert: {
+            seller: item.seller._id,
+            basePrice: item.basePrice || 0,
+            platformFeeAmount: item.platformFeeAmount || 0,
+            gstAmount: item.gstAmount || 0,
+            amount,
+            currency: item.currency,
+            purchaseType
+          }
+        },
+        { upsert: true, new: true, setDefaultsOnInsert: true }
+      );
+    }
+
+    purchase = await MarketplacePurchase.findById(purchase._id)
       .populate("buyer", "fullName email role")
       .populate("seller", "fullName email role")
       .populate(
         "item",
-        "title courseTag basePrice platformFeePercent platformFeeAmount gstPercent gstAmount price currency resourceType"
+        "title courseTag basePrice platformFeePercent platformFeeAmount gstPercent gstAmount price currency resourceType subscriptionPlan subscriptionDurationDays"
       );
 
     res.status(201).json({
       success: true,
-      message: purchaseType === "free-enroll" ? "Enrolled in free course." : "Course purchase recorded.",
+      message:
+        purchaseType === "free-enroll"
+          ? "Enrolled in free course."
+          : purchaseType === "monthly-subscription"
+            ? "Monthly basic subscription activated."
+            : "Course purchase recorded.",
       data: purchase
     });
   } catch (error) {
@@ -277,7 +337,7 @@ export async function getMyPurchases(req, res, next) {
       .populate("seller", "fullName email role")
       .populate(
         "item",
-        "title courseTag basePrice platformFeePercent platformFeeAmount gstPercent gstAmount price currency resourceType isPublished downloadUrl"
+        "title courseTag basePrice platformFeePercent platformFeeAmount gstPercent gstAmount price currency resourceType subscriptionPlan subscriptionDurationDays isPublished downloadUrl"
       )
       .sort({ createdAt: -1 });
     res.json({ success: true, data: purchases });

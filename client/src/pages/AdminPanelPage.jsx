@@ -1,13 +1,17 @@
 import { useEffect, useMemo, useState } from "react";
+import { useAuth } from "../auth/AuthContext";
 import { SectionCard } from "../components/SectionCard";
 import { apiClient } from "../lib/apiClient";
+import { useToast } from "../ui/ToastContext";
 
 const initialUserForm = {
   fullName: "",
   email: "",
   password: "",
   role: "student",
-  status: "active"
+  status: "active",
+  collegeName: "",
+  collegeStudentId: ""
 };
 
 const initialNoticeForm = {
@@ -24,6 +28,8 @@ const initialResourceEditForm = {
 };
 
 export function AdminPanelPage() {
+  const { showError, showSuccess } = useToast();
+  const { user: currentUser } = useAuth();
   const [pendingRequests, setPendingRequests] = useState([]);
   const [users, setUsers] = useState([]);
   const [approvedCourses, setApprovedCourses] = useState([]);
@@ -51,6 +57,7 @@ export function AdminPanelPage() {
   const [resourceSearch, setResourceSearch] = useState("");
   const [resourceSort, setResourceSort] = useState("newest");
   const [auditSearch, setAuditSearch] = useState("");
+  const [representativeSearch, setRepresentativeSearch] = useState("");
 
   async function loadAdminData() {
     setLoading(true);
@@ -109,9 +116,12 @@ export function AdminPanelPage() {
     try {
       await apiClient.patch(`/governance/requests/${requestId}/decision`, { action });
       setSuccess(`Request ${action}d successfully.`);
+      showSuccess(`Request ${action}d successfully.`);
       await loadAdminData();
     } catch (requestError) {
-      setError(requestError.response?.data?.message || "Failed to update request.");
+      const message = requestError.response?.data?.message || "Failed to update request.";
+      setError(message);
+      showError(message);
     }
   }
 
@@ -122,20 +132,67 @@ export function AdminPanelPage() {
       await apiClient.post("/auth/admin/users", userForm);
       setUserForm(initialUserForm);
       setSuccess("User created successfully.");
+      showSuccess("User created successfully.");
       await loadAdminData();
     } catch (requestError) {
-      setError(requestError.response?.data?.message || "Failed to create user.");
+      const message = requestError.response?.data?.message || "Failed to create user.";
+      setError(message);
+      showError(message);
     }
   }
 
   async function handleUpdateUser(userId, updates) {
     clearMessages();
+
+    const targetUser = users.find((item) => item.id === userId);
+    const actionLabel = updates.role
+      ? `change role to ${updates.role}`
+      : updates.status
+        ? `change status to ${updates.status}`
+        : "update this user";
+
+    const confirmed = window.confirm(
+      `Do you want to ${actionLabel} for ${targetUser?.fullName || targetUser?.email || "this user"}?`
+    );
+
+    if (!confirmed) {
+      return;
+    }
+
     try {
       await apiClient.patch(`/auth/admin/users/${userId}`, updates);
       setSuccess("User updated successfully.");
+      showSuccess("User updated successfully.");
       await loadAdminData();
     } catch (requestError) {
-      setError(requestError.response?.data?.message || "Failed to update user.");
+      const message = requestError.response?.data?.message || "Failed to update user.";
+      setError(message);
+      showError(message);
+    }
+  }
+
+  async function handleAssignCollege(user) {
+    clearMessages();
+    const nextCollegeName = window.prompt(
+      `Assign college for ${user.fullName}. Leave empty to remove college binding.`,
+      user.collegeName || ""
+    );
+
+    if (nextCollegeName === null) {
+      return;
+    }
+
+    try {
+      await apiClient.patch(`/auth/admin/users/${user.id}`, {
+        collegeName: nextCollegeName
+      });
+      setSuccess("User college updated successfully.");
+      showSuccess("User college updated successfully.");
+      await loadAdminData();
+    } catch (requestError) {
+      const message = requestError.response?.data?.message || "Failed to update user college.";
+      setError(message);
+      showError(message);
     }
   }
 
@@ -146,15 +203,19 @@ export function AdminPanelPage() {
       if (editingNoticeId) {
         await apiClient.patch(`/notices/${editingNoticeId}`, noticeForm);
         setSuccess("Notice updated successfully.");
+        showSuccess("Notice updated successfully.");
       } else {
         await apiClient.post("/notices", noticeForm);
         setSuccess("Notice created successfully.");
+        showSuccess("Notice created successfully.");
       }
       setNoticeForm(initialNoticeForm);
       setEditingNoticeId("");
       await loadAdminData();
     } catch (requestError) {
-      setError(requestError.response?.data?.message || "Failed to save notice.");
+      const message = requestError.response?.data?.message || "Failed to save notice.";
+      setError(message);
+      showError(message);
     }
   }
 
@@ -163,9 +224,12 @@ export function AdminPanelPage() {
     try {
       await apiClient.delete(`/notices/${noticeId}`);
       setSuccess("Notice deleted successfully.");
+      showSuccess("Notice deleted successfully.");
       await loadAdminData();
     } catch (requestError) {
-      setError(requestError.response?.data?.message || "Failed to delete notice.");
+      const message = requestError.response?.data?.message || "Failed to delete notice.";
+      setError(message);
+      showError(message);
     }
   }
 
@@ -175,11 +239,14 @@ export function AdminPanelPage() {
     try {
       await apiClient.patch(`/resources/${editingResourceId}`, resourceEditForm);
       setSuccess("Resource updated successfully.");
+      showSuccess("Resource updated successfully.");
       setEditingResourceId("");
       setResourceEditForm(initialResourceEditForm);
       await loadAdminData();
     } catch (requestError) {
-      setError(requestError.response?.data?.message || "Failed to update resource.");
+      const message = requestError.response?.data?.message || "Failed to update resource.";
+      setError(message);
+      showError(message);
     }
   }
 
@@ -188,9 +255,12 @@ export function AdminPanelPage() {
     try {
       await apiClient.delete(`/resources/${resourceId}`);
       setSuccess("Resource deleted successfully.");
+      showSuccess("Resource deleted successfully.");
       await loadAdminData();
     } catch (requestError) {
-      setError(requestError.response?.data?.message || "Failed to delete resource.");
+      const message = requestError.response?.data?.message || "Failed to delete resource.";
+      setError(message);
+      showError(message);
     }
   }
 
@@ -253,6 +323,28 @@ export function AdminPanelPage() {
 
     return items;
   }, [resourceSearch, resourceSort, resources]);
+
+  const filteredRepresentativeDirectory = useMemo(() => {
+    const term = representativeSearch.trim().toLowerCase();
+
+    return approvedCourses.filter((course) => {
+      const representativeName = course.addedByRepresentative?.fullName || "";
+      const representativeEmail = course.addedByRepresentative?.email || "";
+      const representativeStatus = course.addedByRepresentative?.status || "unknown";
+
+      if (!term) {
+        return true;
+      }
+
+      return (
+        course.collegeName?.toLowerCase().includes(term) ||
+        course.courseName?.toLowerCase().includes(term) ||
+        representativeName.toLowerCase().includes(term) ||
+        representativeEmail.toLowerCase().includes(term) ||
+        representativeStatus.toLowerCase().includes(term)
+      );
+    });
+  }, [approvedCourses, representativeSearch]);
 
   const filteredAuditLogs = useMemo(() => {
     const term = auditSearch.trim().toLowerCase();
@@ -355,6 +447,53 @@ export function AdminPanelPage() {
         </div>
       </SectionCard>
 
+      <SectionCard
+        title="College Representative Directory"
+        description="See which approved college-course entries are currently managed by which representative and whether that representative is active."
+      >
+        <div className="toolbar-grid">
+          <input
+            className="college-search"
+            onChange={(event) => setRepresentativeSearch(event.target.value)}
+            placeholder="Search college, course, representative, email, or status..."
+            type="text"
+            value={representativeSearch}
+          />
+          <p className="muted">{filteredRepresentativeDirectory.length} records visible</p>
+        </div>
+        <div className="panel-list">
+          {filteredRepresentativeDirectory.map((course) => {
+            const representative = course.addedByRepresentative;
+            const representativeStatus = representative?.status || "unknown";
+            const isActiveRepresentative =
+              representative?.role === "representative" && representativeStatus === "active";
+
+            return (
+              <article className="panel-card" key={course._id}>
+                <h3>{course.collegeName}</h3>
+                <p className="muted">Course: {course.courseName} | Semesters: {course.semesterCount}</p>
+                <p className="muted">
+                  Representative: {representative?.fullName || "No representative"} ({representative?.email || "Not available"})
+                </p>
+                <p className={`status-chip ${isActiveRepresentative ? "approved" : representativeStatus === "suspended" || representativeStatus === "banned" ? "rejected" : "pending"}`}>
+                  {isActiveRepresentative
+                    ? "Active Representative"
+                    : representative
+                      ? `Representative ${representativeStatus}`
+                      : "Representative Missing"}
+                </p>
+                <p className="muted">
+                  Approved by: {course.approvedByAdmin?.fullName || course.approvedByAdmin?.email || "Admin"}
+                </p>
+              </article>
+            );
+          })}
+          {!filteredRepresentativeDirectory.length ? (
+            <p className="muted">No representative records matched your search.</p>
+          ) : null}
+        </div>
+      </SectionCard>
+
       <SectionCard title="User Management" description="Create users and control role/status safely.">
         <form className="panel-form" onSubmit={handleCreateUser}>
           <div className="panel-form-grid">
@@ -401,6 +540,28 @@ export function AdminPanelPage() {
                 <option value="banned">Banned</option>
               </select>
             </label>
+            <label className="auth-field">
+              <span>Assigned College</span>
+              <input
+                onChange={(event) =>
+                  setUserForm((current) => ({ ...current, collegeName: event.target.value }))
+                }
+                placeholder="Optional for admin/rep, recommended for student"
+                type="text"
+                value={userForm.collegeName}
+              />
+            </label>
+            <label className="auth-field">
+              <span>College ID</span>
+              <input
+                onChange={(event) =>
+                  setUserForm((current) => ({ ...current, collegeStudentId: event.target.value.toUpperCase() }))
+                }
+                placeholder="Recommended for student verification"
+                type="text"
+                value={userForm.collegeStudentId}
+              />
+            </label>
           </div>
           <button className="auth-submit" type="submit">Create User</button>
         </form>
@@ -433,13 +594,133 @@ export function AdminPanelPage() {
               <h3>{user.fullName}</h3>
               <p className="muted">{user.email}</p>
               <p className="muted">Role: {user.role} | Status: {user.status}</p>
+              <p className="muted">Assigned college: {user.collegeName || "Not assigned"}</p>
+              <p className="muted">College ID: {user.collegeStudentId || "Not added"}</p>
+              <p className="muted">
+                Official college email: {user.officialCollegeEmail || "Not added"} |{" "}
+                {user.officialCollegeEmailVerified ? "Verified" : "Not verified"}
+              </p>
+              {user.studentProofUrl ? (
+                <p className="muted">
+                  <a href={user.studentProofUrl} rel="noreferrer" target="_blank">
+                    Open proof: {user.studentProofOriginalName || "student-proof"}
+                  </a>
+                </p>
+              ) : (
+                <p className="muted">Proof document: Not uploaded</p>
+              )}
+              {user.role === "student" ? (
+                <p
+                  className={`status-chip ${
+                    user.studentVerificationStatus === "verified"
+                      ? "approved"
+                      : user.studentVerificationStatus === "rejected"
+                        ? "rejected"
+                        : user.studentVerificationStatus === "pending"
+                          ? "pending"
+                          : "pending"
+                  }`}
+                >
+                  Student verification: {user.studentVerificationStatus || "none"}
+                </p>
+              ) : null}
+              {user.representativeRequestStatus && user.representativeRequestStatus !== "none" ? (
+                <p className={`status-chip ${user.representativeRequestStatus === "pending" ? "pending" : user.representativeRequestStatus === "approved" ? "approved" : "rejected"}`}>
+                  Representative request: {user.representativeRequestStatus}
+                </p>
+              ) : null}
               <div className="panel-actions">
-                <button className="action-button approve" onClick={() => handleUpdateUser(user.id, { role: "admin" })} type="button">Make Admin</button>
-                <button className="action-button neutral" onClick={() => handleUpdateUser(user.id, { role: "representative" })} type="button">Make Rep</button>
-                <button className="action-button reject" onClick={() => handleUpdateUser(user.id, { status: "suspended" })} type="button">Suspend</button>
-                <button className="action-button reject" onClick={() => handleUpdateUser(user.id, { status: "banned" })} type="button">Ban</button>
-                <button className="action-button approve" onClick={() => handleUpdateUser(user.id, { status: "active" })} type="button">Activate</button>
+                {user.representativeRequestStatus === "pending" ? (
+                  <button
+                    className="action-button approve"
+                    onClick={() =>
+                      handleUpdateUser(user.id, {
+                        role: "representative",
+                        representativeRequestStatus: "approved"
+                      })
+                    }
+                    type="button"
+                  >
+                    Approve Rep Request
+                  </button>
+                ) : null}
+                {user.representativeRequestStatus === "pending" ? (
+                  <button
+                    className="action-button reject"
+                    onClick={() =>
+                      handleUpdateUser(user.id, {
+                        role: "student",
+                        representativeRequestStatus: "rejected"
+                      })
+                    }
+                    type="button"
+                  >
+                    Reject Rep Request
+                  </button>
+                ) : null}
+                {user.role !== "admin" ? (
+                  <button className="action-button approve" onClick={() => handleUpdateUser(user.id, { role: "admin" })} type="button">
+                    Make Admin
+                  </button>
+                ) : null}
+                {user.role !== "representative" && currentUser?.id !== user.id ? (
+                  <button className="action-button neutral" onClick={() => handleUpdateUser(user.id, { role: "representative" })} type="button">
+                    Make Rep
+                  </button>
+                ) : null}
+                {user.role !== "student" && currentUser?.id !== user.id ? (
+                  <button className="action-button neutral" onClick={() => handleUpdateUser(user.id, { role: "student" })} type="button">
+                    Make Student
+                  </button>
+                ) : null}
+                {user.status !== "suspended" && currentUser?.id !== user.id ? (
+                  <button className="action-button reject" onClick={() => handleUpdateUser(user.id, { status: "suspended" })} type="button">
+                    Suspend
+                  </button>
+                ) : null}
+                {user.status !== "banned" && currentUser?.id !== user.id ? (
+                  <button className="action-button reject" onClick={() => handleUpdateUser(user.id, { status: "banned" })} type="button">
+                    Ban
+                  </button>
+                ) : null}
+                {user.status !== "active" ? (
+                  <button className="action-button approve" onClick={() => handleUpdateUser(user.id, { status: "active" })} type="button">
+                    Activate
+                  </button>
+                ) : null}
+                <button
+                  className="action-button neutral"
+                  onClick={() => handleAssignCollege(user)}
+                  type="button"
+                >
+                  Set College
+                </button>
+                {user.role === "student" && user.studentVerificationStatus !== "verified" ? (
+                  <button
+                    className="action-button approve"
+                    onClick={() =>
+                      handleUpdateUser(user.id, { studentVerificationStatus: "verified" })
+                    }
+                    type="button"
+                  >
+                    Verify Student
+                  </button>
+                ) : null}
+                {user.role === "student" && user.studentVerificationStatus !== "rejected" ? (
+                  <button
+                    className="action-button reject"
+                    onClick={() =>
+                      handleUpdateUser(user.id, { studentVerificationStatus: "rejected" })
+                    }
+                    type="button"
+                  >
+                    Reject Verification
+                  </button>
+                ) : null}
               </div>
+              {currentUser?.id === user.id ? (
+                <p className="muted">This is your current admin account.</p>
+              ) : null}
             </article>
           ))}
         </div>

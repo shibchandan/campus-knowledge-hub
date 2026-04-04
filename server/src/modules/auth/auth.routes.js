@@ -9,10 +9,13 @@ import {
   listUsers,
   register,
   resetPassword,
-  updateProfile
+  sendCollegeEmailOtp,
+  updateProfile,
+  verifyCollegeEmailOtp
 } from "./auth.controller.js";
 import { authorize, protect } from "../../middleware/authMiddleware.js";
 import { createRateLimiter } from "../../middleware/rateLimit.js";
+import { upload } from "../../middleware/uploadMiddleware.js";
 
 export const authRouter = Router();
 
@@ -23,13 +26,15 @@ const authRateLimiter = createRateLimiter({
   keyPrefix: "auth"
 });
 
-authRouter.post("/register", authRateLimiter, register);
+authRouter.post("/register", authRateLimiter, upload.single("studentProof"), register);
 authRouter.post("/login", authRateLimiter, login);
 authRouter.post("/forgot-password", authRateLimiter, forgotPassword);
 authRouter.post("/reset-password", authRateLimiter, resetPassword);
 authRouter.get("/me", protect, getCurrentUser);
 authRouter.patch("/me", protect, updateProfile);
 authRouter.post("/change-password", protect, authRateLimiter, changePassword);
+authRouter.post("/student-verification/send-college-email-otp", protect, authRateLimiter, sendCollegeEmailOtp);
+authRouter.post("/student-verification/verify-college-email-otp", protect, authRateLimiter, verifyCollegeEmailOtp);
 authRouter.get("/admin/users", protect, authorize("admin"), listUsers);
 authRouter.post("/admin/users", protect, authorize("admin"), adminCreateUser);
 authRouter.patch("/admin/users/:userId", protect, authorize("admin"), adminUpdateUser);

@@ -11,8 +11,10 @@ export function DashboardPage() {
   const [programSearch, setProgramSearch] = useState("");
   const [noticeSearch, setNoticeSearch] = useState("");
   const [profile, setProfile] = useState(null);
+  const [approvedCourses, setApprovedCourses] = useState([]);
   const [notices, setNotices] = useState([]);
   const [structures, setStructures] = useState([]);
+  const [activeRepresentativeKey, setActiveRepresentativeKey] = useState("");
   const [loadingProfile, setLoadingProfile] = useState(false);
   const [profileError, setProfileError] = useState("");
 
@@ -42,6 +44,28 @@ export function DashboardPage() {
     }
 
     loadCollegeProfile();
+  }, [selectedCollege?.name]);
+
+  useEffect(() => {
+    async function loadApprovedCourses() {
+      if (!selectedCollege?.name) {
+        setApprovedCourses([]);
+        return;
+      }
+
+      try {
+        const response = await apiClient.get("/governance/approved-courses");
+        setApprovedCourses(
+          (response.data.data || []).filter(
+            (item) => item.collegeName?.toLowerCase() === selectedCollege.name.toLowerCase()
+          )
+        );
+      } catch {
+        setApprovedCourses([]);
+      }
+    }
+
+    loadApprovedCourses();
   }, [selectedCollege?.name]);
 
   useEffect(() => {
@@ -126,6 +150,34 @@ export function DashboardPage() {
         (notice.collegeName || "platform-wide notice").toLowerCase().includes(term)
     );
   }, [noticeSearch, notices]);
+
+  const representativeDirectory = useMemo(() => {
+    const grouped = new Map();
+
+    approvedCourses.forEach((course) => {
+      const representative = course.addedByRepresentative;
+      const key = representative?._id || representative?.email || course._id;
+      const existing = grouped.get(key) || {
+        key,
+        fullName: representative?.fullName || "Representative",
+        email: representative?.email || "Email not available",
+        status: representative?.status || "active",
+        courses: [],
+        totalSemesters: 0
+      };
+
+      existing.courses.push({
+        courseName: course.courseName,
+        semesterCount: course.semesterCount
+      });
+      existing.totalSemesters += Number(course.semesterCount || 0);
+      grouped.set(key, existing);
+    });
+
+    return Array.from(grouped.values()).sort((left, right) =>
+      left.fullName.localeCompare(right.fullName)
+    );
+  }, [approvedCourses]);
 
   const dashboardStats = useMemo(
     () => [
@@ -233,6 +285,54 @@ export function DashboardPage() {
             </article>
           </div>
         ) : null}
+      </SectionCard>
+
+      <SectionCard
+        title="Representative Directory"
+        description="See who manages courses for this selected college and open their handled course list."
+      >
+        {!selectedCollege ? <p className="muted">Select a college first from Colleges page.</p> : null}
+        {selectedCollege && !representativeDirectory.length ? (
+          <p className="muted">No approved representatives are mapped to this college yet.</p>
+        ) : null}
+        <div className="panel-list">
+          {representativeDirectory.map((representative) => (
+            <article className="panel-card" key={representative.key}>
+              <h3>{representative.fullName}</h3>
+              <p className="muted">{representative.email}</p>
+              <p className="muted">
+                Manages {representative.courses.length} course entries | Total semesters covered:{" "}
+                {representative.totalSemesters}
+              </p>
+              <div className="panel-actions">
+                <button
+                  className="action-button neutral"
+                  onClick={() =>
+                    setActiveRepresentativeKey((current) =>
+                      current === representative.key ? "" : representative.key
+                    )
+                  }
+                  type="button"
+                >
+                  {activeRepresentativeKey === representative.key ? "Hide Details" : "View Managed Courses"}
+                </button>
+              </div>
+              {activeRepresentativeKey === representative.key ? (
+                <div className="detail-grid">
+                  {representative.courses.map((course) => (
+                    <article
+                      className="detail-card"
+                      key={`${representative.key}-${course.courseName}-${course.semesterCount}`}
+                    >
+                      <h3>{course.courseName}</h3>
+                      <p>{course.semesterCount} semesters</p>
+                    </article>
+                  ))}
+                </div>
+              ) : null}
+            </article>
+          ))}
+        </div>
       </SectionCard>
 
       <SectionCard

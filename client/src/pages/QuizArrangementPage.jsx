@@ -1,8 +1,10 @@
 import { useEffect, useMemo, useState } from "react";
-import { Link, Navigate, useParams } from "react-router-dom";
+import { Link, Navigate, useParams, useSearchParams } from "react-router-dom";
 import { SectionCard } from "../components/SectionCard";
 import { getQuizArrangementById } from "../features/notes/mockResources";
 import { apiClient } from "../lib/apiClient";
+import { useCollege } from "../college/CollegeContext";
+import { useToast } from "../ui/ToastContext";
 
 const QUIZ_PLAN_STORAGE_KEY = "campus-knowledge-hub-quiz-plans";
 
@@ -23,6 +25,9 @@ function savePlanToStorage(plan) {
 
 export function QuizArrangementPage() {
   const { quizId } = useParams();
+  const [searchParams] = useSearchParams();
+  const { selectedCollege } = useCollege();
+  const { showInfo, showSuccess } = useToast();
   const fallbackQuiz = getQuizArrangementById(quizId);
   const [dynamicQuiz, setDynamicQuiz] = useState(null);
   const [loading, setLoading] = useState(Boolean(quizId));
@@ -31,15 +36,23 @@ export function QuizArrangementPage() {
   const [submitted, setSubmitted] = useState(false);
   const [saved, setSaved] = useState(false);
   const quiz = dynamicQuiz || fallbackQuiz;
+  const collegeName = searchParams.get("collegeName") || selectedCollege?.name || "";
 
   useEffect(() => {
     let ignore = false;
 
     async function loadQuiz() {
+      if (!collegeName && !fallbackQuiz) {
+        setLoading(false);
+        return;
+      }
+
       setLoading(true);
 
       try {
-        const response = await apiClient.get(`/quizzes/${quizId}`);
+        const response = await apiClient.get(`/quizzes/${quizId}`, {
+          params: collegeName ? { collegeName } : {}
+        });
         if (!ignore) {
           setDynamicQuiz(response.data.data || null);
         }
@@ -59,7 +72,7 @@ export function QuizArrangementPage() {
     return () => {
       ignore = true;
     };
-  }, [quizId]);
+  }, [collegeName, fallbackQuiz, quizId]);
 
   const question = useMemo(() => quiz?.questions?.[currentIndex], [currentIndex, quiz]);
   const totalQuestions = quiz?.questions?.length || 0;
@@ -75,7 +88,7 @@ export function QuizArrangementPage() {
   }
 
   if (!quiz) {
-    return <Navigate to="/notes" replace />;
+    return <Navigate to="/quizzes" replace />;
   }
 
   const score = quiz.questions.reduce((total, item, index) => {
@@ -99,10 +112,12 @@ export function QuizArrangementPage() {
       difficulty: quiz.difficulty
     });
     setSaved(true);
+    showSuccess("Quiz plan saved.");
   }
 
   function handleSubmitQuiz() {
     setSubmitted(true);
+    showInfo("Quiz submitted. Review your score below.");
   }
 
   return (
@@ -119,8 +134,8 @@ export function QuizArrangementPage() {
               Question {currentIndex + 1} of {totalQuestions}
             </p>
           </div>
-          <Link className="back-link" to="/notes">
-            Back to Notes
+          <Link className="back-link" to="/quizzes">
+            Back to Quizzes
           </Link>
         </div>
       </SectionCard>

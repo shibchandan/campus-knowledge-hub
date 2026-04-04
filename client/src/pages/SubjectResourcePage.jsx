@@ -14,7 +14,7 @@ import { apiClient } from "../lib/apiClient";
 export function SubjectResourcePage() {
   const { programId, branchId, semesterId, subjectId } = useParams();
   const { selectedCollege } = useCollege();
-  const program = getProgramById(programId);
+  const program = getProgramById(programId, selectedCollege?.name || "");
   const branch = getBranchById(program, branchId);
   const semester = getSemesterById(branch, semesterId);
   const fallbackSubject = getSubjectById(semester, subjectId);

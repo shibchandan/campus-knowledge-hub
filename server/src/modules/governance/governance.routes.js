@@ -1,6 +1,7 @@
 import { Router } from "express";
 import { authorize, protect } from "../../middleware/authMiddleware.js";
 import {
+  getAvailableRepresentativeColleges,
   createApprovedCollegeCourse,
   createCollegeRequest,
   deleteApprovedCollegeCourse,
@@ -18,6 +19,12 @@ import {
 export const governanceRouter = Router();
 
 governanceRouter.get("/approved-courses", protect, getApprovedCollegeCourses);
+governanceRouter.get(
+  "/requestable-colleges",
+  protect,
+  authorize("representative", "admin"),
+  getAvailableRepresentativeColleges
+);
 governanceRouter.post(
   "/approved-courses",
   protect,

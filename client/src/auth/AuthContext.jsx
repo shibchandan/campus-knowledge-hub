@@ -2,6 +2,7 @@ import { createContext, useContext, useEffect, useMemo, useState } from "react";
 import { apiClient, setAuthToken } from "../lib/apiClient";
 
 const AUTH_STORAGE_KEY = "campus-knowledge-hub-auth";
+const COLLEGE_STORAGE_KEY = "campus-knowledge-hub-college";
 
 const AuthContext = createContext(null);
 
@@ -55,13 +56,44 @@ export function AuthProvider({ children }) {
 
   async function login(credentials) {
     const response = await apiClient.post("/auth/login", credentials);
+    localStorage.removeItem(COLLEGE_STORAGE_KEY);
     setSession(response.data.data);
     return response.data.data;
   }
 
   async function register(payload) {
-    const response = await apiClient.post("/auth/register", payload);
+    const shouldUseFormData = payload?.studentProof instanceof File;
+    const requestPayload = shouldUseFormData ? new FormData() : payload;
+
+    if (shouldUseFormData) {
+      Object.entries(payload).forEach(([key, value]) => {
+        if (value instanceof File) {
+          requestPayload.append(key, value);
+          return;
+        }
+
+        requestPayload.append(key, value ?? "");
+      });
+    }
+
+    const response = await apiClient.post("/auth/register", requestPayload, shouldUseFormData
+      ? { headers: { "Content-Type": "multipart/form-data" } }
+      : undefined);
+    localStorage.removeItem(COLLEGE_STORAGE_KEY);
     setSession(response.data.data);
+    return response.data.data;
+  }
+
+  async function refreshCurrentUser() {
+    if (!session?.token) {
+      return null;
+    }
+
+    const response = await apiClient.get("/auth/me");
+    setSession((current) => ({
+      ...current,
+      user: response.data.data
+    }));
     return response.data.data;
   }
 
@@ -75,6 +107,7 @@ export function AuthProvider({ children }) {
   }
 
   function logout() {
+    localStorage.removeItem(COLLEGE_STORAGE_KEY);
     setSession(null);
   }
 
@@ -87,6 +120,7 @@ export function AuthProvider({ children }) {
       login,
       register,
       updateProfile,
+      refreshCurrentUser,
       logout
     }),
     [isBootstrapping, session]

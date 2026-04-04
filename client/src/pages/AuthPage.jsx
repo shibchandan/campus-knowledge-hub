@@ -7,7 +7,11 @@ const initialRegisterState = {
   fullName: "",
   email: "",
   password: "",
-  role: "student"
+  role: "student",
+  collegeName: "",
+  collegeStudentId: "",
+  officialCollegeEmail: "",
+  studentProof: null
 };
 
 const initialLoginState = {
@@ -86,7 +90,12 @@ export function AuthPage() {
     setSuccess("");
 
     try {
-      await register(registerForm);
+      const session = await register(registerForm);
+      if (session?.user?.representativeRequestStatus === "pending") {
+        setSuccess(
+          "Representative request sent to admin. You can log in and use student access until approval."
+        );
+      }
       navigate("/colleges", { replace: true });
     } catch (requestError) {
       setError(getAuthErrorMessage(requestError, "Registration failed. Try a different email."));
@@ -272,6 +281,74 @@ export function AuthPage() {
                 <option value="representative">College Representative</option>
               </select>
             </label>
+            {registerForm.role === "student" ? (
+              <>
+                <label className="auth-field">
+                  <span>College Name</span>
+                  <input
+                    type="text"
+                    value={registerForm.collegeName}
+                    onChange={(event) =>
+                      setRegisterForm((current) => ({ ...current, collegeName: event.target.value }))
+                    }
+                    placeholder="Enter your college name"
+                    required
+                  />
+                </label>
+
+                <label className="auth-field">
+                  <span>College ID</span>
+                  <input
+                    type="text"
+                    value={registerForm.collegeStudentId}
+                    onChange={(event) =>
+                      setRegisterForm((current) => ({
+                        ...current,
+                        collegeStudentId: event.target.value.toUpperCase()
+                      }))
+                    }
+                    placeholder="Enter your student/college ID"
+                    required
+                  />
+                </label>
+                <label className="auth-field">
+                  <span>Official College Email (optional)</span>
+                  <input
+                    type="email"
+                    value={registerForm.officialCollegeEmail}
+                    onChange={(event) =>
+                      setRegisterForm((current) => ({
+                        ...current,
+                        officialCollegeEmail: event.target.value
+                      }))
+                    }
+                    placeholder="yourid@college.edu"
+                  />
+                </label>
+                <label className="auth-field">
+                  <span>Proof Document</span>
+                  <input
+                    accept="application/pdf,image/*"
+                    onChange={(event) =>
+                      setRegisterForm((current) => ({
+                        ...current,
+                        studentProof: event.target.files?.[0] || null
+                      }))
+                    }
+                    required
+                    type="file"
+                  />
+                </label>
+                <p className="muted">
+                  Upload your ID card or proof document. If you also add an official college email, the platform will send an OTP there for extra verification.
+                </p>
+              </>
+            ) : null}
+            {registerForm.role === "representative" ? (
+              <p className="muted">
+                Representative access requires admin approval. Until approved, your account will use student access.
+              </p>
+            ) : null}
 
             <button className="auth-submit" disabled={loading} type="submit">
               {loading ? "Creating account..." : "Register"}

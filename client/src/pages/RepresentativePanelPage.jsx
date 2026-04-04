@@ -1,6 +1,8 @@
 import { useEffect, useMemo, useState } from "react";
 import { SectionCard } from "../components/SectionCard";
+import { useCollege } from "../college/CollegeContext";
 import { apiClient } from "../lib/apiClient";
+import { useToast } from "../ui/ToastContext";
 
 const initialForm = {
   collegeName: "",
@@ -45,6 +47,31 @@ const initialQuizForm = {
   isPublished: true,
   questions: [initialQuizQuestion]
 };
+
+const initialStructureForm = {
+  collegeName: "",
+  programId: "btech",
+  programName: "BTech",
+  branchId: "",
+  branchName: "",
+  branchDescription: "",
+  semesterId: "",
+  semesterName: "",
+  semesterOrder: 1
+};
+
+const initialSubjectForm = {
+  collegeName: "",
+  programId: "btech",
+  branchId: "",
+  semesterId: "",
+  subjectId: "",
+  name: ""
+};
+
+function normalizeSearchValue(value = "") {
+  return value.toLowerCase().replace(/[^a-z0-9\s]/g, " ").replace(/\s+/g, " ").trim();
+}
 
 function mapProfileToForm(profile) {
   if (!profile) {
@@ -92,13 +119,51 @@ function mapQuizToForm(quiz) {
   };
 }
 
+function mapStructureToForm(structure) {
+  if (!structure) {
+    return initialStructureForm;
+  }
+
+  return {
+    collegeName: structure.collegeName || "",
+    programId: structure.programId || "btech",
+    programName: structure.programName || "",
+    branchId: structure.branchId || "",
+    branchName: structure.branchName || "",
+    branchDescription: structure.branchDescription || "",
+    semesterId: structure.semesterId || "",
+    semesterName: structure.semesterName || "",
+    semesterOrder: Number(structure.semesterOrder) || 1
+  };
+}
+
+function mapSubjectToForm(subject) {
+  if (!subject) {
+    return initialSubjectForm;
+  }
+
+  return {
+    collegeName: subject.collegeName || "",
+    programId: subject.programId || "btech",
+    branchId: subject.branchId || "",
+    semesterId: subject.semesterId || "",
+    subjectId: subject.subjectId || "",
+    name: subject.name || ""
+  };
+}
+
 export function RepresentativePanelPage() {
+  const { colleges: platformColleges } = useCollege();
+  const { showError, showSuccess } = useToast();
   const [form, setForm] = useState(initialForm);
   const [profileForm, setProfileForm] = useState(initialProfileForm);
   const [requests, setRequests] = useState([]);
   const [myColleges, setMyColleges] = useState([]);
   const [notices, setNotices] = useState([]);
   const [quizzes, setQuizzes] = useState([]);
+  const [structures, setStructures] = useState([]);
+  const [subjects, setSubjects] = useState([]);
+  const [requestableColleges, setRequestableColleges] = useState([]);
   const [loading, setLoading] = useState(true);
   const [submitting, setSubmitting] = useState(false);
   const [profileSubmitting, setProfileSubmitting] = useState(false);
@@ -107,6 +172,8 @@ export function RepresentativePanelPage() {
   const [editingProfileId, setEditingProfileId] = useState("");
   const [editingNoticeId, setEditingNoticeId] = useState("");
   const [editingQuizId, setEditingQuizId] = useState("");
+  const [editingStructureId, setEditingStructureId] = useState("");
+  const [editingSubjectId, setEditingSubjectId] = useState("");
   const [error, setError] = useState("");
   const [success, setSuccess] = useState("");
   const [collegeSearch, setCollegeSearch] = useState("");
@@ -118,6 +185,13 @@ export function RepresentativePanelPage() {
   const [quizForm, setQuizForm] = useState(initialQuizForm);
   const [quizSubmitting, setQuizSubmitting] = useState(false);
   const [quizSearch, setQuizSearch] = useState("");
+  const [structureForm, setStructureForm] = useState(initialStructureForm);
+  const [structureSubmitting, setStructureSubmitting] = useState(false);
+  const [structureSearch, setStructureSearch] = useState("");
+  const [subjectForm, setSubjectForm] = useState(initialSubjectForm);
+  const [subjectSubmitting, setSubjectSubmitting] = useState(false);
+  const [subjectSearch, setSubjectSearch] = useState("");
+  const [openSelector, setOpenSelector] = useState("");
 
   async function loadRepresentativeData() {
     setLoading(true);
@@ -133,9 +207,16 @@ export function RepresentativePanelPage() {
       const collegeItems = collegesResponse.data.data || [];
       setMyColleges(collegeItems);
 
+      try {
+        const requestableResponse = await apiClient.get("/governance/requestable-colleges");
+        setRequestableColleges(requestableResponse.data.data || []);
+      } catch {
+        setRequestableColleges([]);
+      }
+
       const collegeNames = [...new Set(collegeItems.map((item) => item.collegeName).filter(Boolean))];
       if (collegeNames.length) {
-        const [noticeResponses, quizResponses] = await Promise.all([
+        const [noticeResponses, quizResponses, structureResponses, subjectResponses] = await Promise.all([
           Promise.all(
           collegeNames.map((collegeName) =>
             apiClient.get("/notices", {
@@ -149,6 +230,20 @@ export function RepresentativePanelPage() {
                 params: { collegeName, includeUnpublished: true }
               })
             )
+          ),
+          Promise.all(
+            collegeNames.map((collegeName) =>
+              apiClient.get("/academic/structures", {
+                params: { collegeName }
+              })
+            )
+          ),
+          Promise.all(
+            collegeNames.map((collegeName) =>
+              apiClient.get("/academic/subjects", {
+                params: { collegeName }
+              })
+            )
           )
         ]);
         const allNotices = noticeResponses.flatMap((response) => response.data.data || []);
@@ -157,9 +252,17 @@ export function RepresentativePanelPage() {
         const allQuizzes = quizResponses.flatMap((response) => response.data.data || []);
         const uniqueQuizzes = Array.from(new Map(allQuizzes.map((item) => [item._id, item])).values());
         setQuizzes(uniqueQuizzes);
+        const allStructures = structureResponses.flatMap((response) => response.data.data || []);
+        const uniqueStructures = Array.from(new Map(allStructures.map((item) => [item._id, item])).values());
+        setStructures(uniqueStructures);
+        const allSubjects = subjectResponses.flatMap((response) => response.data.data || []);
+        const uniqueSubjects = Array.from(new Map(allSubjects.map((item) => [item._id, item])).values());
+        setSubjects(uniqueSubjects);
       } else {
         setNotices([]);
         setQuizzes([]);
+        setStructures([]);
+        setSubjects([]);
       }
     } catch (requestError) {
       setError(
@@ -194,6 +297,16 @@ export function RepresentativePanelPage() {
     setEditingQuizId("");
   }
 
+  function resetStructureForm() {
+    setStructureForm(initialStructureForm);
+    setEditingStructureId("");
+  }
+
+  function resetSubjectForm() {
+    setSubjectForm(initialSubjectForm);
+    setEditingSubjectId("");
+  }
+
   async function handleSubmit(event) {
     event.preventDefault();
     setSubmitting(true);
@@ -201,6 +314,17 @@ export function RepresentativePanelPage() {
     setSuccess("");
 
     try {
+      if (selectedCourseCatalogEntry?.hasActiveRepresentative) {
+        const representativeLabel = selectedCourseCatalogEntry.representativeName
+          ? `${selectedCourseCatalogEntry.representativeName} (${selectedCourseCatalogEntry.representativeEmail})`
+          : "an active representative";
+        const message = `This course already has ${representativeLabel}. Request cannot be submitted.`;
+        setError(message);
+        showError(message);
+        setSubmitting(false);
+        return;
+      }
+
       const payload = {
         ...form,
         semesterCount: Number(form.semesterCount)
@@ -209,15 +333,19 @@ export function RepresentativePanelPage() {
       if (editingCourseId) {
         await apiClient.patch(`/governance/approved-courses/${editingCourseId}`, payload);
         setSuccess("College course details updated successfully.");
+        showSuccess("College course details updated successfully.");
       } else {
         await apiClient.post("/governance/requests", payload);
         setSuccess("Request submitted for admin verification.");
+        showSuccess("Request submitted for admin verification.");
       }
 
       resetCourseForm();
       await loadRepresentativeData();
     } catch (requestError) {
-      setError(requestError.response?.data?.message || "Failed to save college course details.");
+      const message = requestError.response?.data?.message || "Failed to save college course details.";
+      setError(message);
+      showError(message);
     } finally {
       setSubmitting(false);
     }
@@ -246,10 +374,13 @@ export function RepresentativePanelPage() {
       });
 
       setSuccess(editingProfileId ? "College profile updated successfully." : "College profile saved successfully.");
+      showSuccess(editingProfileId ? "College profile updated successfully." : "College profile saved successfully.");
       resetProfileForm();
       await loadRepresentativeData();
     } catch (requestError) {
-      setError(requestError.response?.data?.message || "Failed to save college profile.");
+      const message = requestError.response?.data?.message || "Failed to save college profile.";
+      setError(message);
+      showError(message);
     } finally {
       setProfileSubmitting(false);
     }
@@ -294,9 +425,12 @@ export function RepresentativePanelPage() {
         resetProfileForm();
       }
       setSuccess(response.data.message || "College course deleted successfully.");
+      showSuccess(response.data.message || "College course deleted successfully.");
       await loadRepresentativeData();
     } catch (requestError) {
-      setError(requestError.response?.data?.message || "Failed to delete college course.");
+      const message = requestError.response?.data?.message || "Failed to delete college course.";
+      setError(message);
+      showError(message);
     }
   }
 
@@ -316,9 +450,12 @@ export function RepresentativePanelPage() {
         resetProfileForm();
       }
       setSuccess(response.data.message || "College profile deleted successfully.");
+      showSuccess(response.data.message || "College profile deleted successfully.");
       await loadRepresentativeData();
     } catch (requestError) {
-      setError(requestError.response?.data?.message || "Failed to delete college profile.");
+      const message = requestError.response?.data?.message || "Failed to delete college profile.";
+      setError(message);
+      showError(message);
     }
   }
 
@@ -332,15 +469,19 @@ export function RepresentativePanelPage() {
       if (editingNoticeId) {
         await apiClient.patch(`/notices/${editingNoticeId}`, noticeForm);
         setSuccess("Notice updated successfully.");
+        showSuccess("Notice updated successfully.");
       } else {
         await apiClient.post("/notices", noticeForm);
         setSuccess("Notice created successfully.");
+        showSuccess("Notice created successfully.");
       }
 
       resetNoticeForm();
       await loadRepresentativeData();
     } catch (requestError) {
-      setError(requestError.response?.data?.message || "Failed to save notice.");
+      const message = requestError.response?.data?.message || "Failed to save notice.";
+      setError(message);
+      showError(message);
     } finally {
       setNoticeSubmitting(false);
     }
@@ -368,9 +509,12 @@ export function RepresentativePanelPage() {
         resetNoticeForm();
       }
       setSuccess("Notice deleted successfully.");
+      showSuccess("Notice deleted successfully.");
       await loadRepresentativeData();
     } catch (requestError) {
-      setError(requestError.response?.data?.message || "Failed to delete notice.");
+      const message = requestError.response?.data?.message || "Failed to delete notice.";
+      setError(message);
+      showError(message);
     }
   }
 
@@ -433,15 +577,19 @@ export function RepresentativePanelPage() {
       if (editingQuizId) {
         await apiClient.patch(`/quizzes/${editingQuizId}`, payload);
         setSuccess("Quiz arrangement updated successfully.");
+        showSuccess("Quiz arrangement updated successfully.");
       } else {
         await apiClient.post("/quizzes", payload);
         setSuccess("Quiz arrangement created successfully.");
+        showSuccess("Quiz arrangement created successfully.");
       }
 
       resetQuizForm();
       await loadRepresentativeData();
     } catch (requestError) {
-      setError(requestError.response?.data?.message || "Failed to save quiz arrangement.");
+      const message = requestError.response?.data?.message || "Failed to save quiz arrangement.";
+      setError(message);
+      showError(message);
     } finally {
       setQuizSubmitting(false);
     }
@@ -464,9 +612,127 @@ export function RepresentativePanelPage() {
         resetQuizForm();
       }
       setSuccess("Quiz arrangement deleted successfully.");
+      showSuccess("Quiz arrangement deleted successfully.");
       await loadRepresentativeData();
     } catch (requestError) {
-      setError(requestError.response?.data?.message || "Failed to delete quiz arrangement.");
+      const message = requestError.response?.data?.message || "Failed to delete quiz arrangement.";
+      setError(message);
+      showError(message);
+    }
+  }
+
+  async function handleStructureSubmit(event) {
+    event.preventDefault();
+    setStructureSubmitting(true);
+    setError("");
+    setSuccess("");
+
+    try {
+      const payload = {
+        ...structureForm,
+        semesterOrder: Number(structureForm.semesterOrder)
+      };
+
+      if (editingStructureId) {
+        await apiClient.patch(`/academic/structures/${editingStructureId}`, payload);
+        setSuccess("Academic structure updated successfully.");
+        showSuccess("Academic structure updated successfully.");
+      } else {
+        await apiClient.post("/academic/structures", payload);
+        setSuccess("Academic structure created successfully.");
+        showSuccess("Academic structure created successfully.");
+      }
+
+      resetStructureForm();
+      await loadRepresentativeData();
+    } catch (requestError) {
+      const message = requestError.response?.data?.message || "Failed to save academic structure.";
+      setError(message);
+      showError(message);
+    } finally {
+      setStructureSubmitting(false);
+    }
+  }
+
+  function handleEditStructure(structure) {
+    setEditingStructureId(structure._id);
+    setStructureForm(mapStructureToForm(structure));
+    setError("");
+    setSuccess("");
+  }
+
+  async function handleDeleteStructure(structureId) {
+    setError("");
+    setSuccess("");
+
+    try {
+      await apiClient.delete(`/academic/structures/${structureId}`);
+      if (editingStructureId === structureId) {
+        resetStructureForm();
+      }
+      setSuccess("Academic structure deleted successfully.");
+      showSuccess("Academic structure deleted successfully.");
+      await loadRepresentativeData();
+    } catch (requestError) {
+      const message = requestError.response?.data?.message || "Failed to delete academic structure.";
+      setError(message);
+      showError(message);
+    }
+  }
+
+  async function handleSubjectSubmit(event) {
+    event.preventDefault();
+    setSubjectSubmitting(true);
+    setError("");
+    setSuccess("");
+
+    try {
+      const payload = { ...subjectForm };
+
+      if (editingSubjectId) {
+        await apiClient.patch(`/academic/subjects/${editingSubjectId}`, payload);
+        setSuccess("Subject updated successfully.");
+        showSuccess("Subject updated successfully.");
+      } else {
+        await apiClient.post("/academic/subjects", payload);
+        setSuccess("Subject created successfully.");
+        showSuccess("Subject created successfully.");
+      }
+
+      resetSubjectForm();
+      await loadRepresentativeData();
+    } catch (requestError) {
+      const message = requestError.response?.data?.message || "Failed to save subject.";
+      setError(message);
+      showError(message);
+    } finally {
+      setSubjectSubmitting(false);
+    }
+  }
+
+  function handleEditSubject(subject) {
+    setEditingSubjectId(subject._id);
+    setSubjectForm(mapSubjectToForm(subject));
+    setError("");
+    setSuccess("");
+  }
+
+  async function handleDeleteSubject(subjectId) {
+    setError("");
+    setSuccess("");
+
+    try {
+      await apiClient.delete(`/academic/subjects/${subjectId}`);
+      if (editingSubjectId === subjectId) {
+        resetSubjectForm();
+      }
+      setSuccess("Subject deleted successfully.");
+      showSuccess("Subject deleted successfully.");
+      await loadRepresentativeData();
+    } catch (requestError) {
+      const message = requestError.response?.data?.message || "Failed to delete subject.";
+      setError(message);
+      showError(message);
     }
   }
 
@@ -546,6 +812,119 @@ export function RepresentativePanelPage() {
     });
   }, [quizSearch, quizzes]);
 
+  const filteredStructures = useMemo(() => {
+    const term = structureSearch.trim().toLowerCase();
+
+    return structures.filter((structure) => {
+      if (!term) {
+        return true;
+      }
+
+      return (
+        structure.collegeName?.toLowerCase().includes(term) ||
+        structure.programName?.toLowerCase().includes(term) ||
+        structure.branchName?.toLowerCase().includes(term) ||
+        structure.semesterName?.toLowerCase().includes(term)
+      );
+    });
+  }, [structureSearch, structures]);
+
+  const filteredSubjects = useMemo(() => {
+    const term = subjectSearch.trim().toLowerCase();
+
+    return subjects.filter((subject) => {
+      if (!term) {
+        return true;
+      }
+
+      return (
+        subject.collegeName?.toLowerCase().includes(term) ||
+        subject.name?.toLowerCase().includes(term) ||
+        subject.branchId?.toLowerCase().includes(term) ||
+        subject.semesterId?.toLowerCase().includes(term) ||
+        subject.subjectId?.toLowerCase().includes(term)
+      );
+    });
+  }, [subjectSearch, subjects]);
+
+  const collegeCatalogOptions = useMemo(() => {
+    const merged = new Map();
+
+    requestableColleges.forEach((item) => {
+      merged.set(item.collegeNameNormalized, item);
+    });
+
+    platformColleges.forEach((college) => {
+      const normalizedName = normalizeSearchValue(college.name);
+
+      if (!merged.has(normalizedName)) {
+        merged.set(normalizedName, {
+          collegeName: college.name,
+          collegeNameNormalized: normalizedName,
+          courses: []
+        });
+      }
+    });
+
+    return Array.from(merged.values()).sort((left, right) =>
+      left.collegeName.localeCompare(right.collegeName)
+    );
+  }, [platformColleges, requestableColleges]);
+
+  const matchingCollegeOption = useMemo(
+    () =>
+      collegeCatalogOptions.find(
+        (item) =>
+          normalizeSearchValue(item.collegeName) === normalizeSearchValue(form.collegeName.trim())
+      ) || null,
+    [collegeCatalogOptions, form.collegeName]
+  );
+
+  const filteredRequestableColleges = useMemo(() => {
+    const term = normalizeSearchValue(form.collegeName);
+
+    if (!term) {
+      return collegeCatalogOptions.slice(0, 8);
+    }
+
+    return collegeCatalogOptions
+      .filter(
+        (item) => normalizeSearchValue(item.collegeName).includes(term)
+      )
+      .slice(0, 8);
+  }, [collegeCatalogOptions, form.collegeName]);
+
+  const suggestedCourses = useMemo(() => {
+    if (!matchingCollegeOption) {
+      return [];
+    }
+
+    const term = form.courseName.trim().toLowerCase();
+    if (!term) {
+      return matchingCollegeOption.courses.slice(0, 8);
+    }
+
+    return matchingCollegeOption.courses
+      .filter(
+        (course) =>
+          course.courseName.toLowerCase().startsWith(term) ||
+          course.courseName.toLowerCase().includes(term)
+      )
+      .slice(0, 8);
+  }, [form.courseName, matchingCollegeOption]);
+
+  const selectedCourseCatalogEntry = useMemo(() => {
+    if (!matchingCollegeOption) {
+      return null;
+    }
+
+    return (
+      matchingCollegeOption.courses.find(
+        (course) => course.courseName.toLowerCase() === form.courseName.trim().toLowerCase()
+      ) || null
+    );
+  }, [form.courseName, matchingCollegeOption]);
+
   const stats = useMemo(
     () => [
       {
@@ -564,12 +943,17 @@ export function RepresentativePanelPage() {
         note: "Visible on dashboard"
       },
       {
+        label: "Dynamic Subjects",
+        value: subjects.length,
+        note: "Database-driven college subject list"
+      },
+      {
         label: "Visible Search Results",
         value: filteredColleges.length,
         note: "Based on your current filter"
       }
     ],
-    [filteredColleges.length, myColleges, requests]
+    [filteredColleges.length, myColleges, requests, subjects.length]
   );
 
   return (
@@ -599,21 +983,133 @@ export function RepresentativePanelPage() {
           <div className="panel-form-grid">
             <label className="auth-field">
               <span>College Name</span>
-              <input
-                onChange={(event) => setForm((current) => ({ ...current, collegeName: event.target.value }))}
-                required
-                type="text"
-                value={form.collegeName}
-              />
+              <div className="selector-field">
+                <input
+                  onChange={(event) => {
+                    setForm((current) => ({ ...current, collegeName: event.target.value }));
+                    setOpenSelector("college");
+                  }}
+                  onFocus={() => setOpenSelector("college")}
+                  placeholder="Type college name"
+                  required
+                  type="text"
+                  value={form.collegeName}
+                />
+                <button
+                  aria-label="Open college list"
+                  className="selector-trigger-button"
+                  onClick={() =>
+                    setOpenSelector((current) => (current === "college" ? "" : "college"))
+                  }
+                  type="button"
+                >
+                  ˅
+                </button>
+                {openSelector === "college" ? (
+                  <div className="selector-dropdown-panel">
+                    {filteredRequestableColleges.length ? (
+                      filteredRequestableColleges.map((item) => (
+                        <button
+                          className="selector-dropdown-option"
+                          key={item.collegeNameNormalized}
+                          onClick={() => {
+                            setForm((current) => ({
+                              ...current,
+                              collegeName: item.collegeName,
+                              courseName:
+                                item.courses.some(
+                                  (course) =>
+                                    course.courseName.toLowerCase() ===
+                                    current.courseName.trim().toLowerCase()
+                                )
+                                  ? current.courseName
+                                  : ""
+                            }));
+                            setOpenSelector("");
+                          }}
+                          type="button"
+                        >
+                          {item.collegeName}
+                        </button>
+                      ))
+                    ) : (
+                      <p className="selector-dropdown-empty">
+                        No matching college found. You can type full name manually.
+                      </p>
+                    )}
+                  </div>
+                ) : null}
+              </div>
             </label>
             <label className="auth-field">
               <span>Course Name</span>
-              <input
-                onChange={(event) => setForm((current) => ({ ...current, courseName: event.target.value }))}
-                required
-                type="text"
-                value={form.courseName}
-              />
+              <div className="selector-field">
+                <input
+                  onChange={(event) => {
+                    setForm((current) => ({ ...current, courseName: event.target.value }));
+                    if (matchingCollegeOption?.courses?.length) {
+                      setOpenSelector("course");
+                    }
+                  }}
+                  onFocus={() => {
+                    if (matchingCollegeOption?.courses?.length) {
+                      setOpenSelector("course");
+                    }
+                  }}
+                  placeholder={
+                    matchingCollegeOption
+                      ? "Choose suggested course or type manually"
+                      : "Type course name"
+                  }
+                  required
+                  type="text"
+                  value={form.courseName}
+                />
+                <button
+                  aria-label="Open course list"
+                  className="selector-trigger-button"
+                  onClick={() =>
+                    setOpenSelector((current) =>
+                      current === "course" ? "" : matchingCollegeOption?.courses?.length ? "course" : ""
+                    )
+                  }
+                  type="button"
+                >
+                  ˅
+                </button>
+                {openSelector === "course" && matchingCollegeOption?.courses?.length ? (
+                  <div className="selector-dropdown-panel">
+                    {suggestedCourses.length ? (
+                      suggestedCourses.map((course) => (
+                        <button
+                          className="selector-dropdown-option"
+                          key={`${course.courseName}-${course.semesterCount}`}
+                          onClick={() => {
+                            setForm((current) => ({
+                              ...current,
+                              courseName: course.courseName,
+                              semesterCount: course.semesterCount
+                            }));
+                            setOpenSelector("");
+                          }}
+                          type="button"
+                        >
+                          {course.courseName}
+                        </button>
+                      ))
+                    ) : (
+                      <p className="selector-dropdown-empty">No matching course found.</p>
+                    )}
+                  </div>
+                ) : null}
+              </div>
+              {selectedCourseCatalogEntry ? (
+                <p className="muted">
+                  {selectedCourseCatalogEntry.hasActiveRepresentative
+                    ? `Already managed by ${selectedCourseCatalogEntry.representativeName || "an active representative"}.`
+                    : "No active representative found for this course. You can send request."}
+                </p>
+              ) : null}
             </label>
             <label className="auth-field">
               <span>Semester Count</span>
@@ -645,6 +1141,12 @@ export function RepresentativePanelPage() {
               </button>
             ) : null}
           </div>
+          <p className="muted">
+            Type a starting letter like m to see matching colleges alphabetically, then choose the course to verify representative availability.
+          </p>
+          <p className="muted">
+            If your college is not listed, you can still type the full college name manually and submit a new request.
+          </p>
         </form>
       </SectionCard>
 
@@ -888,6 +1390,324 @@ export function RepresentativePanelPage() {
                 </button>
                 <button className="action-button reject" onClick={() => handleDeleteNotice(notice._id)} type="button">
                   Delete Notice
+                </button>
+              </div>
+            </article>
+          ))}
+        </div>
+      </SectionCard>
+
+      <SectionCard
+        title="Academic Structure Management"
+        description="Create branch and semester structure dynamically for your approved colleges so each college can maintain its own academic map."
+      >
+        <form className="panel-form" onSubmit={handleStructureSubmit}>
+          <div className="panel-form-grid">
+            <label className="auth-field">
+              <span>College Name</span>
+              <select
+                onChange={(event) =>
+                  setStructureForm((current) => ({ ...current, collegeName: event.target.value }))
+                }
+                required
+                value={structureForm.collegeName}
+              >
+                <option value="">Select college</option>
+                {[...new Set(myColleges.map((item) => item.collegeName))].map((collegeName) => (
+                  <option key={collegeName} value={collegeName}>
+                    {collegeName}
+                  </option>
+                ))}
+              </select>
+            </label>
+            <label className="auth-field">
+              <span>Program ID</span>
+              <input
+                onChange={(event) =>
+                  setStructureForm((current) => ({ ...current, programId: event.target.value }))
+                }
+                placeholder="btech, mca, mtech"
+                required
+                type="text"
+                value={structureForm.programId}
+              />
+            </label>
+            <label className="auth-field">
+              <span>Program Name</span>
+              <input
+                onChange={(event) =>
+                  setStructureForm((current) => ({ ...current, programName: event.target.value }))
+                }
+                placeholder="BTech"
+                required
+                type="text"
+                value={structureForm.programName}
+              />
+            </label>
+          </div>
+          <div className="panel-form-grid">
+            <label className="auth-field">
+              <span>Branch ID</span>
+              <input
+                onChange={(event) =>
+                  setStructureForm((current) => ({ ...current, branchId: event.target.value }))
+                }
+                placeholder="computer-science-engineering"
+                required
+                type="text"
+                value={structureForm.branchId}
+              />
+            </label>
+            <label className="auth-field">
+              <span>Branch Name</span>
+              <input
+                onChange={(event) =>
+                  setStructureForm((current) => ({ ...current, branchName: event.target.value }))
+                }
+                placeholder="Computer Science & Engineering"
+                required
+                type="text"
+                value={structureForm.branchName}
+              />
+            </label>
+            <label className="auth-field">
+              <span>Semester ID</span>
+              <input
+                onChange={(event) =>
+                  setStructureForm((current) => ({ ...current, semesterId: event.target.value }))
+                }
+                placeholder="semester-1"
+                required
+                type="text"
+                value={structureForm.semesterId}
+              />
+            </label>
+          </div>
+          <div className="panel-form-grid">
+            <label className="auth-field">
+              <span>Semester Name</span>
+              <input
+                onChange={(event) =>
+                  setStructureForm((current) => ({ ...current, semesterName: event.target.value }))
+                }
+                placeholder="Semester I"
+                required
+                type="text"
+                value={structureForm.semesterName}
+              />
+            </label>
+            <label className="auth-field">
+              <span>Semester Order</span>
+              <input
+                min="1"
+                onChange={(event) =>
+                  setStructureForm((current) => ({ ...current, semesterOrder: event.target.value }))
+                }
+                required
+                type="number"
+                value={structureForm.semesterOrder}
+              />
+            </label>
+            <label className="auth-field">
+              <span>Branch Description</span>
+              <input
+                onChange={(event) =>
+                  setStructureForm((current) => ({
+                    ...current,
+                    branchDescription: event.target.value
+                  }))
+                }
+                placeholder="Multiple engineering branches"
+                type="text"
+                value={structureForm.branchDescription}
+              />
+            </label>
+          </div>
+          <div className="panel-actions">
+            <button className="auth-submit" disabled={structureSubmitting} type="submit">
+              {structureSubmitting
+                ? "Saving..."
+                : editingStructureId
+                  ? "Update Academic Structure"
+                  : "Create Academic Structure"}
+            </button>
+            {editingStructureId ? (
+              <button className="action-button neutral" onClick={resetStructureForm} type="button">
+                Cancel Edit
+              </button>
+            ) : null}
+          </div>
+        </form>
+
+        <div className="toolbar-grid">
+          <input
+            className="college-search"
+            onChange={(event) => setStructureSearch(event.target.value)}
+            placeholder="Search college, branch, program, or semester..."
+            type="text"
+            value={structureSearch}
+          />
+          <p className="muted">{filteredStructures.length} structures visible</p>
+        </div>
+
+        {!loading && filteredStructures.length === 0 ? (
+          <p className="muted">No academic structure records created for your colleges yet.</p>
+        ) : null}
+
+        <div className="panel-list">
+          {filteredStructures.map((structure) => (
+            <article className="panel-card" key={structure._id}>
+              <h3>{structure.branchName}</h3>
+              <p className="muted">
+                {structure.collegeName} | {structure.programName} | {structure.semesterName}
+              </p>
+              <p className="muted">
+                Branch ID: {structure.branchId} | Semester ID: {structure.semesterId} | Order: {structure.semesterOrder}
+              </p>
+              {structure.branchDescription ? <p>{structure.branchDescription}</p> : null}
+              <div className="panel-actions">
+                <button className="action-button approve" onClick={() => handleEditStructure(structure)} type="button">
+                  Edit Structure
+                </button>
+                <button className="action-button reject" onClick={() => handleDeleteStructure(structure._id)} type="button">
+                  Delete Structure
+                </button>
+              </div>
+            </article>
+          ))}
+        </div>
+      </SectionCard>
+
+      <SectionCard
+        title="Subject Management"
+        description="Create semester-wise subjects for your own colleges. These subjects drive the branch and subject pages dynamically."
+      >
+        <form className="panel-form" onSubmit={handleSubjectSubmit}>
+          <div className="panel-form-grid">
+            <label className="auth-field">
+              <span>College Name</span>
+              <select
+                onChange={(event) =>
+                  setSubjectForm((current) => ({ ...current, collegeName: event.target.value }))
+                }
+                required
+                value={subjectForm.collegeName}
+              >
+                <option value="">Select college</option>
+                {[...new Set(myColleges.map((item) => item.collegeName))].map((collegeName) => (
+                  <option key={collegeName} value={collegeName}>
+                    {collegeName}
+                  </option>
+                ))}
+              </select>
+            </label>
+            <label className="auth-field">
+              <span>Program ID</span>
+              <input
+                onChange={(event) =>
+                  setSubjectForm((current) => ({ ...current, programId: event.target.value }))
+                }
+                placeholder="btech"
+                required
+                type="text"
+                value={subjectForm.programId}
+              />
+            </label>
+            <label className="auth-field">
+              <span>Branch ID</span>
+              <input
+                onChange={(event) =>
+                  setSubjectForm((current) => ({ ...current, branchId: event.target.value }))
+                }
+                placeholder="computer-science-engineering"
+                required
+                type="text"
+                value={subjectForm.branchId}
+              />
+            </label>
+          </div>
+          <div className="panel-form-grid">
+            <label className="auth-field">
+              <span>Semester ID</span>
+              <input
+                onChange={(event) =>
+                  setSubjectForm((current) => ({ ...current, semesterId: event.target.value }))
+                }
+                placeholder="semester-1"
+                required
+                type="text"
+                value={subjectForm.semesterId}
+              />
+            </label>
+            <label className="auth-field">
+              <span>Subject ID</span>
+              <input
+                onChange={(event) =>
+                  setSubjectForm((current) => ({ ...current, subjectId: event.target.value }))
+                }
+                placeholder="mathematics-1"
+                type="text"
+                value={subjectForm.subjectId}
+              />
+            </label>
+            <label className="auth-field">
+              <span>Subject Name</span>
+              <input
+                onChange={(event) =>
+                  setSubjectForm((current) => ({ ...current, name: event.target.value }))
+                }
+                placeholder="Mathematics-I"
+                required
+                type="text"
+                value={subjectForm.name}
+              />
+            </label>
+          </div>
+          <div className="panel-actions">
+            <button className="auth-submit" disabled={subjectSubmitting} type="submit">
+              {subjectSubmitting
+                ? "Saving..."
+                : editingSubjectId
+                  ? "Update Subject"
+                  : "Create Subject"}
+            </button>
+            {editingSubjectId ? (
+              <button className="action-button neutral" onClick={resetSubjectForm} type="button">
+                Cancel Edit
+              </button>
+            ) : null}
+          </div>
+        </form>
+
+        <div className="toolbar-grid">
+          <input
+            className="college-search"
+            onChange={(event) => setSubjectSearch(event.target.value)}
+            placeholder="Search subject, branch id, semester id, or college..."
+            type="text"
+            value={subjectSearch}
+          />
+          <p className="muted">{filteredSubjects.length} subjects visible</p>
+        </div>
+
+        {!loading && filteredSubjects.length === 0 ? (
+          <p className="muted">No dynamic subjects created for your colleges yet.</p>
+        ) : null}
+
+        <div className="panel-list">
+          {filteredSubjects.map((subject) => (
+            <article className="panel-card" key={subject._id}>
+              <h3>{subject.name}</h3>
+              <p className="muted">
+                {subject.collegeName} | {subject.programId} | {subject.branchId} | {subject.semesterId}
+              </p>
+              <p className="muted">Subject ID: {subject.subjectId}</p>
+              <div className="panel-actions">
+                <button className="action-button approve" onClick={() => handleEditSubject(subject)} type="button">
+                  Edit Subject
+                </button>
+                <button className="action-button reject" onClick={() => handleDeleteSubject(subject._id)} type="button">
+                  Delete Subject
                 </button>
               </div>
             </article>

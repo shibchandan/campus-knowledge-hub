@@ -1,62 +1,22 @@
-import { useEffect, useMemo, useState } from "react";
 import { Link } from "react-router-dom";
 import { useCollege } from "../college/CollegeContext";
 import { SectionCard } from "../components/SectionCard";
-import { apiClient } from "../lib/apiClient";
-import {
-  mockResources,
-  notesOverviewStats,
-  quizArrangements
-} from "../features/notes/mockResources";
+import { mockResources, notesOverviewStats } from "../features/notes/mockResources";
 
 export function NotesPage() {
   const { selectedCollege } = useCollege();
-  const [dynamicQuizzes, setDynamicQuizzes] = useState([]);
-  const [quizLoading, setQuizLoading] = useState(true);
-
-  useEffect(() => {
-    let ignore = false;
-
-    async function loadQuizzes() {
-      setQuizLoading(true);
-
-      try {
-        const response = await apiClient.get("/quizzes", {
-          params: selectedCollege?.name ? { collegeName: selectedCollege.name } : {}
-        });
-
-        if (!ignore) {
-          setDynamicQuizzes(response.data.data || []);
-        }
-      } catch {
-        if (!ignore) {
-          setDynamicQuizzes([]);
-        }
-      } finally {
-        if (!ignore) {
-          setQuizLoading(false);
-        }
-      }
-    }
-
-    loadQuizzes();
-
-    return () => {
-      ignore = true;
-    };
-  }, [selectedCollege?.name]);
-
-  const displayedQuizzes = useMemo(
-    () => (dynamicQuizzes.length ? dynamicQuizzes : quizArrangements),
-    [dynamicQuizzes]
-  );
 
   return (
     <div className="page-stack">
       <SectionCard
         title="Notes, Books & PYQs"
-        description="A guided study shelf with revision-ready notes, solved PYQs, and arranged quiz practice."
+        description="A guided study shelf with revision-ready notes, solved PYQs, and curated academic resources."
       >
+        <div className="panel-actions">
+          <Link className="action-button neutral" to="/quizzes">
+            Open College Quizzes
+          </Link>
+        </div>
         <div className="stat-grid compact-stat-grid">
           {notesOverviewStats.map((item) => (
             <article className="stat-card" key={item.label}>
@@ -96,37 +56,6 @@ export function NotesPage() {
                     {focus}
                   </span>
                 ))}
-              </div>
-            </article>
-          ))}
-        </div>
-      </SectionCard>
-
-      <SectionCard
-        title="Custom Quiz Arrangement"
-        description="Organized quiz styles made from notes and PYQ patterns so students can revise with purpose."
-      >
-        {quizLoading ? <p className="muted">Loading quiz arrangements...</p> : null}
-        <div className="quiz-arrangement-grid">
-          {displayedQuizzes.map((quiz) => (
-            <article className="quiz-arrangement-card" key={quiz._id || quiz.id || quiz.title}>
-              <div className="resource-card-top">
-                <p className="program-badge">Quiz Mode</p>
-                <p className="resource-count">{quiz.duration}</p>
-              </div>
-              <h3>{quiz.title}</h3>
-              <p className="muted">
-                Difficulty: {quiz.difficulty} | Style: {quiz.mode}
-              </p>
-              <p>{quiz.note || "Representative-created practice arrangement for focused revision."}</p>
-              {quiz.resourceMatch ? <p className="muted">Based on: {quiz.resourceMatch}</p> : null}
-              <div className="panel-actions">
-                <Link className="open-college-button" to={`/notes/quiz/${quiz._id || quiz.id}`}>
-                  Start Arrangement
-                </Link>
-                <Link className="action-button neutral" to={`/notes/quiz/${quiz._id || quiz.id}`}>
-                  Save Plan
-                </Link>
               </div>
             </article>
           ))}

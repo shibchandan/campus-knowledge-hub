@@ -10,6 +10,12 @@ const marketplaceSchema = new mongoose.Schema(
       enum: ["course", "notes", "pyq", "book", "bundle", "subscription"],
       default: "course"
     },
+    subscriptionPlan: {
+      type: String,
+      enum: ["none", "basic"],
+      default: "none"
+    },
+    subscriptionDurationDays: { type: Number, min: 0, default: 0 },
     courseTag: { type: String, enum: ["free-course", "paid-course"], default: "free-course" },
     basePrice: { type: Number, required: true, min: 0, default: 0 },
     platformFeePercent: { type: Number, min: 0, default: 0 },
@@ -40,7 +46,13 @@ const marketplacePurchaseSchema = new mongoose.Schema(
     gstAmount: { type: Number, required: true, min: 0, default: 0 },
     amount: { type: Number, required: true, min: 0 },
     currency: { type: String, default: "INR" },
-    purchaseType: { type: String, enum: ["free-enroll", "paid-purchase"], required: true }
+    purchaseType: {
+      type: String,
+      enum: ["free-enroll", "paid-purchase", "monthly-subscription"],
+      required: true
+    },
+    accessStartsAt: { type: Date, default: null },
+    accessExpiresAt: { type: Date, default: null }
   },
   { timestamps: true }
 );

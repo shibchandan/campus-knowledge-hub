@@ -1,6 +1,8 @@
 const validRegisterRoles = new Set(["student", "representative"]);
 const validAdminRoles = new Set(["student", "representative", "admin"]);
 const validStatuses = new Set(["active", "suspended", "banned"]);
+const validRepresentativeRequestStatuses = new Set(["none", "pending", "approved", "rejected"]);
+const validStudentVerificationStatuses = new Set(["none", "pending", "verified", "rejected"]);
 
 function createHttpError(message, statusCode = 400) {
   const error = new Error(message);
@@ -8,11 +10,80 @@ function createHttpError(message, statusCode = 400) {
   return error;
 }
 
+function readOptionalCollegeName(value) {
+  if (typeof value !== "string") {
+    return "";
+  }
+
+  const collegeName = value.trim();
+
+  if (!collegeName) {
+    return "";
+  }
+
+  if (collegeName.length < 3) {
+    throw createHttpError("College name must be at least 3 characters long.");
+  }
+
+  if (collegeName.length > 160) {
+    throw createHttpError("College name must be 160 characters or fewer.");
+  }
+
+  return collegeName;
+}
+
+function readOptionalCollegeStudentId(value) {
+  if (typeof value !== "string") {
+    return "";
+  }
+
+  const collegeStudentId = value.trim().toUpperCase();
+
+  if (!collegeStudentId) {
+    return "";
+  }
+
+  if (collegeStudentId.length < 4) {
+    throw createHttpError("College ID must be at least 4 characters long.");
+  }
+
+  if (collegeStudentId.length > 40) {
+    throw createHttpError("College ID must be 40 characters or fewer.");
+  }
+
+  if (!/^[A-Z0-9/_-]+$/.test(collegeStudentId)) {
+    throw createHttpError("College ID can contain only letters, numbers, slash, underscore, and hyphen.");
+  }
+
+  return collegeStudentId;
+}
+
+function readOptionalEmail(value, field = "Email") {
+  if (typeof value !== "string") {
+    return "";
+  }
+
+  const email = value.trim().toLowerCase();
+
+  if (!email) {
+    return "";
+  }
+
+  if (!/^\S+@\S+\.\S+$/.test(email)) {
+    throw createHttpError(`Enter a valid ${field.toLowerCase()}.`);
+  }
+
+  return email;
+}
+
 export function validateRegisterPayload(payload) {
   const fullName = payload.fullName?.trim();
   const email = payload.email?.trim().toLowerCase();
   const password = payload.password?.trim();
   const role = payload.role?.trim() || "student";
+  const collegeName = readOptionalCollegeName(payload.collegeName);
+  const collegeStudentId = readOptionalCollegeStudentId(payload.collegeStudentId);
+  const officialCollegeEmail = readOptionalEmail(payload.officialCollegeEmail, "official college email");
 
   if (!fullName || fullName.length < 2) {
     throw createHttpError("Full name must be at least 2 characters long.");
@@ -30,7 +101,25 @@ export function validateRegisterPayload(payload) {
     throw createHttpError("Only student and representative self-registration is allowed.");
   }
 
-  return { fullName, email, password, role };
+  if (role === "student") {
+    if (!collegeName) {
+      throw createHttpError("College name is required for student registration.");
+    }
+
+    if (!collegeStudentId) {
+      throw createHttpError("College ID is required for student registration.");
+    }
+  }
+
+  return {
+    fullName,
+    email,
+    password,
+    role,
+    collegeName,
+    collegeStudentId,
+    officialCollegeEmail
+  };
 }
 
 export function validateLoginPayload(payload) {
@@ -95,6 +184,9 @@ export function validateAdminCreateUserPayload(payload) {
   const password = payload.password?.trim();
   const role = payload.role?.trim() || "student";
   const status = payload.status?.trim() || "active";
+  const collegeName = readOptionalCollegeName(payload.collegeName);
+  const collegeStudentId = readOptionalCollegeStudentId(payload.collegeStudentId);
+  const officialCollegeEmail = readOptionalEmail(payload.officialCollegeEmail, "official college email");
 
   if (!fullName || fullName.length < 2) {
     throw createHttpError("Full name must be at least 2 characters long.");
@@ -116,7 +208,16 @@ export function validateAdminCreateUserPayload(payload) {
     throw createHttpError("Invalid account status selected.");
   }
 
-  return { fullName, email, password, role, status };
+  return {
+    fullName,
+    email,
+    password,
+    role,
+    status,
+    collegeName,
+    collegeStudentId,
+    officialCollegeEmail
+  };
 }
 
 export function validateAdminUpdateUserPayload(payload) {
@@ -150,6 +251,41 @@ export function validateAdminUpdateUserPayload(payload) {
     }
 
     updates.status = status;
+  }
+
+  if (typeof payload.representativeRequestStatus === "string") {
+    const representativeRequestStatus = payload.representativeRequestStatus.trim();
+
+    if (!validRepresentativeRequestStatuses.has(representativeRequestStatus)) {
+      throw createHttpError("Invalid representative request status.");
+    }
+
+    updates.representativeRequestStatus = representativeRequestStatus;
+  }
+
+  if (typeof payload.studentVerificationStatus === "string") {
+    const studentVerificationStatus = payload.studentVerificationStatus.trim();
+
+    if (!validStudentVerificationStatuses.has(studentVerificationStatus)) {
+      throw createHttpError("Invalid student verification status.");
+    }
+
+    updates.studentVerificationStatus = studentVerificationStatus;
+  }
+
+  if (payload.collegeName !== undefined) {
+    updates.collegeName = readOptionalCollegeName(payload.collegeName);
+  }
+
+  if (payload.collegeStudentId !== undefined) {
+    updates.collegeStudentId = readOptionalCollegeStudentId(payload.collegeStudentId);
+  }
+
+  if (payload.officialCollegeEmail !== undefined) {
+    updates.officialCollegeEmail = readOptionalEmail(
+      payload.officialCollegeEmail,
+      "official college email"
+    );
   }
 
   if (typeof payload.password === "string" && payload.password.trim()) {
@@ -193,4 +329,14 @@ export function validateResetPasswordPayload(payload) {
   }
 
   return { email, otp, newPassword };
+}
+
+export function validateCollegeEmailOtpPayload(payload) {
+  const otp = payload.otp?.toString().trim();
+
+  if (!otp || !/^\d{6}$/.test(otp)) {
+    throw createHttpError("OTP must be a 6-digit code.");
+  }
+
+  return { otp };
 }

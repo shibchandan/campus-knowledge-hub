@@ -19,6 +19,13 @@ const resourceSchema = new mongoose.Schema(
     fileUrl: { type: String, default: "" },
     previewUrl: { type: String, default: "" },
     cloudObjectKey: { type: String, default: "" },
+    visibility: {
+      type: String,
+      enum: ["personal", "private", "protected", "public"],
+      default: "private"
+    },
+    accessPrice: { type: Number, min: 0, default: 0 },
+    allowBasicSubscription: { type: Boolean, default: false },
     uploadedBy: {
       type: mongoose.Schema.Types.ObjectId,
       ref: "User",
@@ -51,6 +58,10 @@ resourceSchema.index(
 resourceSchema.index(
   { uploadedBy: 1, createdAt: -1 },
   { name: "idx_resource_by_uploader" }
+);
+resourceSchema.index(
+  { visibility: 1, collegeName: 1, createdAt: -1 },
+  { name: "idx_resource_visibility_college_created" }
 );
 
 export const Resource = mongoose.model("Resource", resourceSchema);

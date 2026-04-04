@@ -3,6 +3,10 @@ import { generateStructuredAnswer, verifyAiProvider } from "./ai.service.js";
 import { Resource } from "../resources/resource.model.js";
 import { env } from "../../config/env.js";
 import { createHttpError, readEnum, readMongoId, readString } from "../../utils/requestValidation.js";
+import {
+  buildCollegeNameRegex,
+  resolveStudentCollegeScope
+} from "../../utils/studentCollegeAccess.js";
 
 function tokenize(text) {
   return String(text || "")
@@ -37,7 +41,7 @@ async function getRelevantResources({
 }) {
   const filters = {};
 
-  if (collegeName) filters.collegeName = collegeName;
+  if (collegeName) filters.collegeName = buildCollegeNameRegex(collegeName);
   if (programId) filters.programId = programId;
   if (branchId) filters.branchId = branchId;
   if (semesterId) filters.semesterId = semesterId;
@@ -64,7 +68,8 @@ async function saveAiHistory({
   question,
   answer,
   intent,
-  sourceResources
+  sourceResources,
+  collegeScope
 }) {
   await AiHistory.create({
     user: req.user.id,
@@ -72,7 +77,7 @@ async function saveAiHistory({
     question,
     intent,
     answer,
-    collegeName: req.body?.collegeName || req.query?.collegeName || "",
+    collegeName: collegeScope?.collegeName || req.body?.collegeName || req.query?.collegeName || "",
     filters: {
       programId: req.body?.programId || req.query?.programId || "",
       branchId: req.body?.branchId || req.query?.branchId || "",
@@ -92,9 +97,17 @@ async function buildAiResponse({
   categoryId = "",
   persist = true
 }) {
+  const collegeScope = resolveStudentCollegeScope(
+    req,
+    req.body?.collegeName || req.query?.collegeName,
+    {
+      mismatchMessage: "Students can use AI only with content from their assigned college."
+    }
+  );
+
   const sourceResources = await getRelevantResources({
     question,
-    collegeName: req.body?.collegeName || req.query?.collegeName || "",
+    collegeName: collegeScope.collegeName,
     programId: req.body?.programId || req.query?.programId || "",
     branchId: req.body?.branchId || req.query?.branchId || "",
     semesterId: req.body?.semesterId || req.query?.semesterId || "",
@@ -122,7 +135,14 @@ async function buildAiResponse({
   }));
 
   if (persist) {
-    await saveAiHistory({ req, question, answer, intent, sourceResources });
+    await saveAiHistory({
+      req,
+      question,
+      answer,
+      intent,
+      sourceResources,
+      collegeScope
+    });
   }
 
   return answer;

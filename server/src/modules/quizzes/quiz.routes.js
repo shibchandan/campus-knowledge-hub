@@ -10,7 +10,7 @@ import {
 
 export const quizRouter = Router();
 
-quizRouter.get("/", listQuizzes);
+quizRouter.get("/", protect, listQuizzes);
 quizRouter.get("/:quizId", protect, getQuizById);
 quizRouter.post("/", protect, authorize("representative", "admin"), createQuiz);
 quizRouter.patch("/:quizId", protect, authorize("representative", "admin"), updateQuiz);

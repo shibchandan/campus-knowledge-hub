@@ -14,10 +14,10 @@ import {
 export const academicRouter = Router();
 
 academicRouter.get("/structures", protect, listAcademicStructures);
-academicRouter.post("/structures", protect, authorize("admin"), createAcademicStructure);
-academicRouter.patch("/structures/:structureId", protect, authorize("admin"), updateAcademicStructure);
-academicRouter.delete("/structures/:structureId", protect, authorize("admin"), deleteAcademicStructure);
+academicRouter.post("/structures", protect, authorize("admin", "representative"), createAcademicStructure);
+academicRouter.patch("/structures/:structureId", protect, authorize("admin", "representative"), updateAcademicStructure);
+academicRouter.delete("/structures/:structureId", protect, authorize("admin", "representative"), deleteAcademicStructure);
 academicRouter.get("/subjects", protect, listAcademicSubjects);
-academicRouter.post("/subjects", protect, authorize("admin"), createAcademicSubject);
-academicRouter.patch("/subjects/:subjectRecordId", protect, authorize("admin"), updateAcademicSubject);
-academicRouter.delete("/subjects/:subjectRecordId", protect, authorize("admin"), deleteAcademicSubject);
+academicRouter.post("/subjects", protect, authorize("admin", "representative"), createAcademicSubject);
+academicRouter.patch("/subjects/:subjectRecordId", protect, authorize("admin", "representative"), updateAcademicSubject);
+academicRouter.delete("/subjects/:subjectRecordId", protect, authorize("admin", "representative"), deleteAcademicSubject);

@@ -1,5 +1,6 @@
 import { AcademicSubject } from "./academic.model.js";
 import { AcademicStructure } from "./academicStructure.model.js";
+import { CollegeCourse } from "../governance/governance.model.js";
 import { createAuditLog } from "../../services/audit.service.js";
 import {
   validateAcademicStructurePayload,
@@ -11,14 +12,34 @@ import {
   readMongoId,
   readString
 } from "../../utils/requestValidation.js";
+import { resolveStudentCollegeScope } from "../../utils/studentCollegeAccess.js";
+
+async function assertRepresentativeCollegeAccess(user, collegeNameNormalized) {
+  if (user.role !== "representative") {
+    return;
+  }
+
+  const approvedCourse = await CollegeCourse.findOne({
+    collegeNameNormalized,
+    addedByRepresentative: user.id
+  });
+
+  if (!approvedCourse) {
+    throw createHttpError(
+      "Representative can manage academic structure only for approved colleges assigned to them.",
+      403
+    );
+  }
+}
 
 export async function listAcademicSubjects(req, res, next) {
   try {
     const filters = {};
-    if (req.query.collegeName) {
-      filters.collegeNameNormalized = normalizeCollegeName(
-        readString(req.query.collegeName, { field: "collegeName", min: 3, max: 120 })
-      );
+    const collegeScope = resolveStudentCollegeScope(req, req.query.collegeName, {
+      mismatchMessage: "Students can view subjects only for their assigned college."
+    });
+    if (collegeScope.collegeNameNormalized) {
+      filters.collegeNameNormalized = collegeScope.collegeNameNormalized;
     }
     if (req.query.programId) {
       filters.programId = readString(req.query.programId, { field: "programId", min: 2, max: 60 });
@@ -48,10 +69,11 @@ export async function listAcademicSubjects(req, res, next) {
 export async function listAcademicStructures(req, res, next) {
   try {
     const filters = {};
-    if (req.query.collegeName) {
-      filters.collegeNameNormalized = normalizeCollegeName(
-        readString(req.query.collegeName, { field: "collegeName", min: 3, max: 120 })
-      );
+    const collegeScope = resolveStudentCollegeScope(req, req.query.collegeName, {
+      mismatchMessage: "Students can view academic structure only for their assigned college."
+    });
+    if (collegeScope.collegeNameNormalized) {
+      filters.collegeNameNormalized = collegeScope.collegeNameNormalized;
     }
     if (req.query.programId) {
       filters.programId = readString(req.query.programId, { field: "programId", min: 2, max: 60 });
@@ -75,13 +97,14 @@ export async function listAcademicStructures(req, res, next) {
 export async function createAcademicStructure(req, res, next) {
   try {
     const payload = validateAcademicStructurePayload(req.body);
+    await assertRepresentativeCollegeAccess(req.user, payload.collegeNameNormalized);
     const structure = await AcademicStructure.create({
       ...payload,
       createdByAdmin: req.user.id
     });
     await createAuditLog({
       req,
-      action: "admin.create_academic_structure",
+      action: `${req.user.role}.create_academic_structure`,
       entityType: "academic_structure",
       entityId: structure._id,
       metadata: {
@@ -100,7 +123,6 @@ export async function createAcademicStructure(req, res, next) {
 
 export async function updateAcademicStructure(req, res, next) {
   try {
-    const payload = validateAcademicStructurePayload(req.body);
     const structureId = readMongoId(req.params.structureId, { field: "structureId" });
     const structure = await AcademicStructure.findById(structureId);
 
@@ -108,11 +130,16 @@ export async function updateAcademicStructure(req, res, next) {
       throw createHttpError("Academic structure not found.", 404);
     }
 
+    await assertRepresentativeCollegeAccess(req.user, structure.collegeNameNormalized);
+
+    const payload = validateAcademicStructurePayload(req.body);
+    await assertRepresentativeCollegeAccess(req.user, payload.collegeNameNormalized);
+
     Object.assign(structure, payload);
     await structure.save();
     await createAuditLog({
       req,
-      action: "admin.update_academic_structure",
+      action: `${req.user.role}.update_academic_structure`,
       entityType: "academic_structure",
       entityId: structure._id,
       metadata: {
@@ -138,6 +165,8 @@ export async function deleteAcademicStructure(req, res, next) {
       throw createHttpError("Academic structure not found.", 404);
     }
 
+    await assertRepresentativeCollegeAccess(req.user, structure.collegeNameNormalized);
+
     await AcademicSubject.deleteMany({
       collegeNameNormalized: structure.collegeNameNormalized,
       programId: structure.programId,
@@ -148,7 +177,7 @@ export async function deleteAcademicStructure(req, res, next) {
     await structure.deleteOne();
     await createAuditLog({
       req,
-      action: "admin.delete_academic_structure",
+      action: `${req.user.role}.delete_academic_structure`,
       entityType: "academic_structure",
       entityId: structure._id,
       metadata: {
@@ -167,13 +196,14 @@ export async function deleteAcademicStructure(req, res, next) {
 export async function createAcademicSubject(req, res, next) {
   try {
     const payload = validateAcademicSubjectPayload(req.body);
+    await assertRepresentativeCollegeAccess(req.user, payload.collegeNameNormalized);
     const subject = await AcademicSubject.create({
       ...payload,
       createdByAdmin: req.user.id
     });
     await createAuditLog({
       req,
-      action: "admin.create_academic_subject",
+      action: `${req.user.role}.create_academic_subject`,
       entityType: "academic_subject",
       entityId: subject._id,
       metadata: {
@@ -193,7 +223,6 @@ export async function createAcademicSubject(req, res, next) {
 
 export async function updateAcademicSubject(req, res, next) {
   try {
-    const payload = validateAcademicSubjectPayload(req.body);
     const subjectRecordId = readMongoId(req.params.subjectRecordId, { field: "subjectRecordId" });
     const subject = await AcademicSubject.findById(subjectRecordId);
 
@@ -201,11 +230,16 @@ export async function updateAcademicSubject(req, res, next) {
       throw createHttpError("Academic subject not found.", 404);
     }
 
+    await assertRepresentativeCollegeAccess(req.user, subject.collegeNameNormalized);
+
+    const payload = validateAcademicSubjectPayload(req.body);
+    await assertRepresentativeCollegeAccess(req.user, payload.collegeNameNormalized);
+
     Object.assign(subject, payload);
     await subject.save();
     await createAuditLog({
       req,
-      action: "admin.update_academic_subject",
+      action: `${req.user.role}.update_academic_subject`,
       entityType: "academic_subject",
       entityId: subject._id,
       metadata: {
@@ -232,10 +266,12 @@ export async function deleteAcademicSubject(req, res, next) {
       throw createHttpError("Academic subject not found.", 404);
     }
 
+    await assertRepresentativeCollegeAccess(req.user, subject.collegeNameNormalized);
+
     await subject.deleteOne();
     await createAuditLog({
       req,
-      action: "admin.delete_academic_subject",
+      action: `${req.user.role}.delete_academic_subject`,
       entityType: "academic_subject",
       entityId: subject._id,
       metadata: {

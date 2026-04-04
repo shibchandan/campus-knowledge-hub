@@ -1,10 +1,43 @@
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { SectionCard } from "../components/SectionCard";
 import { useAuth } from "../auth/AuthContext";
 import { apiClient } from "../lib/apiClient";
 
+const SETTINGS_STORAGE_KEY = "campus-knowledge-hub-settings";
+const ACCOUNT_TABS = [
+  { id: "general", label: "General" },
+  { id: "notifications", label: "Notifications" },
+  { id: "history", label: "History" },
+  { id: "blocked", label: "Blocked Users" },
+  { id: "guidelines", label: "Community Guidelines" },
+  { id: "security", label: "Security" }
+];
+
+const defaultPreferences = {
+  emailAnnouncements: true,
+  noticeAlerts: true,
+  quizReminders: true,
+  aiHistoryVisible: true,
+  darkModePreferred: true
+};
+
+const blockedUserSeed = [
+  { id: "spam-user-1", name: "Muted Example User", reason: "Muted for repeated spam replies" },
+  { id: "promo-user-1", name: "Promotional Contact", reason: "Hidden from community suggestions" }
+];
+
+function readStoredPreferences() {
+  try {
+    const raw = localStorage.getItem(SETTINGS_STORAGE_KEY);
+    return raw ? { ...defaultPreferences, ...JSON.parse(raw) } : defaultPreferences;
+  } catch {
+    return defaultPreferences;
+  }
+}
+
 export function AccountSettingsPage() {
-  const { user, updateProfile } = useAuth();
+  const { user, updateProfile, refreshCurrentUser } = useAuth();
+  const [activeTab, setActiveTab] = useState("general");
   const [showPasswordFields, setShowPasswordFields] = useState({
     current: false,
     next: false,
@@ -19,10 +52,48 @@ export function AccountSettingsPage() {
     newPassword: "",
     confirmPassword: ""
   });
+  const [preferences, setPreferences] = useState(readStoredPreferences);
+  const [historyItems, setHistoryItems] = useState([]);
+  const [historyLoading, setHistoryLoading] = useState(true);
+  const [blockedUsers, setBlockedUsers] = useState(blockedUserSeed);
+  const [collegeEmailOtp, setCollegeEmailOtp] = useState("");
+  const [verificationBusy, setVerificationBusy] = useState(false);
   const [profileLoading, setProfileLoading] = useState(false);
   const [passwordLoading, setPasswordLoading] = useState(false);
   const [error, setError] = useState("");
   const [success, setSuccess] = useState("");
+
+  useEffect(() => {
+    localStorage.setItem(SETTINGS_STORAGE_KEY, JSON.stringify(preferences));
+  }, [preferences]);
+
+  useEffect(() => {
+    let ignore = false;
+
+    async function loadHistory() {
+      setHistoryLoading(true);
+      try {
+        const response = await apiClient.get("/ai/history");
+        if (!ignore) {
+          setHistoryItems(response.data.data || []);
+        }
+      } catch {
+        if (!ignore) {
+          setHistoryItems([]);
+        }
+      } finally {
+        if (!ignore) {
+          setHistoryLoading(false);
+        }
+      }
+    }
+
+    loadHistory();
+
+    return () => {
+      ignore = true;
+    };
+  }, []);
 
   const initials = useMemo(() => {
     if (!user?.fullName) {
@@ -99,14 +170,66 @@ export function AccountSettingsPage() {
     }));
   }
 
+  function togglePreference(key) {
+    setPreferences((current) => ({
+      ...current,
+      [key]: !current[key]
+    }));
+    setSuccess("Preference updated locally.");
+    setError("");
+  }
+
+  function handleRemoveBlockedUser(userId) {
+    setBlockedUsers((current) => current.filter((item) => item.id !== userId));
+    setSuccess("Blocked user removed from your list.");
+    setError("");
+  }
+
+  async function handleSendCollegeEmailOtp() {
+    setVerificationBusy(true);
+    setError("");
+    setSuccess("");
+
+    try {
+      const response = await apiClient.post("/auth/student-verification/send-college-email-otp");
+      setSuccess(response.data.message || "College email OTP sent.");
+      await refreshCurrentUser();
+    } catch (requestError) {
+      setError(requestError.response?.data?.message || "Failed to send college email OTP.");
+    } finally {
+      setVerificationBusy(false);
+    }
+  }
+
+  async function handleVerifyCollegeEmailOtp(event) {
+    event.preventDefault();
+    setVerificationBusy(true);
+    setError("");
+    setSuccess("");
+
+    try {
+      const response = await apiClient.post("/auth/student-verification/verify-college-email-otp", {
+        otp: collegeEmailOtp
+      });
+      setSuccess(response.data.message || "College email verified successfully.");
+      setCollegeEmailOtp("");
+      await refreshCurrentUser();
+    } catch (requestError) {
+      setError(requestError.response?.data?.message || "Failed to verify college email OTP.");
+    } finally {
+      setVerificationBusy(false);
+    }
+  }
+
   return (
     <div className="page-stack">
       <SectionCard
-        title="Account Snapshot"
-        description="Quickly review your profile identity, role, and account state before making changes."
+        title="Settings Center"
+        description="Manage your profile, preferences, history visibility, safety controls, and platform guidance from one place."
       >
         {error ? <p className="auth-error">{error}</p> : null}
         {success ? <p className="success-note">{success}</p> : null}
+
         <div className="account-summary">
           <div className="account-summary-card">
             {profileForm.avatarUrl ? (
@@ -123,9 +246,32 @@ export function AccountSettingsPage() {
             <div className="account-summary-copy">
               <h3>{user?.fullName || "Campus user"}</h3>
               <p className="muted">{user?.email || "No email available"}</p>
+              <p className="muted">
+                {user?.role || "user"} account | {user?.collegeName || "College not assigned"}
+              </p>
             </div>
           </div>
 
+          <div className="account-settings-tabs">
+            {ACCOUNT_TABS.map((tab) => (
+              <button
+                className={`account-settings-tab${activeTab === tab.id ? " active" : ""}`}
+                key={tab.id}
+                onClick={() => setActiveTab(tab.id)}
+                type="button"
+              >
+                {tab.label}
+              </button>
+            ))}
+          </div>
+        </div>
+      </SectionCard>
+
+      {activeTab === "general" ? (
+        <SectionCard
+          title="General Settings"
+          description="Update your profile identity and see your account-level summary."
+        >
           <div className="detail-grid">
             <article className="detail-card">
               <h3>Role</h3>
@@ -136,145 +282,358 @@ export function AccountSettingsPage() {
               <p>{user?.status || "Active"}</p>
             </article>
             <article className="detail-card">
+              <h3>Assigned College</h3>
+              <p>{user?.collegeName || "Admin has not assigned a college yet"}</p>
+            </article>
+            <article className="detail-card">
+              <h3>College ID</h3>
+              <p>{user?.collegeStudentId || "Not submitted yet"}</p>
+            </article>
+            <article className="detail-card">
+              <h3>Student Verification</h3>
+              <p>{user?.studentVerificationStatus || "none"}</p>
+            </article>
+            <article className="detail-card">
+              <h3>Official College Email</h3>
+              <p>
+                {user?.officialCollegeEmail || "Not added"}{" "}
+                {user?.officialCollegeEmailVerified ? "(Verified)" : "(Not verified)"}
+              </p>
+            </article>
+            <article className="detail-card">
               <h3>Avatar Mode</h3>
               <p>{profileForm.avatarUrl ? "External avatar URL" : "Initials fallback"}</p>
             </article>
-            <article className="detail-card">
-              <h3>Security Reminder</h3>
-              <p>Use a unique password and keep your recovery email secure.</p>
-            </article>
           </div>
-        </div>
-      </SectionCard>
 
-      <SectionCard
-        title="Profile Settings"
-        description="Update your public identity details without touching your sign-in email."
-      >
-        <form className="panel-form" onSubmit={handleProfileSubmit}>
-          <div className="panel-form-grid">
-            <label className="auth-field">
-              <span>Full Name</span>
-              <input
-                onChange={(event) =>
-                  setProfileForm((current) => ({ ...current, fullName: event.target.value }))
-                }
-                required
-                type="text"
-                value={profileForm.fullName}
-              />
-            </label>
-            <label className="auth-field">
-              <span>Avatar URL</span>
-              <input
-                onChange={(event) =>
-                  setProfileForm((current) => ({ ...current, avatarUrl: event.target.value }))
-                }
-                placeholder="https://example.com/profile.jpg"
-                type="url"
-                value={profileForm.avatarUrl}
-              />
-            </label>
+          <form className="panel-form" onSubmit={handleProfileSubmit}>
+            <div className="panel-form-grid">
+              <label className="auth-field">
+                <span>Full Name</span>
+                <input
+                  onChange={(event) =>
+                    setProfileForm((current) => ({ ...current, fullName: event.target.value }))
+                  }
+                  required
+                  type="text"
+                  value={profileForm.fullName}
+                />
+              </label>
+              <label className="auth-field">
+                <span>Avatar URL</span>
+                <input
+                  onChange={(event) =>
+                    setProfileForm((current) => ({ ...current, avatarUrl: event.target.value }))
+                  }
+                  placeholder="https://example.com/profile.jpg"
+                  type="url"
+                  value={profileForm.avatarUrl}
+                />
+              </label>
+            </div>
+            <p className="muted">
+              Leave the avatar URL empty if you prefer the platform to show your initials.
+            </p>
+            <button className="auth-submit" disabled={profileLoading} type="submit">
+              {profileLoading ? "Saving..." : "Save General Settings"}
+            </button>
+          </form>
+
+          {user?.role === "student" ? (
+            <div className="panel-subsection">
+              <h3>Student Verification</h3>
+              <p className="muted">
+                Your college-locked modules open after admin verifies your college ID and proof. Official college email verification adds extra confidence.
+              </p>
+              <div className="detail-grid">
+                <article className="detail-card">
+                  <h3>Proof Document</h3>
+                  {user?.studentProofUrl ? (
+                    <a href={user.studentProofUrl} rel="noreferrer" target="_blank">
+                      Open {user.studentProofOriginalName || "proof document"}
+                    </a>
+                  ) : (
+                    <p>No proof document saved.</p>
+                  )}
+                </article>
+                <article className="detail-card">
+                  <h3>Official Email Status</h3>
+                  <p>{user?.officialCollegeEmailVerified ? "Verified" : "Pending verification"}</p>
+                </article>
+              </div>
+
+              {user?.officialCollegeEmail && !user?.officialCollegeEmailVerified ? (
+                <>
+                  <div className="panel-actions">
+                    <button
+                      className="action-button approve"
+                      disabled={verificationBusy}
+                      onClick={handleSendCollegeEmailOtp}
+                      type="button"
+                    >
+                      {verificationBusy ? "Sending..." : "Send College Email OTP"}
+                    </button>
+                  </div>
+                  <form className="panel-form" onSubmit={handleVerifyCollegeEmailOtp}>
+                    <label className="auth-field">
+                      <span>College Email OTP</span>
+                      <input
+                        inputMode="numeric"
+                        maxLength={6}
+                        minLength={6}
+                        onChange={(event) => setCollegeEmailOtp(event.target.value)}
+                        placeholder="6-digit OTP"
+                        required
+                        type="text"
+                        value={collegeEmailOtp}
+                      />
+                    </label>
+                    <button className="auth-submit" disabled={verificationBusy} type="submit">
+                      {verificationBusy ? "Verifying..." : "Verify College Email"}
+                    </button>
+                  </form>
+                </>
+              ) : null}
+            </div>
+          ) : null}
+        </SectionCard>
+      ) : null}
+
+      {activeTab === "notifications" ? (
+        <SectionCard
+          title="Notification Bar"
+          description="Choose what kind of reminders and update alerts you want to keep active."
+        >
+          <div className="panel-list">
+            {[
+              {
+                key: "emailAnnouncements",
+                title: "Email Announcements",
+                note: "Receive important platform announcements in email."
+              },
+              {
+                key: "noticeAlerts",
+                title: "Notice Alerts",
+                note: "Get notified when your selected college publishes a notice."
+              },
+              {
+                key: "quizReminders",
+                title: "Quiz Reminders",
+                note: "Receive reminders for representative-published quiz updates."
+              },
+              {
+                key: "darkModePreferred",
+                title: "Theme Preference Sync",
+                note: "Remember your preferred account view styling locally."
+              }
+            ].map((item) => (
+              <article className="panel-card" key={item.key}>
+                <h3>{item.title}</h3>
+                <p className="muted">{item.note}</p>
+                <div className="panel-actions">
+                  <button
+                    className={preferences[item.key] ? "action-button approve" : "action-button neutral"}
+                    onClick={() => togglePreference(item.key)}
+                    type="button"
+                  >
+                    {preferences[item.key] ? "Enabled" : "Disabled"}
+                  </button>
+                </div>
+              </article>
+            ))}
           </div>
-          <p className="muted">
-            Leave the avatar URL empty if you prefer the platform to show your initials in the header.
-          </p>
-          <button className="auth-submit" disabled={profileLoading} type="submit">
-            {profileLoading ? "Saving..." : "Save Profile"}
-          </button>
-        </form>
-      </SectionCard>
+        </SectionCard>
+      ) : null}
 
-      <SectionCard
-        title="Change Password"
-        description="Enter your current password first. New password should be stronger than your previous one."
-      >
-        <form className="panel-form" onSubmit={handlePasswordSubmit}>
-          <label className="auth-field">
-            <span>Current Password</span>
-            <div className="inline-field">
-              <input
-                onChange={(event) =>
-                  setPasswordForm((current) => ({
-                    ...current,
-                    currentPassword: event.target.value
-                  }))
-                }
-                required
-                type={showPasswordFields.current ? "text" : "password"}
-                value={passwordForm.currentPassword}
-              />
-              <button
-                className="field-toggle"
-                onClick={() => togglePasswordField("current")}
-                type="button"
-              >
-                {showPasswordFields.current ? "Hide" : "Show"}
-              </button>
-            </div>
-          </label>
-          <label className="auth-field">
-            <span>New Password</span>
-            <div className="inline-field">
-              <input
-                minLength={6}
-                onChange={(event) =>
-                  setPasswordForm((current) => ({ ...current, newPassword: event.target.value }))
-                }
-                required
-                type={showPasswordFields.next ? "text" : "password"}
-                value={passwordForm.newPassword}
-              />
-              <button
-                className="field-toggle"
-                onClick={() => togglePasswordField("next")}
-                type="button"
-              >
-                {showPasswordFields.next ? "Hide" : "Show"}
-              </button>
-            </div>
-          </label>
-          <label className="auth-field">
-            <span>Confirm New Password</span>
-            <div className="inline-field">
-              <input
-                minLength={6}
-                onChange={(event) =>
-                  setPasswordForm((current) => ({
-                    ...current,
-                    confirmPassword: event.target.value
-                  }))
-                }
-                required
-                type={showPasswordFields.confirm ? "text" : "password"}
-                value={passwordForm.confirmPassword}
-              />
-              <button
-                className="field-toggle"
-                onClick={() => togglePasswordField("confirm")}
-                type="button"
-              >
-                {showPasswordFields.confirm ? "Hide" : "Show"}
-              </button>
-            </div>
-          </label>
-
+      {activeTab === "history" ? (
+        <SectionCard
+          title="History"
+          description="Review your AI activity and history visibility preference from one place."
+        >
           <div className="detail-grid">
             <article className="detail-card">
-              <h3>Password Strength</h3>
-              <p>{passwordStrength}</p>
+              <h3>AI History Visibility</h3>
+              <p>{preferences.aiHistoryVisible ? "Visible in your account" : "Hidden in your account view"}</p>
             </article>
             <article className="detail-card">
-              <h3>Recommended Practice</h3>
-              <p>Use 10 or more characters with a mix of words, numbers, and symbols.</p>
+              <h3>Entries Loaded</h3>
+              <p>{historyLoading ? "Loading..." : historyItems.length}</p>
             </article>
           </div>
+          <div className="panel-actions">
+            <button
+              className={preferences.aiHistoryVisible ? "action-button approve" : "action-button neutral"}
+              onClick={() => togglePreference("aiHistoryVisible")}
+              type="button"
+            >
+              {preferences.aiHistoryVisible ? "Hide History Section" : "Show History Section"}
+            </button>
+          </div>
+          {preferences.aiHistoryVisible ? (
+            <div className="panel-list">
+              {historyLoading ? <p className="muted">Loading account history...</p> : null}
+              {!historyLoading && !historyItems.length ? (
+                <p className="muted">No AI history found yet for this account.</p>
+              ) : null}
+              {historyItems.slice(0, 8).map((item) => (
+                <article className="panel-card" key={item._id}>
+                  <h3>{item.question}</h3>
+                  <p className="muted">
+                    Provider: {item.provider || "fallback"} | Intent: {item.intent || "general"}
+                  </p>
+                  <p>{item.answer?.slice(0, 180) || "No answer saved."}</p>
+                </article>
+              ))}
+            </div>
+          ) : null}
+        </SectionCard>
+      ) : null}
 
-          <button className="auth-submit" disabled={passwordLoading} type="submit">
-            {passwordLoading ? "Updating..." : "Change Password"}
-          </button>
-        </form>
-      </SectionCard>
+      {activeTab === "blocked" ? (
+        <SectionCard
+          title="Blocked Users"
+          description="Keep track of muted or blocked community contacts and manage your list."
+        >
+          {!blockedUsers.length ? (
+            <p className="muted">You have not blocked any community users.</p>
+          ) : null}
+          <div className="panel-list">
+            {blockedUsers.map((item) => (
+              <article className="panel-card" key={item.id}>
+                <h3>{item.name}</h3>
+                <p className="muted">{item.reason}</p>
+                <div className="panel-actions">
+                  <button
+                    className="action-button neutral"
+                    onClick={() => handleRemoveBlockedUser(item.id)}
+                    type="button"
+                  >
+                    Remove Block
+                  </button>
+                </div>
+              </article>
+            ))}
+          </div>
+        </SectionCard>
+      ) : null}
+
+      {activeTab === "guidelines" ? (
+        <SectionCard
+          title="Community Guidelines"
+          description="Platform rules for respectful academic collaboration and safe content sharing."
+        >
+          <div className="detail-grid">
+            {[
+              "Share academic content only if it is original, permitted, or properly attributed.",
+              "Do not spam discussions, comments, or doubt threads with repeated promotions.",
+              "Avoid harassment, impersonation, or posting private personal details of students or faculty.",
+              "Upload quizzes, notes, and notices only under the correct college/course context.",
+              "Report plagiarism, unsafe content, or misuse through admin moderation channels."
+            ].map((rule) => (
+              <article className="detail-card" key={rule}>
+                <p>{rule}</p>
+              </article>
+            ))}
+          </div>
+        </SectionCard>
+      ) : null}
+
+      {activeTab === "security" ? (
+        <SectionCard
+          title="Security"
+          description="Change your password and review the account protection reminders for this profile."
+        >
+          <form className="panel-form" onSubmit={handlePasswordSubmit}>
+            <label className="auth-field">
+              <span>Current Password</span>
+              <div className="inline-field">
+                <input
+                  onChange={(event) =>
+                    setPasswordForm((current) => ({
+                      ...current,
+                      currentPassword: event.target.value
+                    }))
+                  }
+                  required
+                  type={showPasswordFields.current ? "text" : "password"}
+                  value={passwordForm.currentPassword}
+                />
+                <button
+                  className="field-toggle"
+                  onClick={() => togglePasswordField("current")}
+                  type="button"
+                >
+                  {showPasswordFields.current ? "Hide" : "Show"}
+                </button>
+              </div>
+            </label>
+            <label className="auth-field">
+              <span>New Password</span>
+              <div className="inline-field">
+                <input
+                  minLength={6}
+                  onChange={(event) =>
+                    setPasswordForm((current) => ({ ...current, newPassword: event.target.value }))
+                  }
+                  required
+                  type={showPasswordFields.next ? "text" : "password"}
+                  value={passwordForm.newPassword}
+                />
+                <button
+                  className="field-toggle"
+                  onClick={() => togglePasswordField("next")}
+                  type="button"
+                >
+                  {showPasswordFields.next ? "Hide" : "Show"}
+                </button>
+              </div>
+            </label>
+            <label className="auth-field">
+              <span>Confirm New Password</span>
+              <div className="inline-field">
+                <input
+                  minLength={6}
+                  onChange={(event) =>
+                    setPasswordForm((current) => ({
+                      ...current,
+                      confirmPassword: event.target.value
+                    }))
+                  }
+                  required
+                  type={showPasswordFields.confirm ? "text" : "password"}
+                  value={passwordForm.confirmPassword}
+                />
+                <button
+                  className="field-toggle"
+                  onClick={() => togglePasswordField("confirm")}
+                  type="button"
+                >
+                  {showPasswordFields.confirm ? "Hide" : "Show"}
+                </button>
+              </div>
+            </label>
+
+            <div className="detail-grid">
+              <article className="detail-card">
+                <h3>Password Strength</h3>
+                <p>{passwordStrength}</p>
+              </article>
+              <article className="detail-card">
+                <h3>Recommended Practice</h3>
+                <p>Use 10 or more characters with a mix of words, numbers, and symbols.</p>
+              </article>
+              <article className="detail-card">
+                <h3>Recovery Reminder</h3>
+                <p>Keep access to your registered email because OTP reset uses that mailbox.</p>
+              </article>
+            </div>
+
+            <button className="auth-submit" disabled={passwordLoading} type="submit">
+              {passwordLoading ? "Updating..." : "Change Password"}
+            </button>
+          </form>
+        </SectionCard>
+      ) : null}
     </div>
   );
 }

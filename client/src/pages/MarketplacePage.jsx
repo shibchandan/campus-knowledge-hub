@@ -31,6 +31,14 @@ function calculateCheckoutPreview(basePrice) {
   return { base, platformFee, gst, total };
 }
 
+function getListingLabel(item) {
+  if (item.resourceType === "subscription") {
+    return "Monthly Basic Subscription";
+  }
+
+  return "Course";
+}
+
 export function MarketplacePage() {
   const { user } = useAuth();
   const [items, setItems] = useState([]);
@@ -174,7 +182,21 @@ export function MarketplacePage() {
     }
   }
 
-  const purchaseItemIds = new Set(purchases.map((purchase) => purchase.item?._id).filter(Boolean));
+  const nowMs = Date.now();
+  const purchaseItemIds = new Set(
+    purchases
+      .filter((purchase) => {
+        if (purchase.purchaseType !== "monthly-subscription") {
+          return true;
+        }
+
+        return purchase.accessExpiresAt
+          ? new Date(purchase.accessExpiresAt).getTime() > nowMs
+          : false;
+      })
+      .map((purchase) => purchase.item?._id)
+      .filter(Boolean)
+  );
   const checkoutPreview = calculateCheckoutPreview(form.price);
 
   return (
@@ -196,6 +218,19 @@ export function MarketplacePage() {
             />
           </label>
           <label className="auth-field">
+            <span>Listing Type</span>
+            <select
+              className="college-search"
+              onChange={(event) =>
+                setForm((current) => ({ ...current, resourceType: event.target.value }))
+              }
+              value={form.resourceType}
+            >
+              <option value="course">Course</option>
+              <option value="subscription">Monthly Basic Subscription</option>
+            </select>
+          </label>
+          <label className="auth-field">
             <span>Description</span>
             <textarea
               className="panel-textarea"
@@ -205,7 +240,11 @@ export function MarketplacePage() {
             />
           </label>
           <label className="auth-field">
-            <span>Base Price (0 = Free Course)</span>
+            <span>
+              {form.resourceType === "subscription"
+                ? "Monthly Subscription Price"
+                : "Base Price (0 = Free Course)"}
+            </span>
             <input
               min={0}
               onChange={(event) => setForm((current) => ({ ...current, price: event.target.value }))}
@@ -248,8 +287,15 @@ export function MarketplacePage() {
               </button>
             ) : null}
           </div>
-          <p className="muted">Current tag: {courseTagFromPrice(form.price)}</p>
-          {Number(form.price || 0) > 0 ? (
+          <p className="muted">
+            Current tag: {form.resourceType === "subscription" ? "monthly-basic-subscription" : courseTagFromPrice(form.price)}
+          </p>
+          {form.resourceType === "subscription" ? (
+            <p className="muted">
+              Buyers will receive a 30-day basic subscription after payment. Protected resources that allow
+              basic subscription access will be unlocked during the active period.
+            </p>
+          ) : Number(form.price || 0) > 0 ? (
             <p className="muted">
               Checkout Preview | Base: INR {checkoutPreview.base} | Platform Fee: INR {checkoutPreview.platformFee} |
               GST: INR {checkoutPreview.gst} | Total Buyer Pays: INR {checkoutPreview.total}
@@ -294,11 +340,15 @@ export function MarketplacePage() {
               <article className="panel-card" key={item._id}>
                 <h3>{item.title}</h3>
                 <p className="muted">
-                  Seller: {item.seller?.fullName || item.seller?.email || "Unknown"} ({item.seller?.role || "user"})
+                  Type: {getListingLabel(item)} | Seller: {item.seller?.fullName || item.seller?.email || "Unknown"} (
+                  {item.seller?.role || "user"})
                 </p>
                 <p className="muted">
                   Tag: {item.courseTag} | Total Price: {item.currency} {item.price}
                 </p>
+                {item.resourceType === "subscription" ? (
+                  <p className="muted">Plan: Basic | Duration: {item.subscriptionDurationDays || 30} days</p>
+                ) : null}
                 {Number(item.price || 0) > 0 ? (
                   <p className="muted">
                     Base: {item.currency} {item.basePrice || 0} | Platform Fee ({item.platformFeePercent || 0}%):{" "}
@@ -315,7 +365,15 @@ export function MarketplacePage() {
                       onClick={() => handlePurchase(item._id)}
                       type="button"
                     >
-                      {alreadyBought ? "Already Enrolled" : item.price > 0 ? "Buy Course" : "Enroll Free"}
+                      {alreadyBought
+                        ? item.resourceType === "subscription"
+                          ? "Subscription Active"
+                          : "Already Enrolled"
+                        : item.resourceType === "subscription"
+                          ? "Start Monthly Subscription"
+                          : item.price > 0
+                            ? "Buy Course"
+                            : "Enroll Free"}
                     </button>
                   ) : null}
                   {isMine ? (
@@ -353,6 +411,12 @@ export function MarketplacePage() {
               <p className="muted">
                 Type: {purchase.purchaseType} | Total Paid: {purchase.currency} {purchase.amount}
               </p>
+              {purchase.purchaseType === "monthly-subscription" ? (
+                <p className="muted">
+                  Plan: Basic Subscription | Active until:{" "}
+                  {purchase.accessExpiresAt ? new Date(purchase.accessExpiresAt).toLocaleString() : "N/A"}
+                </p>
+              ) : null}
               <p className="muted">
                 Base: {purchase.currency} {purchase.basePrice || 0} | Platform Fee: {purchase.currency}{" "}
                 {purchase.platformFeeAmount || 0} | GST: {purchase.currency} {purchase.gstAmount || 0}
@@ -373,8 +437,12 @@ export function MarketplacePage() {
             <article className="panel-card" key={item._id}>
               <h3>{item.title}</h3>
               <p className="muted">
-                {item.courseTag} | Total: {item.currency} {item.price} | {item.isPublished ? "Published" : "Draft"}
+                {getListingLabel(item)} | {item.courseTag} | Total: {item.currency} {item.price} |{" "}
+                {item.isPublished ? "Published" : "Draft"}
               </p>
+              {item.resourceType === "subscription" ? (
+                <p className="muted">Plan: Basic | Duration: {item.subscriptionDurationDays || 30} days</p>
+              ) : null}
               <p className="muted">
                 Base: {item.currency} {item.basePrice || 0} | Platform Fee: {item.currency}{" "}
                 {item.platformFeeAmount || 0} | GST: {item.currency} {item.gstAmount || 0}

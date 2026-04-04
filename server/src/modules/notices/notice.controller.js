@@ -8,6 +8,7 @@ import {
   readMongoId,
   readString
 } from "../../utils/requestValidation.js";
+import { resolveStudentCollegeScope } from "../../utils/studentCollegeAccess.js";
 
 async function assertRepresentativeCollegeAccess(userId, collegeName) {
   const normalizedCollege = normalizeCollegeName(collegeName);
@@ -28,12 +29,10 @@ async function assertRepresentativeCollegeAccess(userId, collegeName) {
 
 export async function listNotices(req, res, next) {
   try {
-    const collegeName = readString(req.query.collegeName, {
-      field: "collegeName",
-      required: false,
-      min: 3,
-      max: 120
+    const collegeScope = resolveStudentCollegeScope(req, req.query.collegeName, {
+      mismatchMessage: "Students can view notices only for their assigned college."
     });
+    const collegeName = collegeScope.collegeName;
     const filters = { isPublished: true };
 
     if (req.user?.role === "admin" && req.query.includeUnpublished === "true") {
@@ -61,7 +60,12 @@ export async function listNotices(req, res, next) {
       }
     }
 
-    if (collegeName && !filters.collegeNameNormalized) {
+    if (req.user?.role === "student") {
+      filters.$or = [
+        { collegeNameNormalized: collegeScope.collegeNameNormalized },
+        { collegeNameNormalized: "" }
+      ];
+    } else if (collegeName && !filters.collegeNameNormalized) {
       filters.$or = [
         { collegeNameNormalized: normalizeCollegeName(collegeName) },
         { collegeNameNormalized: "" }

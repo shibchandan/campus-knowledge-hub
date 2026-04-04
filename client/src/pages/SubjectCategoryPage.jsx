@@ -11,17 +11,24 @@ import {
   subjectCategories
 } from "../features/dashboard/data";
 import { apiClient } from "../lib/apiClient";
+import { useToast } from "../ui/ToastContext";
 
 const initialUploadForm = {
   title: "",
   description: "",
-  textContent: ""
+  textContent: "",
+  visibility: "private",
+  accessPrice: "0",
+  allowBasicSubscription: false
 };
 
 const initialEditForm = {
   title: "",
   description: "",
-  textContent: ""
+  textContent: "",
+  visibility: "private",
+  accessPrice: "0",
+  allowBasicSubscription: false
 };
 
 function getStorageLabel(resource) {
@@ -34,6 +41,41 @@ function getStorageLabel(resource) {
   }
 
   return resource.storageProvider || "Unknown";
+}
+
+function getAccessOptions(role) {
+  if (role === "student") {
+    return [
+      {
+        value: "personal",
+        label: "Personal",
+        description: "Only you can access this file."
+      }
+    ];
+  }
+
+  return [
+    {
+      value: "private",
+      label: "Private",
+      description: "Only students and staff from the same college can access it."
+    },
+    {
+      value: "protected",
+      label: "Protected",
+      description: "Same college gets access, other colleges unlock by purchase or subscription."
+    },
+    {
+      value: "public",
+      label: "Public",
+      description: "Anyone in the world can access this resource."
+    },
+    {
+      value: "personal",
+      label: "Personal",
+      description: "Private workspace file visible only to the uploader."
+    }
+  ];
 }
 
 function ResourcePreview({ resource }) {
@@ -75,7 +117,8 @@ export function SubjectCategoryPage() {
   const { programId, branchId, semesterId, subjectId, categoryId } = useParams();
   const { user } = useAuth();
   const { selectedCollege } = useCollege();
-  const program = getProgramById(programId);
+  const { showError, showSuccess, showInfo } = useToast();
+  const program = getProgramById(programId, selectedCollege?.name || "");
   const branch = getBranchById(program, branchId);
   const semester = getSemesterById(branch, semesterId);
   const fallbackSubject = getSubjectById(semester, subjectId);
@@ -104,10 +147,8 @@ export function SubjectCategoryPage() {
     return dynamicSubject ? { id: dynamicSubject.subjectId, name: dynamicSubject.name } : fallbackSubject;
   }, [dynamicSubjects, fallbackSubject, subjectId]);
 
-  const canUpload = useMemo(
-    () => user?.role === "admin" || user?.role === "representative",
-    [user?.role]
-  );
+  const canUpload = useMemo(() => Boolean(user?.id), [user?.id]);
+  const accessOptions = useMemo(() => getAccessOptions(user?.role), [user?.role]);
 
   const sortedResources = useMemo(() => {
     const items = [...resources];
@@ -247,6 +288,9 @@ export function SubjectCategoryPage() {
       formData.append("title", uploadForm.title);
       formData.append("description", uploadForm.description);
       formData.append("textContent", uploadForm.textContent);
+      formData.append("visibility", uploadForm.visibility);
+      formData.append("accessPrice", uploadForm.accessPrice || "0");
+      formData.append("allowBasicSubscription", String(uploadForm.allowBasicSubscription));
 
       if (selectedFile) {
         formData.append("file", selectedFile);
@@ -259,9 +303,12 @@ export function SubjectCategoryPage() {
       setUploadForm(initialUploadForm);
       setSelectedFile(null);
       setSuccess("Resource uploaded successfully.");
+      showSuccess("Resource uploaded successfully.");
       await loadResources(1);
     } catch (requestError) {
-      setError(requestError.response?.data?.message || "Failed to upload resource.");
+      const message = requestError.response?.data?.message || "Failed to upload resource.";
+      setError(message);
+      showError(message);
     } finally {
       setUploading(false);
     }
@@ -279,8 +326,11 @@ export function SubjectCategoryPage() {
         setEditForm(initialEditForm);
       }
       await loadResources(pagination.page);
+      showInfo("Resource deleted.");
     } catch (requestError) {
-      setError(requestError.response?.data?.message || "Failed to delete resource.");
+      const message = requestError.response?.data?.message || "Failed to delete resource.";
+      setError(message);
+      showError(message);
     }
   }
 
@@ -293,13 +343,31 @@ export function SubjectCategoryPage() {
     try {
       await apiClient.patch(`/resources/${editingResourceId}`, editForm);
       setSuccess("Resource updated successfully.");
+      showSuccess("Resource updated successfully.");
       setEditingResourceId("");
       setEditForm(initialEditForm);
       await loadResources(pagination.page);
     } catch (requestError) {
-      setError(requestError.response?.data?.message || "Failed to update resource.");
+      const message = requestError.response?.data?.message || "Failed to update resource.";
+      setError(message);
+      showError(message);
     } finally {
       setSavingEdit(false);
+    }
+  }
+
+  async function handleUnlockProtectedResource(resourceId) {
+    setError("");
+    setSuccess("");
+
+    try {
+      await apiClient.post(`/resources/${resourceId}/unlock`);
+      showSuccess("Protected resource unlocked for your account.");
+      await loadResources(pagination.page);
+    } catch (requestError) {
+      const message = requestError.response?.data?.message || "Failed to unlock protected resource.";
+      setError(message);
+      showError(message);
     }
   }
 
@@ -318,8 +386,11 @@ export function SubjectCategoryPage() {
         params: { resourceType: "resource", resourceId, commentLimit: 5 }
       });
       setFeedbackByResource((current) => ({ ...current, [resourceId]: response.data.data }));
+      showSuccess("Feedback saved.");
     } catch (requestError) {
-      setError(requestError.response?.data?.message || "Failed to submit feedback.");
+      const message = requestError.response?.data?.message || "Failed to submit feedback.";
+      setError(message);
+      showError(message);
     } finally {
       setFeedbackBusyByResource((current) => ({ ...current, [resourceId]: false }));
     }
@@ -345,8 +416,11 @@ export function SubjectCategoryPage() {
         params: { resourceType: "resource", resourceId, commentLimit: 5 }
       });
       setFeedbackByResource((current) => ({ ...current, [resourceId]: response.data.data }));
+      showSuccess("Comment posted.");
     } catch (requestError) {
-      setError(requestError.response?.data?.message || "Failed to add comment.");
+      const message = requestError.response?.data?.message || "Failed to add comment.";
+      setError(message);
+      showError(message);
     } finally {
       setFeedbackBusyByResource((current) => ({ ...current, [resourceId]: false }));
     }
@@ -362,8 +436,11 @@ export function SubjectCategoryPage() {
         params: { resourceType: "resource", resourceId, commentLimit: 5 }
       });
       setFeedbackByResource((current) => ({ ...current, [resourceId]: response.data.data }));
+      showInfo("Comment deleted.");
     } catch (requestError) {
-      setError(requestError.response?.data?.message || "Failed to delete comment.");
+      const message = requestError.response?.data?.message || "Failed to delete comment.";
+      setError(message);
+      showError(message);
     } finally {
       setFeedbackBusyByResource((current) => ({ ...current, [resourceId]: false }));
     }
@@ -393,7 +470,7 @@ export function SubjectCategoryPage() {
           description={
             isLectureCategory
               ? "Lecture category supports only video upload."
-              : "Upload files with local or Cloudflare R2 storage support, or add plain text notes."
+              : "Upload files with personal, private, protected, or public access visibility."
           }
         >
           {error ? <p className="auth-error">{error}</p> : null}
@@ -410,6 +487,55 @@ export function SubjectCategoryPage() {
                 value={uploadForm.title}
               />
             </label>
+            <div className="auth-field">
+              <span>Access Type</span>
+              <div className="access-option-grid">
+                {accessOptions.map((option) => (
+                  <button
+                    className={`access-option-card ${
+                      uploadForm.visibility === option.value ? "selected" : ""
+                    }`}
+                    key={option.value}
+                    onClick={() =>
+                      setUploadForm((current) => ({ ...current, visibility: option.value }))
+                    }
+                    type="button"
+                  >
+                    <strong>{option.label}</strong>
+                    <small>{option.description}</small>
+                  </button>
+                ))}
+              </div>
+            </div>
+            {uploadForm.visibility === "protected" ? (
+              <>
+                <label className="auth-field">
+                  <span>Protected Access Price</span>
+                  <input
+                    min="0"
+                    onChange={(event) =>
+                      setUploadForm((current) => ({ ...current, accessPrice: event.target.value }))
+                    }
+                    step="0.01"
+                    type="number"
+                    value={uploadForm.accessPrice}
+                  />
+                </label>
+                <label className="auth-field checkbox-field">
+                  <span>Allow Basic Subscription Access</span>
+                  <input
+                    checked={uploadForm.allowBasicSubscription}
+                    onChange={(event) =>
+                      setUploadForm((current) => ({
+                        ...current,
+                        allowBasicSubscription: event.target.checked
+                      }))
+                    }
+                    type="checkbox"
+                  />
+                </label>
+              </>
+            ) : null}
             <label className="auth-field">
               <span>Description</span>
               <input
@@ -473,6 +599,55 @@ export function SubjectCategoryPage() {
                 value={editForm.description}
               />
             </label>
+            <div className="auth-field">
+              <span>Access Type</span>
+              <div className="access-option-grid">
+                {accessOptions.map((option) => (
+                  <button
+                    className={`access-option-card ${
+                      editForm.visibility === option.value ? "selected" : ""
+                    }`}
+                    key={option.value}
+                    onClick={() =>
+                      setEditForm((current) => ({ ...current, visibility: option.value }))
+                    }
+                    type="button"
+                  >
+                    <strong>{option.label}</strong>
+                    <small>{option.description}</small>
+                  </button>
+                ))}
+              </div>
+            </div>
+            {editForm.visibility === "protected" ? (
+              <>
+                <label className="auth-field">
+                  <span>Protected Access Price</span>
+                  <input
+                    min="0"
+                    onChange={(event) =>
+                      setEditForm((current) => ({ ...current, accessPrice: event.target.value }))
+                    }
+                    step="0.01"
+                    type="number"
+                    value={editForm.accessPrice}
+                  />
+                </label>
+                <label className="auth-field checkbox-field">
+                  <span>Allow Basic Subscription Access</span>
+                  <input
+                    checked={Boolean(editForm.allowBasicSubscription)}
+                    onChange={(event) =>
+                      setEditForm((current) => ({
+                        ...current,
+                        allowBasicSubscription: event.target.checked
+                      }))
+                    }
+                    type="checkbox"
+                  />
+                </label>
+              </>
+            ) : null}
             {!isLectureCategory ? (
               <label className="auth-field">
                 <span>Text Content</span>
@@ -570,6 +745,12 @@ export function SubjectCategoryPage() {
                 <h3>{resource.title}</h3>
                 <p className="muted">
                   Uploaded by: {resource.uploadedBy?.fullName || "Unknown"} ({resource.uploadedBy?.role})
+                </p>
+                <p className="muted">
+                  Access: {resource.visibility || "private"}
+                  {resource.visibility === "protected"
+                    ? ` | Unlock price: INR ${resource.accessPrice || 0}${resource.allowBasicSubscription ? " | Basic subscription allowed" : ""}`
+                    : ""}
                 </p>
                 <p className="muted">Storage: {getStorageLabel(resource)}</p>
                 {resource.description ? <p className="muted">{resource.description}</p> : null}
@@ -686,6 +867,17 @@ export function SubjectCategoryPage() {
                       Download
                     </a>
                   ) : null}
+                  {resource.visibility === "protected" &&
+                  resource.uploadedBy?._id !== user?.id &&
+                  user?.role !== "admin" ? (
+                    <button
+                      className="action-button neutral"
+                      onClick={() => handleUnlockProtectedResource(resource._id)}
+                      type="button"
+                    >
+                      Unlock Protected
+                    </button>
+                  ) : null}
                   {canManage ? (
                     <button
                       className="action-button approve"
@@ -694,7 +886,10 @@ export function SubjectCategoryPage() {
                         setEditForm({
                           title: resource.title,
                           description: resource.description || "",
-                          textContent: resource.textContent || ""
+                          textContent: resource.textContent || "",
+                          visibility: resource.visibility || "private",
+                          accessPrice: String(resource.accessPrice || 0),
+                          allowBasicSubscription: Boolean(resource.allowBasicSubscription)
                         });
                       }}
                       type="button"

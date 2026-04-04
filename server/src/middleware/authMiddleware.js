@@ -58,6 +58,9 @@ export async function protect(req, _res, next) {
       id: user._id.toString(),
       role: user.role,
       email: user.email,
+      collegeName: user.collegeName || "",
+      collegeStudentId: user.collegeStudentId || "",
+      studentVerificationStatus: user.studentVerificationStatus || "none",
       status
     };
     return next();
@@ -65,6 +68,45 @@ export async function protect(req, _res, next) {
     const error = new Error("Invalid token");
     error.statusCode = 401;
     return next(error);
+  }
+}
+
+export async function optionalProtect(req, _res, next) {
+  const authHeader = req.headers.authorization;
+  const tokenFromHeader =
+    authHeader && authHeader.startsWith("Bearer ") ? authHeader.split(" ")[1] : "";
+  const tokenFromCookie = getTokenFromCookies(req);
+  const token = tokenFromHeader || tokenFromCookie;
+
+  if (!token) {
+    return next();
+  }
+
+  try {
+    const decoded = verifyTokenWithRotation(token);
+    const user = await User.findById(decoded.id);
+
+    if (!user) {
+      return next();
+    }
+
+    const status = user.status || "active";
+    if (status !== "active") {
+      return next();
+    }
+
+    req.user = {
+      id: user._id.toString(),
+      role: user.role,
+      email: user.email,
+      collegeName: user.collegeName || "",
+      collegeStudentId: user.collegeStudentId || "",
+      studentVerificationStatus: user.studentVerificationStatus || "none",
+      status
+    };
+    return next();
+  } catch {
+    return next();
   }
 }
 

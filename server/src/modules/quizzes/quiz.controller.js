@@ -109,11 +109,20 @@ export async function listQuizzes(req, res, next) {
       max: 120
     });
 
-    if (req.query.includeUnpublished === "true") {
-      if (!req.user) {
-        throw createHttpError("Authentication required for unpublished quizzes.", 401);
+    if (req.user.role === "student") {
+      if (!req.user.collegeName) {
+        throw createHttpError(
+          "Your student account is not assigned to a college yet. Ask admin to assign your college.",
+          403
+        );
       }
 
+      if (collegeName && normalizeCollegeName(collegeName) !== normalizeCollegeName(req.user.collegeName)) {
+        throw createHttpError("Students can view quizzes only for their assigned college.", 403);
+      }
+    }
+
+    if (req.query.includeUnpublished === "true") {
       if (req.user.role === "representative") {
         if (!collegeName) {
           throw createHttpError("collegeName is required to view your unpublished quizzes.");
@@ -125,8 +134,10 @@ export async function listQuizzes(req, res, next) {
       }
     } else {
       filters.isPublished = true;
-      if (collegeName) {
-        filters.collegeNameNormalized = normalizeCollegeName(collegeName);
+      const effectiveCollegeName =
+        req.user.role === "student" ? req.user.collegeName : collegeName;
+      if (effectiveCollegeName) {
+        filters.collegeNameNormalized = normalizeCollegeName(effectiveCollegeName);
       }
     }
 
@@ -143,17 +154,35 @@ export async function listQuizzes(req, res, next) {
 export async function getQuizById(req, res, next) {
   try {
     const quizId = readMongoId(req.params.quizId, { field: "quizId" });
+    const collegeName = readString(req.query.collegeName, {
+      field: "collegeName",
+      required: false,
+      min: 3,
+      max: 120
+    });
     const quiz = await Quiz.findById(quizId).populate("createdByUser", "fullName email role");
 
     if (!quiz) {
       throw createHttpError("Quiz arrangement not found.", 404);
     }
 
-    if (!quiz.isPublished) {
-      if (!req.user) {
-        throw createHttpError("Authentication required for draft quizzes.", 401);
-      }
+    if (!collegeName) {
+      throw createHttpError("collegeName is required to access a quiz.", 400);
+    }
 
+    if (quiz.collegeNameNormalized !== normalizeCollegeName(collegeName)) {
+      throw createHttpError("This quiz does not belong to the selected college.", 403);
+    }
+
+    if (
+      req.user.role === "student" &&
+      (!req.user.collegeName ||
+        normalizeCollegeName(req.user.collegeName) !== quiz.collegeNameNormalized)
+    ) {
+      throw createHttpError("Students can access quizzes only for their assigned college.", 403);
+    }
+
+    if (!quiz.isPublished) {
       const isAdmin = req.user.role === "admin";
       const isOwner = String(quiz.createdByUser?._id || quiz.createdByUser) === String(req.user.id);
       if (!isAdmin && !isOwner) {

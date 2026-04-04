@@ -252,6 +252,25 @@ Indexing strategy is applied on high-frequency lookup fields like:
 
 ---
 
+## 6.1 ACID Suitability and Consistency Model
+
+- Atomicity:
+  MongoDB already guarantees atomic updates at single-document level. This suits most user, notice, resource, quiz, and rating updates.
+- Consistency:
+  Unique indexes and validation protect important invariants such as one approved college-course record per normalized college/course pair.
+- Isolation:
+  Marketplace purchase recording uses indexed upsert semantics to avoid duplicate buyer-item purchases under concurrent requests.
+- Durability:
+  Once MongoDB acknowledges the write, records remain durable according to the database deployment mode.
+- Multi-document flows:
+  Governance approval, college rename, and college delete flows now use an optional transaction helper.
+- Transaction suitability:
+  Full transactions are enabled automatically when the app runs on MongoDB Atlas or any replica set deployment.
+- Local development fallback:
+  On local standalone MongoDB, the app falls back to document-level atomic operations because standalone MongoDB does not support full multi-document transactions in the same way.
+
+---
+
 ## 7. Security Methods Implemented
 
 - JWT auth and protected routes

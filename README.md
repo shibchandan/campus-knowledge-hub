@@ -56,5 +56,12 @@ npm run dev
 - AI assistant with provider integration and history
 - Notices, moderation, audit logs, and admin controls
 
+## Data Consistency
+
+- MongoDB document writes remain atomic by default.
+- Multi-document governance flows now use an optional transaction helper.
+- Full ACID transactions are automatically used when MongoDB runs on Atlas or a replica set.
+- On local standalone MongoDB, the project safely falls back to document-level atomic operations.
+
 For detailed explanation of features, data flow, APIs, security, and deployment, see [WIKI.md](./WIKI.md).
 Security role mapping is documented in `WIKI.md` section `7.1 Security Control Mapping (Used For Whom)`.

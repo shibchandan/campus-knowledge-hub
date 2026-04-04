@@ -11,6 +11,7 @@ const links = [
   { to: "/dashboard", label: "Overview" },
   { to: "/lectures", label: "Lectures" },
   { to: "/notes", label: "Notes & PYQs" },
+  { to: "/quizzes", label: "Quizzes" },
   { to: "/ai-studio", label: "AI Studio" },
   { to: "/integrity", label: "Integrity" },
   { to: "/marketplace", label: "Marketplace" },
@@ -56,7 +57,7 @@ export function DashboardLayout() {
           <p className="eyebrow">Campus Knowledge Hub</p>
           <h1>Academic Control Center</h1>
           <p className="muted">
-            A structured starter for lecture delivery, note sharing, and AI-assisted learning.
+            College-managed learning operations with lectures, resources, AI study help, and governed academic workflows.
           </p>
         </div>
 
