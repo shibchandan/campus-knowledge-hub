@@ -144,7 +144,15 @@ export function SubjectCategoryPage() {
 
   const subject = useMemo(() => {
     const dynamicSubject = dynamicSubjects.find((item) => item.subjectId === subjectId);
-    return dynamicSubject ? { id: dynamicSubject.subjectId, name: dynamicSubject.name } : fallbackSubject;
+    if (dynamicSubject) {
+      return { id: dynamicSubject.subjectId, name: dynamicSubject.name };
+    }
+
+    if (!dynamicSubjects.length) {
+      return fallbackSubject;
+    }
+
+    return null;
   }, [dynamicSubjects, fallbackSubject, subjectId]);
 
   const canUpload = useMemo(() => Boolean(user?.id), [user?.id]);

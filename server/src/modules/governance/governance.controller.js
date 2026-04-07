@@ -531,6 +531,9 @@ export async function upsertCollegeProfile(req, res, next) {
   try {
     const payload = validateCollegeProfilePayload(req.body);
     const normalizedCollege = normalizeCollegeName(payload.collegeName);
+    const existingProfile = await CollegeProfile.findOne({
+      collegeNameNormalized: normalizedCollege
+    });
 
     if (req.user.role === "representative") {
       const hasApprovedCourse = await CollegeCourse.findOne({
@@ -542,6 +545,16 @@ export async function upsertCollegeProfile(req, res, next) {
         throw createHttpError(
           "Representative can update profile only for approved colleges assigned to them.",
           403
+        );
+      }
+
+      if (
+        existingProfile &&
+        existingProfile.enteredByRepresentative.toString() !== req.user.id
+      ) {
+        throw createHttpError(
+          "This college profile is already managed by another representative. Admin must reassign it before you can edit.",
+          409
         );
       }
     }

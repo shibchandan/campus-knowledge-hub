@@ -45,6 +45,16 @@ academicStructureSchema.index(
   {
     collegeNameNormalized: 1,
     programId: 1,
+    branchId: 1,
+    semesterOrder: 1
+  },
+  { unique: true, name: "uniq_academic_structure_semester_order" }
+);
+
+academicStructureSchema.index(
+  {
+    collegeNameNormalized: 1,
+    programId: 1,
     branchId: 1
   },
   { name: "idx_academic_structure_program_branches" }

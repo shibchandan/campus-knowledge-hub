@@ -14,19 +14,25 @@ import {
 } from "../../utils/requestValidation.js";
 import { resolveStudentCollegeScope } from "../../utils/studentCollegeAccess.js";
 
-async function assertRepresentativeCollegeAccess(user, collegeNameNormalized) {
+function normalizeProgramCourse(programId = "", programName = "") {
+  return normalizeCollegeName(programName || programId);
+}
+
+async function assertRepresentativeCollegeAccess(user, collegeNameNormalized, programId = "", programName = "") {
   if (user.role !== "representative") {
     return;
   }
 
+  const courseNameNormalized = normalizeProgramCourse(programId, programName);
   const approvedCourse = await CollegeCourse.findOne({
     collegeNameNormalized,
+    courseNameNormalized,
     addedByRepresentative: user.id
   });
 
   if (!approvedCourse) {
     throw createHttpError(
-      "Representative can manage academic structure only for approved colleges assigned to them.",
+      "Representative can manage academic structure only for approved college courses assigned to them.",
       403
     );
   }
@@ -97,7 +103,12 @@ export async function listAcademicStructures(req, res, next) {
 export async function createAcademicStructure(req, res, next) {
   try {
     const payload = validateAcademicStructurePayload(req.body);
-    await assertRepresentativeCollegeAccess(req.user, payload.collegeNameNormalized);
+    await assertRepresentativeCollegeAccess(
+      req.user,
+      payload.collegeNameNormalized,
+      payload.programId,
+      payload.programName
+    );
     const structure = await AcademicStructure.create({
       ...payload,
       createdByAdmin: req.user.id
@@ -130,10 +141,20 @@ export async function updateAcademicStructure(req, res, next) {
       throw createHttpError("Academic structure not found.", 404);
     }
 
-    await assertRepresentativeCollegeAccess(req.user, structure.collegeNameNormalized);
+    await assertRepresentativeCollegeAccess(
+      req.user,
+      structure.collegeNameNormalized,
+      structure.programId,
+      structure.programName
+    );
 
     const payload = validateAcademicStructurePayload(req.body);
-    await assertRepresentativeCollegeAccess(req.user, payload.collegeNameNormalized);
+    await assertRepresentativeCollegeAccess(
+      req.user,
+      payload.collegeNameNormalized,
+      payload.programId,
+      payload.programName
+    );
 
     Object.assign(structure, payload);
     await structure.save();
@@ -165,7 +186,12 @@ export async function deleteAcademicStructure(req, res, next) {
       throw createHttpError("Academic structure not found.", 404);
     }
 
-    await assertRepresentativeCollegeAccess(req.user, structure.collegeNameNormalized);
+    await assertRepresentativeCollegeAccess(
+      req.user,
+      structure.collegeNameNormalized,
+      structure.programId,
+      structure.programName
+    );
 
     await AcademicSubject.deleteMany({
       collegeNameNormalized: structure.collegeNameNormalized,
@@ -196,7 +222,11 @@ export async function deleteAcademicStructure(req, res, next) {
 export async function createAcademicSubject(req, res, next) {
   try {
     const payload = validateAcademicSubjectPayload(req.body);
-    await assertRepresentativeCollegeAccess(req.user, payload.collegeNameNormalized);
+    await assertRepresentativeCollegeAccess(
+      req.user,
+      payload.collegeNameNormalized,
+      payload.programId
+    );
     const subject = await AcademicSubject.create({
       ...payload,
       createdByAdmin: req.user.id
@@ -230,10 +260,18 @@ export async function updateAcademicSubject(req, res, next) {
       throw createHttpError("Academic subject not found.", 404);
     }
 
-    await assertRepresentativeCollegeAccess(req.user, subject.collegeNameNormalized);
+    await assertRepresentativeCollegeAccess(
+      req.user,
+      subject.collegeNameNormalized,
+      subject.programId
+    );
 
     const payload = validateAcademicSubjectPayload(req.body);
-    await assertRepresentativeCollegeAccess(req.user, payload.collegeNameNormalized);
+    await assertRepresentativeCollegeAccess(
+      req.user,
+      payload.collegeNameNormalized,
+      payload.programId
+    );
 
     Object.assign(subject, payload);
     await subject.save();
@@ -266,7 +304,11 @@ export async function deleteAcademicSubject(req, res, next) {
       throw createHttpError("Academic subject not found.", 404);
     }
 
-    await assertRepresentativeCollegeAccess(req.user, subject.collegeNameNormalized);
+    await assertRepresentativeCollegeAccess(
+      req.user,
+      subject.collegeNameNormalized,
+      subject.programId
+    );
 
     await subject.deleteOne();
     await createAuditLog({

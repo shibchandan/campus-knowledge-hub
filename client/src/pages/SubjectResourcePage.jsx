@@ -49,9 +49,12 @@ export function SubjectResourcePage() {
     () => dynamicSubjects.find((item) => item.subjectId === subjectId),
     [dynamicSubjects, subjectId]
   );
+  const hasDynamicSubjectData = Boolean(dynamicSubjects.length);
   const subject = dynamicSubject
     ? { id: dynamicSubject.subjectId, name: dynamicSubject.name }
-    : fallbackSubject;
+    : !hasDynamicSubjectData
+      ? fallbackSubject
+      : null;
 
   if (!program || !branch || (!semester && !dynamicSubject) || !subject) {
     return <Navigate to="/dashboard" replace />;

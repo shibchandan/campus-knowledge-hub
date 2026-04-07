@@ -6,6 +6,14 @@ import { academicPrograms } from "../features/dashboard/data";
 import { groupStructuresIntoPrograms } from "../lib/academicHelpers";
 import { apiClient } from "../lib/apiClient";
 
+function normalizeProgramKey(value = "") {
+  return String(value)
+    .trim()
+    .toLowerCase()
+    .replace(/[^a-z0-9]+/g, "-")
+    .replace(/^-|-$/g, "");
+}
+
 export function DashboardPage() {
   const { selectedCollege } = useCollege();
   const [programSearch, setProgramSearch] = useState("");
@@ -118,8 +126,38 @@ export function DashboardPage() {
       }));
     }
 
+    if (approvedCourses.length) {
+      const groupedPrograms = new Map();
+
+      approvedCourses.forEach((course) => {
+        const key = normalizeProgramKey(course.courseName);
+        const existing = groupedPrograms.get(key) || {
+          id: key,
+          name: course.courseName,
+          branchCount: 0,
+          maxSemesters: 0
+        };
+
+        existing.branchCount += 1;
+        existing.maxSemesters = Math.max(existing.maxSemesters, Number(course.semesterCount || 0));
+        groupedPrograms.set(key, existing);
+      });
+
+      return Array.from(groupedPrograms.values())
+        .sort((left, right) => left.name.localeCompare(right.name))
+        .map((program) => ({
+          id: program.id,
+          name: program.name,
+          branch: `${program.branchCount} approved course entr${program.branchCount === 1 ? "y" : "ies"}`,
+          description:
+            program.maxSemesters > 0
+              ? `Up to ${program.maxSemesters} semesters approved for this college. Branch structure can now be managed from panel.`
+              : "Approved course available for this college."
+        }));
+    }
+
     return academicPrograms;
-  }, [structures]);
+  }, [approvedCourses, structures]);
 
   const filteredPrograms = useMemo(() => {
     const term = programSearch.trim().toLowerCase();
@@ -184,11 +222,17 @@ export function DashboardPage() {
       {
         label: "Departments",
         value: filteredPrograms.length,
-        note: structures.length ? "Database-driven" : "Starter overview"
+        note: structures.length
+          ? "Database-driven"
+          : approvedCourses.length
+            ? "Approved courses loaded"
+            : "Starter overview"
       },
       {
         label: "Branches",
-        value: structures.reduce((total, program) => total + program.branches.length, 0) || "Preset",
+        value:
+          structures.reduce((total, program) => total + program.branches.length, 0) ||
+          (approvedCourses.length ? "Pending setup" : "Preset"),
         note: selectedCollege?.shortName || "Choose a college"
       },
       {
@@ -202,7 +246,15 @@ export function DashboardPage() {
         note: profile ? "Details available" : "Representative can add details"
       }
     ],
-    [filteredPrograms.length, notices.length, profile, selectedCollege?.name, selectedCollege?.shortName, structures]
+    [
+      approvedCourses.length,
+      filteredPrograms.length,
+      notices.length,
+      profile,
+      selectedCollege?.name,
+      selectedCollege?.shortName,
+      structures
+    ]
   );
 
   return (
@@ -341,6 +393,11 @@ export function DashboardPage() {
       >
         {structures.length ? (
           <p className="muted">Database-managed academic structure is active for this college.</p>
+        ) : approvedCourses.length ? (
+          <p className="muted">
+            Approved courses are available for this college. Representatives can now add branch and semester
+            structure from the panel.
+          </p>
         ) : null}
         <div className="list-toolbar">
           <input

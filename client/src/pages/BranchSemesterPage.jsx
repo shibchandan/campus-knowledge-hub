@@ -66,8 +66,9 @@ export function BranchSemesterPage() {
     () => getDynamicBranchById(dynamicProgram, branchId),
     [dynamicProgram, branchId]
   );
-  const program = dynamicProgram || fallbackProgram;
-  const branch = dynamicBranch || fallbackBranch;
+  const hasDynamicProgramData = Boolean(dynamicPrograms.length);
+  const program = dynamicProgram || (!hasDynamicProgramData ? fallbackProgram : null);
+  const branch = dynamicBranch || (!hasDynamicProgramData ? fallbackBranch : null);
 
   const semesters = useMemo(() => {
     if (!branch) {
