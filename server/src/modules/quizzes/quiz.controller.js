@@ -2,6 +2,11 @@ import { Quiz } from "./quiz.model.js";
 import { CollegeCourse } from "../governance/governance.model.js";
 import { createAuditLog } from "../../services/audit.service.js";
 import {
+  normalizeCourseAccessKey,
+  requireStudentAssignedCollege,
+  resolveStudentCollegeScope
+} from "../../utils/studentCollegeAccess.js";
+import {
   createHttpError,
   normalizeCollegeName,
   readMongoId,
@@ -66,6 +71,7 @@ function validateQuizPayload(body) {
   return {
     collegeName,
     collegeNameNormalized: normalizeCollegeName(collegeName),
+    programId: readString(body.programId, { field: "programId", min: 2, max: 80 }),
     title: readString(body.title, { field: "title", min: 3, max: 160 }),
     duration: readString(body.duration, { field: "duration", min: 2, max: 40 }),
     difficulty: readString(body.difficulty, { field: "difficulty", min: 2, max: 40 }),
@@ -81,19 +87,24 @@ function validateQuizPayload(body) {
   };
 }
 
-async function assertRepresentativeCollegeAccess(user, collegeNameNormalized) {
+async function assertRepresentativeCollegeAccess(user, collegeNameNormalized, programId) {
   if (user.role !== "representative") {
     return;
   }
 
-  const approvedCourse = await CollegeCourse.findOne({
+  const approvedCourses = await CollegeCourse.find({
     collegeNameNormalized,
     addedByRepresentative: user.id
-  });
+  }).select("courseName");
 
-  if (!approvedCourse) {
+  const targetProgram = normalizeCourseAccessKey(programId);
+  const hasMatch = approvedCourses.some(
+    (course) => normalizeCourseAccessKey(course.courseName) === targetProgram
+  );
+
+  if (!hasMatch) {
     throw createHttpError(
-      "Representative can manage quizzes only for approved colleges assigned to them.",
+      "Representative can manage quizzes only for approved college courses assigned to them.",
       403
     );
   }
@@ -102,24 +113,12 @@ async function assertRepresentativeCollegeAccess(user, collegeNameNormalized) {
 export async function listQuizzes(req, res, next) {
   try {
     const filters = {};
-    const collegeName = readString(req.query.collegeName, {
-      field: "collegeName",
-      required: false,
-      min: 3,
-      max: 120
+    const collegeName = resolveStudentCollegeScope(req, req.query.collegeName, {
+      fieldName: "collegeName"
     });
 
     if (req.user.role === "student") {
-      if (!req.user.collegeName) {
-        throw createHttpError(
-          "Your student account is not assigned to a college yet. Ask admin to assign your college.",
-          403
-        );
-      }
-
-      if (collegeName && normalizeCollegeName(collegeName) !== normalizeCollegeName(req.user.collegeName)) {
-        throw createHttpError("Students can view quizzes only for their assigned college.", 403);
-      }
+      requireStudentAssignedCollege(req);
     }
 
     if (req.query.includeUnpublished === "true") {
@@ -129,8 +128,20 @@ export async function listQuizzes(req, res, next) {
         }
 
         const normalizedCollege = normalizeCollegeName(collegeName);
-        await assertRepresentativeCollegeAccess(req.user, normalizedCollege);
+        const programId = readString(req.query.programId, {
+          field: "programId",
+          required: false,
+          min: 2,
+          max: 80
+        });
+
+        if (!programId) {
+          throw createHttpError("programId is required to view your unpublished quizzes.");
+        }
+
+        await assertRepresentativeCollegeAccess(req.user, normalizedCollege, programId);
         filters.collegeNameNormalized = normalizedCollege;
+        filters.programId = programId;
       }
     } else {
       filters.isPublished = true;
@@ -174,10 +185,13 @@ export async function getQuizById(req, res, next) {
       throw createHttpError("This quiz does not belong to the selected college.", 403);
     }
 
+    if (req.user.role === "student") {
+      requireStudentAssignedCollege(req);
+    }
+
     if (
       req.user.role === "student" &&
-      (!req.user.collegeName ||
-        normalizeCollegeName(req.user.collegeName) !== quiz.collegeNameNormalized)
+      normalizeCollegeName(req.user.collegeName) !== quiz.collegeNameNormalized
     ) {
       throw createHttpError("Students can access quizzes only for their assigned college.", 403);
     }
@@ -199,7 +213,7 @@ export async function getQuizById(req, res, next) {
 export async function createQuiz(req, res, next) {
   try {
     const payload = validateQuizPayload(req.body);
-    await assertRepresentativeCollegeAccess(req.user, payload.collegeNameNormalized);
+    await assertRepresentativeCollegeAccess(req.user, payload.collegeNameNormalized, payload.programId);
 
     const quiz = await Quiz.create({
       ...payload,
@@ -237,7 +251,7 @@ export async function updateQuiz(req, res, next) {
     }
 
     const payload = validateQuizPayload(req.body);
-    await assertRepresentativeCollegeAccess(req.user, payload.collegeNameNormalized);
+    await assertRepresentativeCollegeAccess(req.user, payload.collegeNameNormalized, payload.programId);
 
     Object.assign(quiz, payload);
     await quiz.save();

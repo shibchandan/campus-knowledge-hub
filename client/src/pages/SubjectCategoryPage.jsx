@@ -10,7 +10,9 @@ import {
   getSubjectById,
   subjectCategories
 } from "../features/dashboard/data";
-import { apiClient } from "../lib/apiClient";
+import { getDynamicBranchById, getDynamicProgramById, groupStructuresIntoPrograms } from "../lib/academicHelpers";
+import { apiClient, buildAuthorizedApiUrl } from "../lib/apiClient";
+import { openRazorpayCheckout } from "../lib/paymentClient";
 import { useToast } from "../ui/ToastContext";
 
 const initialUploadForm = {
@@ -79,12 +81,14 @@ function getAccessOptions(role) {
 }
 
 function ResourcePreview({ resource }) {
+  const previewSrc = buildAuthorizedApiUrl(resource.previewUrl || resource.fileUrl);
+
   if (resource.fileMimeType?.startsWith("video/")) {
-    return <video className="resource-video" controls src={resource.previewUrl || resource.fileUrl} />;
+    return <video className="resource-video" controls src={previewSrc} />;
   }
 
   if (resource.fileMimeType?.startsWith("audio/")) {
-    return <audio className="resource-audio" controls src={resource.previewUrl || resource.fileUrl} />;
+    return <audio className="resource-audio" controls src={previewSrc} />;
   }
 
   if (resource.fileMimeType?.startsWith("image/")) {
@@ -92,13 +96,13 @@ function ResourcePreview({ resource }) {
       <img
         alt={resource.title}
         className="resource-image"
-        src={resource.previewUrl || resource.fileUrl}
+        src={previewSrc}
       />
     );
   }
 
   if (resource.fileMimeType?.includes("pdf")) {
-    return <iframe className="resource-pdf" src={resource.previewUrl || resource.fileUrl} title={resource.title} />;
+    return <iframe className="resource-pdf" src={previewSrc} title={resource.title} />;
   }
 
   if (resource.fileUrl) {
@@ -118,11 +122,12 @@ export function SubjectCategoryPage() {
   const { user } = useAuth();
   const { selectedCollege } = useCollege();
   const { showError, showSuccess, showInfo } = useToast();
-  const program = getProgramById(programId, selectedCollege?.name || "");
-  const branch = getBranchById(program, branchId);
-  const semester = getSemesterById(branch, semesterId);
-  const fallbackSubject = getSubjectById(semester, subjectId);
+  const fallbackProgram = getProgramById(programId, selectedCollege?.name || "");
+  const fallbackBranch = getBranchById(fallbackProgram, branchId);
+  const fallbackSemester = getSemesterById(fallbackBranch, semesterId);
+  const fallbackSubject = getSubjectById(fallbackSemester, subjectId);
   const category = subjectCategories.find((item) => item.id === categoryId);
+  const [dynamicPrograms, setDynamicPrograms] = useState([]);
   const [dynamicSubjects, setDynamicSubjects] = useState([]);
   const [resources, setResources] = useState([]);
   const [pagination, setPagination] = useState({ page: 1, totalPages: 1, total: 0, limit: 8 });
@@ -140,7 +145,32 @@ export function SubjectCategoryPage() {
   const [feedbackByResource, setFeedbackByResource] = useState({});
   const [commentInputs, setCommentInputs] = useState({});
   const [feedbackBusyByResource, setFeedbackBusyByResource] = useState({});
+  const [structureLoaded, setStructureLoaded] = useState(false);
   const isLectureCategory = categoryId === "lecture";
+
+  useEffect(() => {
+    async function loadStructure() {
+      if (!selectedCollege?.name) {
+        setDynamicPrograms([]);
+        setStructureLoaded(true);
+        return;
+      }
+
+      try {
+        const response = await apiClient.get("/academic/structures", {
+          params: { collegeName: selectedCollege.name, programId, branchId }
+        });
+        setDynamicPrograms(groupStructuresIntoPrograms(response.data.data));
+      } catch {
+        setDynamicPrograms([]);
+      } finally {
+        setStructureLoaded(true);
+      }
+    }
+
+    setStructureLoaded(false);
+    loadStructure();
+  }, [branchId, programId, selectedCollege?.name]);
 
   const subject = useMemo(() => {
     const dynamicSubject = dynamicSubjects.find((item) => item.subjectId === subjectId);
@@ -206,6 +236,23 @@ export function SubjectCategoryPage() {
 
     loadDynamicSubjects();
   }, [branchId, programId, selectedCollege?.name, semesterId]);
+
+  const dynamicProgram = useMemo(
+    () => getDynamicProgramById(dynamicPrograms, programId),
+    [dynamicPrograms, programId]
+  );
+  const dynamicBranch = useMemo(
+    () => getDynamicBranchById(dynamicProgram, branchId),
+    [dynamicProgram, branchId]
+  );
+  const dynamicSemester = useMemo(
+    () => dynamicBranch?.semesters?.find((item) => item.id === semesterId) || null,
+    [dynamicBranch, semesterId]
+  );
+  const hasDynamicProgramData = Boolean(dynamicPrograms.length);
+  const program = dynamicProgram || (!hasDynamicProgramData ? fallbackProgram : null);
+  const branch = dynamicBranch || (!hasDynamicProgramData ? fallbackBranch : null);
+  const semester = dynamicSemester || (!hasDynamicProgramData ? fallbackSemester : null);
 
   async function loadResources(nextPage = 1) {
     if (!selectedCollege?.name) {
@@ -274,6 +321,16 @@ export function SubjectCategoryPage() {
 
     loadFeedbackSummary();
   }, [resources, user?.id]);
+
+  if (!structureLoaded) {
+    return (
+      <div className="page-stack">
+        <SectionCard title="Loading category workspace" description="Fetching branch, semester, and subject context.">
+          <p className="muted">Loading resource category...</p>
+        </SectionCard>
+      </div>
+    );
+  }
 
   if (!program || !branch || (!semester && !subject) || !subject || !category) {
     return <Navigate to="/dashboard" replace />;
@@ -369,8 +426,36 @@ export function SubjectCategoryPage() {
     setSuccess("");
 
     try {
-      await apiClient.post(`/resources/${resourceId}/unlock`);
-      showSuccess("Protected resource unlocked for your account.");
+      const response = await apiClient.post(`/resources/${resourceId}/unlock`);
+
+      if (response.data.paymentRequired && response.data.data?.checkout) {
+        await openRazorpayCheckout({
+          checkout: response.data.data.checkout,
+          onSuccess: async (paymentResponse) => {
+            const verifyResponse = await apiClient.post(
+              `/resources/${resourceId}/verify-unlock-payment`,
+              {
+                paymentOrderId: response.data.data.paymentOrderId,
+                razorpayOrderId: paymentResponse.razorpay_order_id,
+                razorpayPaymentId: paymentResponse.razorpay_payment_id,
+                razorpaySignature: paymentResponse.razorpay_signature
+              }
+            );
+            setSuccess(verifyResponse.data.message || "Protected resource unlocked successfully.");
+            showSuccess(verifyResponse.data.message || "Protected resource unlocked successfully.");
+            await loadResources(pagination.page);
+          },
+          onDismiss: () => {
+            const message = "Payment window closed. You can try unlocking again anytime.";
+            setSuccess(message);
+            showInfo(message);
+          }
+        });
+        return;
+      }
+
+      setSuccess(response.data.message || "Protected resource unlocked for your account.");
+      showSuccess(response.data.message || "Protected resource unlocked for your account.");
       await loadResources(pagination.page);
     } catch (requestError) {
       const message = requestError.response?.data?.message || "Failed to unlock protected resource.";
@@ -868,7 +953,9 @@ export function SubjectCategoryPage() {
                   {resource.fileUrl ? (
                     <a
                       className="open-college-button"
-                      href={`${apiClient.defaults.baseURL}/resources/${resource._id}/download`}
+                      href={buildAuthorizedApiUrl(
+                        `${apiClient.defaults.baseURL}/resources/${resource._id}/download`
+                      )}
                       rel="noreferrer"
                       target="_blank"
                     >

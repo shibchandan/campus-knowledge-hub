@@ -9,16 +9,43 @@ import {
   getSubjectById,
   subjectCategories
 } from "../features/dashboard/data";
+import { getDynamicBranchById, getDynamicProgramById, groupStructuresIntoPrograms } from "../lib/academicHelpers";
 import { apiClient } from "../lib/apiClient";
 
 export function SubjectResourcePage() {
   const { programId, branchId, semesterId, subjectId } = useParams();
   const { selectedCollege } = useCollege();
-  const program = getProgramById(programId, selectedCollege?.name || "");
-  const branch = getBranchById(program, branchId);
-  const semester = getSemesterById(branch, semesterId);
-  const fallbackSubject = getSubjectById(semester, subjectId);
+  const fallbackProgram = getProgramById(programId, selectedCollege?.name || "");
+  const fallbackBranch = getBranchById(fallbackProgram, branchId);
+  const fallbackSemester = getSemesterById(fallbackBranch, semesterId);
+  const [dynamicPrograms, setDynamicPrograms] = useState([]);
+  const fallbackSubject = getSubjectById(fallbackSemester, subjectId);
   const [dynamicSubjects, setDynamicSubjects] = useState([]);
+  const [structureLoaded, setStructureLoaded] = useState(false);
+
+  useEffect(() => {
+    async function loadStructure() {
+      if (!selectedCollege?.name) {
+        setDynamicPrograms([]);
+        setStructureLoaded(true);
+        return;
+      }
+
+      try {
+        const response = await apiClient.get("/academic/structures", {
+          params: { collegeName: selectedCollege.name, programId, branchId }
+        });
+        setDynamicPrograms(groupStructuresIntoPrograms(response.data.data));
+      } catch {
+        setDynamicPrograms([]);
+      } finally {
+        setStructureLoaded(true);
+      }
+    }
+
+    setStructureLoaded(false);
+    loadStructure();
+  }, [branchId, programId, selectedCollege?.name]);
 
   useEffect(() => {
     async function loadDynamicSubjects() {
@@ -45,6 +72,23 @@ export function SubjectResourcePage() {
     loadDynamicSubjects();
   }, [branchId, programId, selectedCollege?.name, semesterId]);
 
+  const dynamicProgram = useMemo(
+    () => getDynamicProgramById(dynamicPrograms, programId),
+    [dynamicPrograms, programId]
+  );
+  const dynamicBranch = useMemo(
+    () => getDynamicBranchById(dynamicProgram, branchId),
+    [dynamicProgram, branchId]
+  );
+  const dynamicSemester = useMemo(
+    () => dynamicBranch?.semesters?.find((item) => item.id === semesterId) || null,
+    [dynamicBranch, semesterId]
+  );
+  const hasDynamicProgramData = Boolean(dynamicPrograms.length);
+  const program = dynamicProgram || (!hasDynamicProgramData ? fallbackProgram : null);
+  const branch = dynamicBranch || (!hasDynamicProgramData ? fallbackBranch : null);
+  const semester = dynamicSemester || (!hasDynamicProgramData ? fallbackSemester : null);
+
   const dynamicSubject = useMemo(
     () => dynamicSubjects.find((item) => item.subjectId === subjectId),
     [dynamicSubjects, subjectId]
@@ -55,6 +99,16 @@ export function SubjectResourcePage() {
     : !hasDynamicSubjectData
       ? fallbackSubject
       : null;
+
+  if (!structureLoaded) {
+    return (
+      <div className="page-stack">
+        <SectionCard title="Loading subject workspace" description="Fetching branch, semester, and subject context.">
+          <p className="muted">Loading subject details...</p>
+        </SectionCard>
+      </div>
+    );
+  }
 
   if (!program || !branch || (!semester && !dynamicSubject) || !subject) {
     return <Navigate to="/dashboard" replace />;

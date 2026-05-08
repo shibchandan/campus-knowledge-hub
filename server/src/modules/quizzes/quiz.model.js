@@ -13,6 +13,7 @@ const quizSchema = new mongoose.Schema(
   {
     collegeName: { type: String, required: true, trim: true },
     collegeNameNormalized: { type: String, required: true, trim: true },
+    programId: { type: String, required: true, trim: true },
     title: { type: String, required: true, trim: true },
     duration: { type: String, required: true, trim: true },
     difficulty: { type: String, required: true, trim: true },
@@ -31,7 +32,7 @@ const quizSchema = new mongoose.Schema(
 );
 
 quizSchema.index(
-  { collegeNameNormalized: 1, isPublished: 1, createdAt: -1 },
+  { collegeNameNormalized: 1, programId: 1, isPublished: 1, createdAt: -1 },
   { name: "idx_quiz_by_college" }
 );
 quizSchema.index(

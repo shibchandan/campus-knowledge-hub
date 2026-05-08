@@ -1,9 +1,8 @@
 import { useEffect, useMemo, useState } from "react";
 import { SectionCard } from "../components/SectionCard";
 import { useAuth } from "../auth/AuthContext";
-import { apiClient } from "../lib/apiClient";
+import { apiClient, buildAuthorizedApiUrl } from "../lib/apiClient";
 
-const SETTINGS_STORAGE_KEY = "campus-knowledge-hub-settings";
 const ACCOUNT_TABS = [
   { id: "general", label: "General" },
   { id: "notifications", label: "Notifications" },
@@ -21,20 +20,6 @@ const defaultPreferences = {
   darkModePreferred: true
 };
 
-const blockedUserSeed = [
-  { id: "spam-user-1", name: "Muted Example User", reason: "Muted for repeated spam replies" },
-  { id: "promo-user-1", name: "Promotional Contact", reason: "Hidden from community suggestions" }
-];
-
-function readStoredPreferences() {
-  try {
-    const raw = localStorage.getItem(SETTINGS_STORAGE_KEY);
-    return raw ? { ...defaultPreferences, ...JSON.parse(raw) } : defaultPreferences;
-  } catch {
-    return defaultPreferences;
-  }
-}
-
 export function AccountSettingsPage() {
   const { user, updateProfile, refreshCurrentUser } = useAuth();
   const [activeTab, setActiveTab] = useState("general");
@@ -47,28 +32,74 @@ export function AccountSettingsPage() {
     fullName: user?.fullName || "",
     avatarUrl: user?.avatarUrl || ""
   });
+  const [studentVerificationForm, setStudentVerificationForm] = useState({
+    collegeName: user?.collegeName || "",
+    collegeStudentId: user?.collegeStudentId || "",
+    officialCollegeEmail: user?.officialCollegeEmail || ""
+  });
   const [passwordForm, setPasswordForm] = useState({
     currentPassword: "",
     newPassword: "",
     confirmPassword: ""
   });
-  const [preferences, setPreferences] = useState(readStoredPreferences);
+  const [preferences, setPreferences] = useState(defaultPreferences);
   const [historyItems, setHistoryItems] = useState([]);
   const [historyLoading, setHistoryLoading] = useState(true);
-  const [blockedUsers, setBlockedUsers] = useState(blockedUserSeed);
+  const [blockedUsers, setBlockedUsers] = useState([]);
+  const [settingsLoading, setSettingsLoading] = useState(true);
+  const [blockedUserForm, setBlockedUserForm] = useState({
+    label: "",
+    email: "",
+    reason: ""
+  });
   const [collegeEmailOtp, setCollegeEmailOtp] = useState("");
+  const [studentProofFile, setStudentProofFile] = useState(null);
   const [verificationBusy, setVerificationBusy] = useState(false);
+  const [verificationSubmitLoading, setVerificationSubmitLoading] = useState(false);
+  const [preferencesSaving, setPreferencesSaving] = useState(false);
+  const [blockedUserSaving, setBlockedUserSaving] = useState(false);
   const [profileLoading, setProfileLoading] = useState(false);
   const [passwordLoading, setPasswordLoading] = useState(false);
   const [error, setError] = useState("");
   const [success, setSuccess] = useState("");
 
   useEffect(() => {
-    localStorage.setItem(SETTINGS_STORAGE_KEY, JSON.stringify(preferences));
-  }, [preferences]);
+    setProfileForm({
+      fullName: user?.fullName || "",
+      avatarUrl: user?.avatarUrl || ""
+    });
+    setStudentVerificationForm({
+      collegeName: user?.collegeName || "",
+      collegeStudentId: user?.collegeStudentId || "",
+      officialCollegeEmail: user?.officialCollegeEmail || ""
+    });
+  }, [user?.avatarUrl, user?.collegeName, user?.collegeStudentId, user?.fullName, user?.officialCollegeEmail]);
 
   useEffect(() => {
     let ignore = false;
+
+    async function loadSettings() {
+      setSettingsLoading(true);
+      try {
+        const response = await apiClient.get("/settings/me");
+        if (!ignore) {
+          setPreferences({
+            ...defaultPreferences,
+            ...(response.data.data?.notificationPreferences || {})
+          });
+          setBlockedUsers(response.data.data?.blockedUsers || []);
+        }
+      } catch {
+        if (!ignore) {
+          setPreferences(defaultPreferences);
+          setBlockedUsers([]);
+        }
+      } finally {
+        if (!ignore) {
+          setSettingsLoading(false);
+        }
+      }
+    }
 
     async function loadHistory() {
       setHistoryLoading(true);
@@ -88,6 +119,7 @@ export function AccountSettingsPage() {
       }
     }
 
+    loadSettings();
     loadHistory();
 
     return () => {
@@ -170,19 +202,64 @@ export function AccountSettingsPage() {
     }));
   }
 
-  function togglePreference(key) {
-    setPreferences((current) => ({
-      ...current,
-      [key]: !current[key]
-    }));
-    setSuccess("Preference updated locally.");
+  async function togglePreference(key) {
+    const nextValue = !preferences[key];
+    setPreferencesSaving(true);
     setError("");
+    setSuccess("");
+
+    try {
+      const response = await apiClient.patch("/settings/preferences", {
+        [key]: nextValue
+      });
+      setPreferences({
+        ...defaultPreferences,
+        ...(response.data.data?.notificationPreferences || {})
+      });
+      setSuccess(response.data.message || "Preference updated successfully.");
+    } catch (requestError) {
+      setError(requestError.response?.data?.message || "Failed to update preference.");
+    } finally {
+      setPreferencesSaving(false);
+    }
   }
 
-  function handleRemoveBlockedUser(userId) {
-    setBlockedUsers((current) => current.filter((item) => item.id !== userId));
-    setSuccess("Blocked user removed from your list.");
+  async function handleAddBlockedUser(event) {
+    event.preventDefault();
+    setBlockedUserSaving(true);
     setError("");
+    setSuccess("");
+
+    try {
+      const response = await apiClient.post("/settings/blocked-users", blockedUserForm);
+      setBlockedUsers((current) => [...current, response.data.data]);
+      setBlockedUserForm({
+        label: "",
+        email: "",
+        reason: ""
+      });
+      setSuccess(response.data.message || "Blocked user added successfully.");
+    } catch (requestError) {
+      setError(requestError.response?.data?.message || "Failed to add blocked user.");
+    } finally {
+      setBlockedUserSaving(false);
+    }
+  }
+
+  async function handleRemoveBlockedUser(blockedUserId) {
+    setBlockedUserSaving(true);
+    setError("");
+    setSuccess("");
+
+    try {
+      const response = await apiClient.delete(`/settings/blocked-users/${blockedUserId}`);
+      setBlockedUsers(response.data.data?.blockedUsers || []);
+      setSuccess(response.data.message || "Blocked user removed successfully.");
+    } catch (requestError) {
+      setError(requestError.response?.data?.message || "Failed to remove blocked user.");
+    } finally {
+      setBlockedUserSaving(false);
+    }
   }
 
   async function handleSendCollegeEmailOtp() {
@@ -218,6 +295,38 @@ export function AccountSettingsPage() {
       setError(requestError.response?.data?.message || "Failed to verify college email OTP.");
     } finally {
       setVerificationBusy(false);
+    }
+  }
+
+  async function handleStudentVerificationSubmit(event) {
+    event.preventDefault();
+    setVerificationSubmitLoading(true);
+    setError("");
+    setSuccess("");
+
+    try {
+      const payload = new FormData();
+      payload.append("collegeName", studentVerificationForm.collegeName);
+      payload.append("collegeStudentId", studentVerificationForm.collegeStudentId);
+      payload.append("officialCollegeEmail", studentVerificationForm.officialCollegeEmail);
+
+      if (studentProofFile) {
+        payload.append("studentProof", studentProofFile);
+      }
+
+      const response = await apiClient.post("/auth/student-verification/submit", payload, {
+        headers: {
+          "Content-Type": "multipart/form-data"
+        }
+      });
+
+      setSuccess(response.data.message || "Student verification submitted successfully.");
+      setStudentProofFile(null);
+      await refreshCurrentUser();
+    } catch (requestError) {
+      setError(requestError.response?.data?.message || "Failed to submit student verification.");
+    } finally {
+      setVerificationSubmitLoading(false);
     }
   }
 
@@ -345,11 +454,77 @@ export function AccountSettingsPage() {
               <p className="muted">
                 Your college-locked modules open after admin verifies your college ID and proof. Official college email verification adds extra confidence.
               </p>
+              <form className="panel-form" onSubmit={handleStudentVerificationSubmit}>
+                <div className="panel-form-grid">
+                  <label className="auth-field">
+                    <span>College Name</span>
+                    <input
+                      onChange={(event) =>
+                        setStudentVerificationForm((current) => ({
+                          ...current,
+                          collegeName: event.target.value
+                        }))
+                      }
+                      placeholder="Enter your college name"
+                      required
+                      type="text"
+                      value={studentVerificationForm.collegeName}
+                    />
+                  </label>
+                  <label className="auth-field">
+                    <span>College Student ID</span>
+                    <input
+                      onChange={(event) =>
+                        setStudentVerificationForm((current) => ({
+                          ...current,
+                          collegeStudentId: event.target.value
+                        }))
+                      }
+                      placeholder="Enter your college ID"
+                      required
+                      type="text"
+                      value={studentVerificationForm.collegeStudentId}
+                    />
+                  </label>
+                  <label className="auth-field">
+                    <span>Official College Email (optional)</span>
+                    <input
+                      onChange={(event) =>
+                        setStudentVerificationForm((current) => ({
+                          ...current,
+                          officialCollegeEmail: event.target.value
+                        }))
+                      }
+                      placeholder="name@college.edu"
+                      type="email"
+                      value={studentVerificationForm.officialCollegeEmail}
+                    />
+                  </label>
+                  <label className="auth-field">
+                    <span>Student Proof Document</span>
+                    <input
+                      accept="image/*,.pdf"
+                      onChange={(event) => setStudentProofFile(event.target.files?.[0] || null)}
+                      type="file"
+                    />
+                  </label>
+                </div>
+                <p className="muted">
+                  Upload a college ID card, bonafide certificate, fee receipt, or admission proof. PDF and image files are supported.
+                </p>
+                <button className="auth-submit" disabled={verificationSubmitLoading} type="submit">
+                  {verificationSubmitLoading
+                    ? "Submitting..."
+                    : user?.studentVerificationStatus === "pending"
+                      ? "Resubmit Student Verification"
+                      : "Submit Student Verification"}
+                </button>
+              </form>
               <div className="detail-grid">
                 <article className="detail-card">
                   <h3>Proof Document</h3>
                   {user?.studentProofUrl ? (
-                    <a href={user.studentProofUrl} rel="noreferrer" target="_blank">
+                    <a href={buildAuthorizedApiUrl(user.studentProofUrl)} rel="noreferrer" target="_blank">
                       Open {user.studentProofOriginalName || "proof document"}
                     </a>
                   ) : (
@@ -433,10 +608,11 @@ export function AccountSettingsPage() {
                 <div className="panel-actions">
                   <button
                     className={preferences[item.key] ? "action-button approve" : "action-button neutral"}
+                    disabled={settingsLoading || preferencesSaving}
                     onClick={() => togglePreference(item.key)}
                     type="button"
                   >
-                    {preferences[item.key] ? "Enabled" : "Disabled"}
+                    {preferencesSaving ? "Saving..." : preferences[item.key] ? "Enabled" : "Disabled"}
                   </button>
                 </div>
               </article>
@@ -494,21 +670,64 @@ export function AccountSettingsPage() {
           title="Blocked Users"
           description="Keep track of muted or blocked community contacts and manage your list."
         >
+          <form className="panel-form" onSubmit={handleAddBlockedUser}>
+            <div className="panel-form-grid">
+              <label className="auth-field">
+                <span>Label</span>
+                <input
+                  onChange={(event) =>
+                    setBlockedUserForm((current) => ({ ...current, label: event.target.value }))
+                  }
+                  placeholder="Name or label"
+                  required
+                  type="text"
+                  value={blockedUserForm.label}
+                />
+              </label>
+              <label className="auth-field">
+                <span>Email (optional)</span>
+                <input
+                  onChange={(event) =>
+                    setBlockedUserForm((current) => ({ ...current, email: event.target.value }))
+                  }
+                  placeholder="user@example.com"
+                  type="email"
+                  value={blockedUserForm.email}
+                />
+              </label>
+              <label className="auth-field">
+                <span>Reason (optional)</span>
+                <input
+                  onChange={(event) =>
+                    setBlockedUserForm((current) => ({ ...current, reason: event.target.value }))
+                  }
+                  placeholder="Why you blocked this person"
+                  type="text"
+                  value={blockedUserForm.reason}
+                />
+              </label>
+            </div>
+            <button className="auth-submit" disabled={blockedUserSaving} type="submit">
+              {blockedUserSaving ? "Saving..." : "Add Blocked User"}
+            </button>
+          </form>
           {!blockedUsers.length ? (
             <p className="muted">You have not blocked any community users.</p>
           ) : null}
           <div className="panel-list">
             {blockedUsers.map((item) => (
-              <article className="panel-card" key={item.id}>
-                <h3>{item.name}</h3>
-                <p className="muted">{item.reason}</p>
+              <article className="panel-card" key={item._id}>
+                <h3>{item.label}</h3>
+                <p className="muted">{item.email || "No email saved"}</p>
+                <p className="muted">{item.reason || "No reason added"}</p>
                 <div className="panel-actions">
                   <button
                     className="action-button neutral"
-                    onClick={() => handleRemoveBlockedUser(item.id)}
+                    disabled={blockedUserSaving}
+                    onClick={() => handleRemoveBlockedUser(item._id)}
                     type="button"
                   >
-                    Remove Block
+                    {blockedUserSaving ? "Removing..." : "Remove Block"}
                   </button>
                 </div>
               </article>

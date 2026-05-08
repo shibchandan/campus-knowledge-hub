@@ -3,12 +3,14 @@ import {
   adminCreateUser,
   adminUpdateUser,
   changePassword,
+  downloadStudentProof,
   forgotPassword,
   getCurrentUser,
   login,
   listUsers,
   register,
   resetPassword,
+  submitStudentVerification,
   sendCollegeEmailOtp,
   updateProfile,
   verifyCollegeEmailOtp
@@ -33,8 +35,16 @@ authRouter.post("/reset-password", authRateLimiter, resetPassword);
 authRouter.get("/me", protect, getCurrentUser);
 authRouter.patch("/me", protect, updateProfile);
 authRouter.post("/change-password", protect, authRateLimiter, changePassword);
+authRouter.post(
+  "/student-verification/submit",
+  protect,
+  authRateLimiter,
+  upload.single("studentProof"),
+  submitStudentVerification
+);
 authRouter.post("/student-verification/send-college-email-otp", protect, authRateLimiter, sendCollegeEmailOtp);
 authRouter.post("/student-verification/verify-college-email-otp", protect, authRateLimiter, verifyCollegeEmailOtp);
+authRouter.get("/student-proof/:userId", protect, downloadStudentProof);
 authRouter.get("/admin/users", protect, authorize("admin"), listUsers);
 authRouter.post("/admin/users", protect, authorize("admin"), adminCreateUser);
 authRouter.patch("/admin/users/:userId", protect, authorize("admin"), adminUpdateUser);

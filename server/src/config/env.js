@@ -57,6 +57,8 @@ export const env = {
   marketplacePlatformFeePercent: Number(process.env.MARKETPLACE_PLATFORM_FEE_PERCENT || 5),
   marketplaceGstPercent: Number(process.env.MARKETPLACE_GST_PERCENT || 18),
   marketplaceBasicSubscriptionDays: Number(process.env.MARKETPLACE_BASIC_SUBSCRIPTION_DAYS || 30),
+  razorpayKeyId: process.env.RAZORPAY_KEY_ID || "",
+  razorpayKeySecret: readConfigValue("RAZORPAY_KEY_SECRET", ""),
   abuseProtectionEnabled:
     String(process.env.ABUSE_PROTECTION_ENABLED || "true").trim().toLowerCase() === "true",
   abuseRequireUserAgent:

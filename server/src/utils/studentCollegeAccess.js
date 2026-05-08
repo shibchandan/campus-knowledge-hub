@@ -110,3 +110,11 @@ export function buildCollegeNameRegex(collegeName) {
 export function collegeNameMatches(leftCollegeName, rightCollegeName) {
   return normalizeCollegeName(leftCollegeName) === normalizeCollegeName(rightCollegeName);
 }
+
+export function normalizeCourseAccessKey(value = "") {
+  return String(value || "")
+    .trim()
+    .toLowerCase()
+    .replace(/[^a-z0-9]+/g, "-")
+    .replace(/^-|-$/g, "");
+}

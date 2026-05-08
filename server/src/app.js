@@ -1,7 +1,6 @@
 import cors from "cors";
 import express from "express";
 import morgan from "morgan";
-import path from "path";
 import { env } from "./config/env.js";
 import { abuseProtection } from "./middleware/abuseProtection.js";
 import { errorHandler } from "./middleware/errorHandler.js";
@@ -9,7 +8,6 @@ import { notFoundHandler } from "./middleware/notFoundHandler.js";
 import { sanitizeRequest } from "./middleware/sanitizeRequest.js";
 import { securityHeaders } from "./middleware/securityHeaders.js";
 import { apiRouter } from "./routes/index.js";
-import { uploadDirectory } from "./middleware/uploadMiddleware.js";
 import { requestLogStream } from "./services/logger.service.js";
 
 export function createApp() {
@@ -28,7 +26,6 @@ export function createApp() {
   app.use(express.urlencoded({ extended: true, limit: "10mb" }));
   app.use(abuseProtection);
   app.use(sanitizeRequest);
-  app.use("/uploads", express.static(path.resolve(uploadDirectory)));
 
   app.get("/", (_req, res) => {
     res.json({

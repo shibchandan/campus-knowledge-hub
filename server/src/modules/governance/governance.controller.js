@@ -559,14 +559,27 @@ export async function upsertCollegeProfile(req, res, next) {
       }
     }
 
-    const profile = await CollegeProfile.findOneAndUpdate(
-      { collegeNameNormalized: normalizedCollege },
-      {
+    let profile;
+
+    if (existingProfile) {
+      Object.assign(existingProfile, payload, {
+        enteredByRepresentative: existingProfile.enteredByRepresentative
+      });
+      await existingProfile.save();
+      profile = await CollegeProfile.findById(existingProfile._id).populate(
+        "enteredByRepresentative",
+        "fullName email"
+      );
+    } else {
+      profile = await CollegeProfile.create({
         ...payload,
         enteredByRepresentative: req.user.id
-      },
-      { new: true, upsert: true, runValidators: true }
-    ).populate("enteredByRepresentative", "fullName email");
+      });
+      profile = await CollegeProfile.findById(profile._id).populate(
+        "enteredByRepresentative",
+        "fullName email"
+      );
+    }
     await createAuditLog({
       req,
       action: "college_profile.upsert",

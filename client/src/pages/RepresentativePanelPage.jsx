@@ -38,6 +38,7 @@ const initialQuizQuestion = {
 
 const initialQuizForm = {
   collegeName: "",
+  programId: "",
   title: "",
   duration: "",
   difficulty: "Medium",
@@ -99,6 +100,7 @@ function mapQuizToForm(quiz) {
 
   return {
     collegeName: quiz.collegeName || "",
+    programId: quiz.programId || "",
     title: quiz.title || "",
     duration: quiz.duration || "",
     difficulty: quiz.difficulty || "Medium",
@@ -192,6 +194,18 @@ export function RepresentativePanelPage() {
   const [subjectSubmitting, setSubjectSubmitting] = useState(false);
   const [subjectSearch, setSubjectSearch] = useState("");
   const [openSelector, setOpenSelector] = useState("");
+  const representativeCollegeNames = useMemo(
+    () => [...new Set(myColleges.map((item) => item.collegeName).filter(Boolean))],
+    [myColleges]
+  );
+  const availableQuizPrograms = useMemo(
+    () =>
+      myColleges
+        .filter((item) => item.collegeName === quizForm.collegeName)
+        .map((item) => item.courseName)
+        .filter(Boolean),
+    [myColleges, quizForm.collegeName]
+  );
 
   async function loadRepresentativeData() {
     setLoading(true);
@@ -225,9 +239,13 @@ export function RepresentativePanelPage() {
           )
           ),
           Promise.all(
-            collegeNames.map((collegeName) =>
+            collegeItems.map((item) =>
               apiClient.get("/quizzes", {
-                params: { collegeName, includeUnpublished: true }
+                params: {
+                  collegeName: item.collegeName,
+                  programId: item.courseName,
+                  includeUnpublished: true
+                }
               })
             )
           ),
@@ -1725,15 +1743,36 @@ export function RepresentativePanelPage() {
               <span>College Name</span>
               <select
                 onChange={(event) =>
-                  setQuizForm((current) => ({ ...current, collegeName: event.target.value }))
+                  setQuizForm((current) => ({
+                    ...current,
+                    collegeName: event.target.value,
+                    programId: ""
+                  }))
                 }
                 required
                 value={quizForm.collegeName}
               >
                 <option value="">Select college</option>
-                {[...new Set(myColleges.map((item) => item.collegeName))].map((collegeName) => (
+                {representativeCollegeNames.map((collegeName) => (
                   <option key={collegeName} value={collegeName}>
                     {collegeName}
+                  </option>
+                ))}
+              </select>
+            </label>
+            <label className="auth-field">
+              <span>Course / Program</span>
+              <select
+                onChange={(event) =>
+                  setQuizForm((current) => ({ ...current, programId: event.target.value }))
+                }
+                required
+                value={quizForm.programId}
+              >
+                <option value="">Select course</option>
+                {availableQuizPrograms.map((courseName) => (
+                  <option key={courseName} value={courseName}>
+                    {courseName}
                   </option>
                 ))}
               </select>
@@ -1919,7 +1958,8 @@ export function RepresentativePanelPage() {
             <article className="panel-card" key={quiz._id}>
               <h3>{quiz.title}</h3>
               <p className="muted">
-                {quiz.collegeName} | {quiz.difficulty} | {quiz.duration} | {quiz.isPublished ? "Published" : "Draft"}
+                {quiz.collegeName} | {quiz.programId} | {quiz.difficulty} | {quiz.duration} |{" "}
+                {quiz.isPublished ? "Published" : "Draft"}
               </p>
               <p className="muted">
                 Mode: {quiz.mode} | Questions: {quiz.questions?.length || 0}

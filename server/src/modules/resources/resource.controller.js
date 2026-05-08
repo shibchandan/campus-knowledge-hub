@@ -1,11 +1,18 @@
 import { Resource } from "./resource.model.js";
 import { ResourceAccessPurchase } from "./resourceAccess.model.js";
 import { MarketplacePurchase } from "../marketplace/marketplace.model.js";
+import { CollegeCourse } from "../governance/governance.model.js";
 import path from "path";
 import { uploadDirectory } from "../../middleware/uploadMiddleware.js";
 import { createAuditLog } from "../../services/audit.service.js";
 import { removeStoredFile, storeUploadedFile } from "../../services/resourceStorage.service.js";
 import { removeTempFile, scanFileForMalware } from "../../services/malwareScan.service.js";
+import {
+  buildRazorpayCheckoutPayload,
+  createRazorpayOrder,
+  verifyRazorpaySignature
+} from "../../services/payment.service.js";
+import { PaymentOrder } from "../payments/payment.model.js";
 import {
   createHttpError,
   readMongoId,
@@ -17,6 +24,7 @@ import {
 import {
   buildCollegeNameRegex,
   collegeNameMatches,
+  normalizeCourseAccessKey,
   requireStudentAssignedCollege
 } from "../../utils/studentCollegeAccess.js";
 
@@ -139,6 +147,46 @@ function readAllowBasicSubscription(value) {
   return String(value || "false").trim().toLowerCase() === "true";
 }
 
+function serializeResourceForClient(resource, req) {
+  const payload = typeof resource.toObject === "function" ? resource.toObject() : { ...resource };
+
+  if (payload.storageProvider === "local" && payload.fileStoredName) {
+    const accessPath = `/api/resources/${payload._id}/file`;
+    const absoluteUrl = req
+      ? `${req.protocol}://${req.get("host")}${accessPath}`
+      : accessPath;
+
+    payload.fileUrl = absoluteUrl;
+    payload.previewUrl = absoluteUrl;
+  }
+
+  return payload;
+}
+
+async function assertRepresentativeResourceAccess(user, collegeName, programId) {
+  if (user.role !== "representative") {
+    return;
+  }
+
+  const targetCollege = String(collegeName || "").trim().toLowerCase().replace(/\s+/g, " ");
+  const targetProgram = normalizeCourseAccessKey(programId);
+  const approvedCourses = await CollegeCourse.find({
+    collegeNameNormalized: targetCollege,
+    addedByRepresentative: user.id
+  }).select("courseName");
+
+  const hasMatch = approvedCourses.some(
+    (course) => normalizeCourseAccessKey(course.courseName) === targetProgram
+  );
+
+  if (!hasMatch) {
+    throw createHttpError(
+      "Representative can manage shared resources only for approved college courses assigned to them.",
+      403
+    );
+  }
+}
+
 async function loadCrossCollegeAccessContext(user) {
   if (!user?.id) {
     return { protectedGrantIds: new Set(), hasBasicSubscription: false };
@@ -211,6 +259,21 @@ function canAccessResource(resource, user, accessContext = { protectedGrantIds: 
   return false;
 }
 
+async function grantProtectedResourceAccess(resource, buyerId, accessType, amount = 0) {
+  return ResourceAccessPurchase.findOneAndUpdate(
+    { resource: resource._id, buyer: buyerId },
+    {
+      $setOnInsert: {
+        seller: resource.uploadedBy?._id || resource.uploadedBy,
+        amount,
+        currency: "INR",
+        accessType
+      }
+    },
+    { upsert: true, new: true, setDefaultsOnInsert: true }
+  );
+}
+
 export async function uploadResource(req, res, next) {
   try {
     const {
@@ -258,12 +321,16 @@ export async function uploadResource(req, res, next) {
 
     if (req.user.role === "student") {
       requireStudentAssignedCollege(req, {
-        pendingMessage: "Verify your student college ID before uploading personal resources."
+        unverifiedMessage: "Verify your student college ID before uploading personal resources."
       });
     }
 
     if (["private", "protected", "public"].includes(cleanedVisibility) && !["representative", "admin"].includes(req.user.role)) {
       throw createHttpError("Only representative or admin can upload private, protected, or public resources.", 403);
+    }
+
+    if (["private", "protected", "public"].includes(cleanedVisibility) && req.user.role === "representative") {
+      await assertRepresentativeResourceAccess(req.user, cleanedCollegeName, cleanedProgramId);
     }
 
     if (cleanedVisibility !== "protected" && cleanedAccessPrice > 0) {
@@ -299,11 +366,7 @@ export async function uploadResource(req, res, next) {
     }
 
     const storedFile = await storeUploadedFile(req.file);
-    const localFileUrl =
-      storedFile.storageProvider === "local" && req.file
-        ? `${req.protocol}://${req.get("host")}/uploads/${req.file.filename}`
-        : "";
-    const fileUrl = storedFile.fileUrl || localFileUrl;
+    const fileUrl = storedFile.fileUrl || "";
     const previewUrl = storedFile.previewUrl || fileUrl;
 
     const resource = await Resource.create({
@@ -342,7 +405,8 @@ export async function uploadResource(req, res, next) {
       }
     });
 
-    res.status(201).json({ success: true, data: resource });
+    const createdResource = await Resource.findById(resource._id).populate("uploadedBy", "fullName email role");
+    res.status(201).json({ success: true, data: serializeResourceForClient(createdResource, req) });
   } catch (error) {
     if (req.file?.path) {
       await removeTempFile(req.file.path);
@@ -362,6 +426,10 @@ export async function getResources(req, res, next) {
       "subjectId",
       "categoryId"
     ];
+
+    if (req.user?.role === "student") {
+      requireStudentAssignedCollege(req);
+    }
 
     if (req.query.collegeName) {
       filters.collegeName = buildCollegeNameRegex(
@@ -410,7 +478,7 @@ export async function getResources(req, res, next) {
 
     const items = rawItems.filter((resource) => canAccessResource(resource, req.user, accessContext));
     const total = items.length;
-    const paginatedItems = items.slice(skip, skip + limit);
+    const paginatedItems = items.slice(skip, skip + limit).map((resource) => serializeResourceForClient(resource, req));
 
     res.json({
       success: true,
@@ -438,8 +506,12 @@ export async function downloadResource(req, res, next) {
       throw createHttpError("Resource not found.", 404);
     }
 
-    if (!resource.fileUrl) {
+    if (!resource.fileStoredName && !resource.fileUrl) {
       throw createHttpError("This resource has no file to download.", 400);
+    }
+
+    if (req.user?.role === "student") {
+      requireStudentAssignedCollege(req);
     }
 
     const accessContext = await loadCrossCollegeAccessContext(req.user);
@@ -459,6 +531,48 @@ export async function downloadResource(req, res, next) {
 
     const filePath = path.resolve(uploadDirectory, resource.fileStoredName);
     res.download(filePath, resource.fileOriginalName || resource.fileStoredName);
+  } catch (error) {
+    next(error);
+  }
+}
+
+export async function viewResourceFile(req, res, next) {
+  try {
+    const resourceId = readMongoId(req.params.resourceId, { field: "resourceId" });
+    const resource = await Resource.findById(resourceId);
+
+    if (!resource) {
+      throw createHttpError("Resource not found.", 404);
+    }
+
+    if (!resource.fileStoredName && !resource.fileUrl) {
+      throw createHttpError("This resource has no file to preview.", 400);
+    }
+
+    if (req.user?.role === "student") {
+      requireStudentAssignedCollege(req);
+    }
+
+    const accessContext = await loadCrossCollegeAccessContext(req.user);
+    if (!canAccessResource(resource, req.user, accessContext)) {
+      throw createHttpError(
+        resource.visibility === "protected"
+          ? "Unlock this protected resource first."
+          : "You are not allowed to access this resource.",
+        req.user?.id ? 403 : 401
+      );
+    }
+
+    if (resource.storageProvider !== "local") {
+      res.redirect(resource.fileUrl);
+      return;
+    }
+
+    const filePath = path.resolve(uploadDirectory, resource.fileStoredName);
+    if (resource.fileMimeType) {
+      res.type(resource.fileMimeType);
+    }
+    res.sendFile(filePath);
   } catch (error) {
     next(error);
   }
@@ -515,6 +629,10 @@ export async function updateResource(req, res, next) {
       throw createHttpError("You are not allowed to update this resource.", 403);
     }
 
+    if (req.user.role === "representative") {
+      await assertRepresentativeResourceAccess(req.user, resource.collegeName, resource.programId);
+    }
+
     const title = readString(req.body.title, { field: "Title", min: 1, max: 160 });
     const description = readString(req.body.description, {
       field: "Description",
@@ -559,7 +677,7 @@ export async function updateResource(req, res, next) {
     });
 
     const updated = await Resource.findById(resource._id).populate("uploadedBy", "fullName email role");
-    res.json({ success: true, data: updated });
+    res.json({ success: true, data: serializeResourceForClient(updated, req) });
   } catch (error) {
     next(error);
   }
@@ -576,6 +694,10 @@ export async function unlockProtectedResource(req, res, next) {
 
     if ((resource.visibility || "private") !== "protected") {
       throw createHttpError("Only protected resources require unlock access.");
+    }
+
+    if (req.user.role === "student") {
+      requireStudentAssignedCollege(req);
     }
 
     const sameCollege = collegeNameMatches(resource.collegeName, req.user.collegeName);
@@ -597,17 +719,11 @@ export async function unlockProtectedResource(req, res, next) {
     }
 
     if (resource.allowBasicSubscription && accessContext.hasBasicSubscription) {
-      const grant = await ResourceAccessPurchase.findOneAndUpdate(
-        { resource: resource._id, buyer: req.user.id },
-        {
-          $setOnInsert: {
-            seller: resource.uploadedBy?._id || resource.uploadedBy,
-            amount: 0,
-            currency: "INR",
-            accessType: "basic-subscription"
-          }
-        },
-        { upsert: true, new: true, setDefaultsOnInsert: true }
+      const grant = await grantProtectedResourceAccess(
+        resource,
+        req.user.id,
+        "basic-subscription",
+        0
       );
 
       return res.status(201).json({
@@ -617,17 +733,54 @@ export async function unlockProtectedResource(req, res, next) {
       });
     }
 
-    const grant = await ResourceAccessPurchase.findOneAndUpdate(
-      { resource: resource._id, buyer: req.user.id },
-      {
-        $setOnInsert: {
-          seller: resource.uploadedBy?._id || resource.uploadedBy,
-          amount: resource.accessPrice || 0,
-          currency: "INR",
+    if ((resource.accessPrice || 0) > 0) {
+      const gatewayOrder = await createRazorpayOrder({
+        amount: resource.accessPrice || 0,
+        currency: "INR",
+        receipt: `res-${resource._id}-${Date.now()}`.slice(0, 40),
+        notes: {
+          resourceId: String(resource._id),
+          buyerId: String(req.user.id),
           accessType: "paid-unlock"
         }
-      },
-      { upsert: true, new: true, setDefaultsOnInsert: true }
+      });
+
+      const paymentOrder = await PaymentOrder.create({
+        gateway: "razorpay",
+        purpose: "protected-resource",
+        buyer: req.user.id,
+        seller: resource.uploadedBy?._id || resource.uploadedBy,
+        resource: resource._id,
+        amount: resource.accessPrice || 0,
+        currency: "INR",
+        gatewayOrderId: gatewayOrder.id,
+        gatewayReceipt: gatewayOrder.receipt || "",
+        metadata: {
+          accessType: "paid-unlock"
+        }
+      });
+
+      return res.status(201).json({
+        success: true,
+        paymentRequired: true,
+        message: "Complete payment to unlock this protected resource.",
+        data: {
+          paymentOrderId: paymentOrder._id,
+          checkout: buildRazorpayCheckoutPayload({
+            order: gatewayOrder,
+            title: resource.title,
+            description: "Protected academic resource unlock",
+            customer: req.user
+          })
+        }
+      });
+    }
+
+    const grant = await grantProtectedResourceAccess(
+      resource,
+      req.user.id,
+      "paid-unlock",
+      resource.accessPrice || 0
     );
 
     return res.status(201).json({
@@ -636,6 +789,121 @@ export async function unlockProtectedResource(req, res, next) {
         (resource.accessPrice || 0) > 0
           ? "Protected resource purchase recorded."
           : "Protected resource unlocked successfully.",
+      data: grant
+    });
+  } catch (error) {
+    next(error);
+  }
+}
+
+export async function verifyProtectedResourcePayment(req, res, next) {
+  try {
+    const resourceId = readMongoId(req.params.resourceId, { field: "resourceId" });
+    const paymentOrderId = readMongoId(req.body.paymentOrderId, { field: "paymentOrderId" });
+    const razorpayOrderId = readString(req.body.razorpayOrderId, {
+      field: "razorpayOrderId",
+      min: 6,
+      max: 120
+    });
+    const razorpayPaymentId = readString(req.body.razorpayPaymentId, {
+      field: "razorpayPaymentId",
+      min: 6,
+      max: 120
+    });
+    const razorpaySignature = readString(req.body.razorpaySignature, {
+      field: "razorpaySignature",
+      min: 6,
+      max: 200
+    });
+
+    const [resource, paymentOrder] = await Promise.all([
+      Resource.findById(resourceId).populate("uploadedBy", "fullName email role"),
+      PaymentOrder.findById(paymentOrderId)
+    ]);
+
+    if (!resource) {
+      throw createHttpError("Resource not found.", 404);
+    }
+
+    if ((resource.visibility || "private") !== "protected") {
+      throw createHttpError("Only protected resources require payment verification.");
+    }
+
+    if (!paymentOrder) {
+      throw createHttpError("Payment order not found.", 404);
+    }
+
+    if (String(paymentOrder.buyer) !== String(req.user.id)) {
+      throw createHttpError("This payment order does not belong to your account.", 403);
+    }
+
+    if (String(paymentOrder.resource) !== String(resource._id)) {
+      throw createHttpError("Payment order does not match this resource.", 400);
+    }
+
+    if (paymentOrder.status === "verified") {
+      const existingGrant = await ResourceAccessPurchase.findOne({
+        resource: resource._id,
+        buyer: req.user.id
+      });
+      res.json({
+        success: true,
+        message: "Payment already verified for this resource.",
+        data: existingGrant
+      });
+      return;
+    }
+
+    if (paymentOrder.status !== "created") {
+      throw createHttpError("This payment order is not in a payable state.", 400);
+    }
+
+    if (paymentOrder.gatewayOrderId !== razorpayOrderId) {
+      throw createHttpError("Gateway order mismatch for this resource payment.", 400);
+    }
+
+    const isSignatureValid = verifyRazorpaySignature({
+      orderId: razorpayOrderId,
+      paymentId: razorpayPaymentId,
+      signature: razorpaySignature
+    });
+
+    if (!isSignatureValid) {
+      paymentOrder.status = "failed";
+      paymentOrder.gatewayPaymentId = razorpayPaymentId;
+      paymentOrder.gatewaySignature = razorpaySignature;
+      await paymentOrder.save();
+      throw createHttpError("Payment signature verification failed.", 400);
+    }
+
+    paymentOrder.status = "verified";
+    paymentOrder.gatewayPaymentId = razorpayPaymentId;
+    paymentOrder.gatewaySignature = razorpaySignature;
+    paymentOrder.verifiedAt = new Date();
+    await paymentOrder.save();
+
+    const grant = await grantProtectedResourceAccess(
+      resource,
+      req.user.id,
+      "paid-unlock",
+      resource.accessPrice || 0
+    );
+
+    await createAuditLog({
+      req,
+      action: "resource.verify_payment_unlock",
+      entityType: "payment-order",
+      entityId: paymentOrder._id,
+      metadata: {
+        resourceId: resource._id,
+        amount: paymentOrder.amount,
+        currency: paymentOrder.currency
+      }
+    });
+
+    res.json({
+      success: true,
+      message: "Protected resource unlocked successfully after payment.",
       data: grant
     });
   } catch (error) {

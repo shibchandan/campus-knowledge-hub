@@ -340,3 +340,26 @@ export function validateCollegeEmailOtpPayload(payload) {
 
   return { otp };
 }
+
+export function validateStudentVerificationSubmissionPayload(payload) {
+  const collegeName = readOptionalCollegeName(payload.collegeName);
+  const collegeStudentId = readOptionalCollegeStudentId(payload.collegeStudentId);
+  const officialCollegeEmail = readOptionalEmail(
+    payload.officialCollegeEmail,
+    "official college email"
+  );
+
+  if (!collegeName) {
+    throw createHttpError("College name is required for student verification.");
+  }
+
+  if (!collegeStudentId) {
+    throw createHttpError("College ID is required for student verification.");
+  }
+
+  return {
+    collegeName,
+    collegeStudentId,
+    officialCollegeEmail
+  };
+}

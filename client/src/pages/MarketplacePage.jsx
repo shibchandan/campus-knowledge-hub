@@ -2,6 +2,7 @@ import { useEffect, useMemo, useState } from "react";
 import { SectionCard } from "../components/SectionCard";
 import { useAuth } from "../auth/AuthContext";
 import { apiClient } from "../lib/apiClient";
+import { openRazorpayCheckout } from "../lib/paymentClient";
 
 const initialForm = {
   title: "",
@@ -173,8 +174,27 @@ export function MarketplacePage() {
     setSuccess("");
     try {
       const response = await apiClient.post(`/marketplace/${itemId}/purchase`);
-      setSuccess(response.data.message || "Course access granted.");
-      await loadMarketplace();
+      if (response.data.paymentRequired && response.data.data?.checkout) {
+        await openRazorpayCheckout({
+          checkout: response.data.data.checkout,
+          onSuccess: async (paymentResponse) => {
+            const verifyResponse = await apiClient.post(`/marketplace/${itemId}/verify-payment`, {
+              paymentOrderId: response.data.data.paymentOrderId,
+              razorpayOrderId: paymentResponse.razorpay_order_id,
+              razorpayPaymentId: paymentResponse.razorpay_payment_id,
+              razorpaySignature: paymentResponse.razorpay_signature
+            });
+            setSuccess(verifyResponse.data.message || "Payment completed successfully.");
+            await loadMarketplace();
+          },
+          onDismiss: () => {
+            setSuccess("Payment window closed. You can try again anytime.");
+          }
+        });
+      } else {
+        setSuccess(response.data.message || "Course access granted.");
+        await loadMarketplace();
+      }
     } catch (requestError) {
       setError(requestError.response?.data?.message || "Unable to complete purchase.");
     } finally {

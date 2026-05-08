@@ -1,7 +1,7 @@
 import { useEffect, useMemo, useState } from "react";
 import { useAuth } from "../auth/AuthContext";
 import { SectionCard } from "../components/SectionCard";
-import { apiClient } from "../lib/apiClient";
+import { apiClient, buildAuthorizedApiUrl } from "../lib/apiClient";
 import { useToast } from "../ui/ToastContext";
 
 const initialUserForm = {
@@ -19,6 +19,33 @@ const initialNoticeForm = {
   title: "",
   content: "",
   isPublished: true
+};
+
+const initialCourseForm = {
+  collegeName: "",
+  courseName: "",
+  semesterCount: 8
+};
+
+const initialStructureForm = {
+  collegeName: "",
+  programId: "btech",
+  programName: "BTech",
+  branchId: "",
+  branchName: "",
+  branchDescription: "",
+  semesterId: "",
+  semesterName: "",
+  semesterOrder: 1
+};
+
+const initialSubjectForm = {
+  collegeName: "",
+  programId: "btech",
+  branchId: "",
+  semesterId: "",
+  subjectId: "",
+  name: ""
 };
 
 const initialResourceEditForm = {
@@ -45,7 +72,13 @@ export function AdminPanelPage() {
 
   const [userForm, setUserForm] = useState(initialUserForm);
   const [noticeForm, setNoticeForm] = useState(initialNoticeForm);
+  const [courseForm, setCourseForm] = useState(initialCourseForm);
+  const [structureForm, setStructureForm] = useState(initialStructureForm);
+  const [subjectForm, setSubjectForm] = useState(initialSubjectForm);
   const [resourceEditForm, setResourceEditForm] = useState(initialResourceEditForm);
+  const [editingCourseId, setEditingCourseId] = useState("");
+  const [editingStructureId, setEditingStructureId] = useState("");
+  const [editingSubjectId, setEditingSubjectId] = useState("");
   const [editingNoticeId, setEditingNoticeId] = useState("");
   const [editingResourceId, setEditingResourceId] = useState("");
 
@@ -58,6 +91,9 @@ export function AdminPanelPage() {
   const [resourceSort, setResourceSort] = useState("newest");
   const [auditSearch, setAuditSearch] = useState("");
   const [representativeSearch, setRepresentativeSearch] = useState("");
+  const [courseSearch, setCourseSearch] = useState("");
+  const [structureSearch, setStructureSearch] = useState("");
+  const [subjectSearch, setSubjectSearch] = useState("");
 
   async function loadAdminData() {
     setLoading(true);
@@ -219,6 +255,190 @@ export function AdminPanelPage() {
     }
   }
 
+  function resetCourseForm() {
+    setCourseForm(initialCourseForm);
+    setEditingCourseId("");
+  }
+
+  function resetStructureForm() {
+    setStructureForm(initialStructureForm);
+    setEditingStructureId("");
+  }
+
+  function resetSubjectForm() {
+    setSubjectForm(initialSubjectForm);
+    setEditingSubjectId("");
+  }
+
+  async function handleSaveCourse(event) {
+    event.preventDefault();
+    clearMessages();
+    try {
+      const payload = {
+        ...courseForm,
+        semesterCount: Number(courseForm.semesterCount)
+      };
+
+      if (editingCourseId) {
+        await apiClient.patch(`/governance/approved-courses/${editingCourseId}`, payload);
+        setSuccess("College course updated successfully.");
+        showSuccess("College course updated successfully.");
+      } else {
+        await apiClient.post("/governance/approved-courses", payload);
+        setSuccess("College course created successfully.");
+        showSuccess("College course created successfully.");
+      }
+
+      resetCourseForm();
+      await loadAdminData();
+    } catch (requestError) {
+      const message = requestError.response?.data?.message || "Failed to save college course.";
+      setError(message);
+      showError(message);
+    }
+  }
+
+  function handleEditCourse(course) {
+    setEditingCourseId(course._id);
+    setCourseForm({
+      collegeName: course.collegeName || "",
+      courseName: course.courseName || "",
+      semesterCount: Number(course.semesterCount || 8)
+    });
+    clearMessages();
+  }
+
+  async function handleDeleteCourse(courseId) {
+    clearMessages();
+    try {
+      await apiClient.delete(`/governance/approved-courses/${courseId}`);
+      setSuccess("College course deleted successfully.");
+      showSuccess("College course deleted successfully.");
+      if (editingCourseId === courseId) {
+        resetCourseForm();
+      }
+      await loadAdminData();
+    } catch (requestError) {
+      const message = requestError.response?.data?.message || "Failed to delete college course.";
+      setError(message);
+      showError(message);
+    }
+  }
+
+  async function handleSaveStructure(event) {
+    event.preventDefault();
+    clearMessages();
+    try {
+      const payload = {
+        ...structureForm,
+        semesterOrder: Number(structureForm.semesterOrder)
+      };
+
+      if (editingStructureId) {
+        await apiClient.patch(`/academic/structures/${editingStructureId}`, payload);
+        setSuccess("Academic structure updated successfully.");
+        showSuccess("Academic structure updated successfully.");
+      } else {
+        await apiClient.post("/academic/structures", payload);
+        setSuccess("Academic structure created successfully.");
+        showSuccess("Academic structure created successfully.");
+      }
+
+      resetStructureForm();
+      await loadAdminData();
+    } catch (requestError) {
+      const message = requestError.response?.data?.message || "Failed to save academic structure.";
+      setError(message);
+      showError(message);
+    }
+  }
+
+  function handleEditStructure(structure) {
+    setEditingStructureId(structure._id);
+    setStructureForm({
+      collegeName: structure.collegeName || "",
+      programId: structure.programId || "btech",
+      programName: structure.programName || "",
+      branchId: structure.branchId || "",
+      branchName: structure.branchName || "",
+      branchDescription: structure.branchDescription || "",
+      semesterId: structure.semesterId || "",
+      semesterName: structure.semesterName || "",
+      semesterOrder: Number(structure.semesterOrder || 1)
+    });
+    clearMessages();
+  }
+
+  async function handleDeleteStructure(structureId) {
+    clearMessages();
+    try {
+      await apiClient.delete(`/academic/structures/${structureId}`);
+      setSuccess("Academic structure deleted successfully.");
+      showSuccess("Academic structure deleted successfully.");
+      if (editingStructureId === structureId) {
+        resetStructureForm();
+      }
+      await loadAdminData();
+    } catch (requestError) {
+      const message = requestError.response?.data?.message || "Failed to delete academic structure.";
+      setError(message);
+      showError(message);
+    }
+  }
+
+  async function handleSaveSubject(event) {
+    event.preventDefault();
+    clearMessages();
+    try {
+      if (editingSubjectId) {
+        await apiClient.patch(`/academic/subjects/${editingSubjectId}`, subjectForm);
+        setSuccess("Subject updated successfully.");
+        showSuccess("Subject updated successfully.");
+      } else {
+        await apiClient.post("/academic/subjects", subjectForm);
+        setSuccess("Subject created successfully.");
+        showSuccess("Subject created successfully.");
+      }
+
+      resetSubjectForm();
+      await loadAdminData();
+    } catch (requestError) {
+      const message = requestError.response?.data?.message || "Failed to save subject.";
+      setError(message);
+      showError(message);
+    }
+  }
+
+  function handleEditSubject(subject) {
+    setEditingSubjectId(subject._id);
+    setSubjectForm({
+      collegeName: subject.collegeName || "",
+      programId: subject.programId || "btech",
+      branchId: subject.branchId || "",
+      semesterId: subject.semesterId || "",
+      subjectId: subject.subjectId || "",
+      name: subject.name || ""
+    });
+    clearMessages();
+  }
+
+  async function handleDeleteSubject(subjectId) {
+    clearMessages();
+    try {
+      await apiClient.delete(`/academic/subjects/${subjectId}`);
+      setSuccess("Subject deleted successfully.");
+      showSuccess("Subject deleted successfully.");
+      if (editingSubjectId === subjectId) {
+        resetSubjectForm();
+      }
+      await loadAdminData();
+    } catch (requestError) {
+      const message = requestError.response?.data?.message || "Failed to delete subject.";
+      setError(message);
+      showError(message);
+    }
+  }
+
   async function handleDeleteNotice(noticeId) {
     clearMessages();
     try {
@@ -346,6 +566,42 @@ export function AdminPanelPage() {
     });
   }, [approvedCourses, representativeSearch]);
 
+  const filteredCourses = useMemo(() => {
+    const term = courseSearch.trim().toLowerCase();
+    return approvedCourses.filter(
+      (course) =>
+        !term ||
+        course.collegeName?.toLowerCase().includes(term) ||
+        course.courseName?.toLowerCase().includes(term)
+    );
+  }, [approvedCourses, courseSearch]);
+
+  const filteredStructures = useMemo(() => {
+    const term = structureSearch.trim().toLowerCase();
+    return structures.filter(
+      (structure) =>
+        !term ||
+        structure.collegeName?.toLowerCase().includes(term) ||
+        structure.programId?.toLowerCase().includes(term) ||
+        structure.branchName?.toLowerCase().includes(term) ||
+        structure.semesterName?.toLowerCase().includes(term)
+    );
+  }, [structureSearch, structures]);
+
+  const filteredSubjects = useMemo(() => {
+    const term = subjectSearch.trim().toLowerCase();
+    return subjects.filter(
+      (subject) =>
+        !term ||
+        subject.collegeName?.toLowerCase().includes(term) ||
+        subject.programId?.toLowerCase().includes(term) ||
+        subject.branchId?.toLowerCase().includes(term) ||
+        subject.semesterId?.toLowerCase().includes(term) ||
+        subject.name?.toLowerCase().includes(term) ||
+        subject.subjectId?.toLowerCase().includes(term)
+    );
+  }, [subjectSearch, subjects]);
+
   const filteredAuditLogs = useMemo(() => {
     const term = auditSearch.trim().toLowerCase();
     return auditLogs.filter(
@@ -368,6 +624,29 @@ export function AdminPanelPage() {
       { label: "Managed Resources", value: resources.length, note: "Current moderation list" }
     ],
     [approvedCourses.length, notices, pendingRequests.length, resources.length, users]
+  );
+
+  const adminCollegeNames = useMemo(
+    () => [...new Set(approvedCourses.map((item) => item.collegeName).filter(Boolean))],
+    [approvedCourses]
+  );
+
+  const structureProgramsForCollege = useMemo(
+    () =>
+      approvedCourses
+        .filter((item) => item.collegeName === structureForm.collegeName)
+        .map((item) => item.courseName)
+        .filter(Boolean),
+    [approvedCourses, structureForm.collegeName]
+  );
+
+  const subjectProgramsForCollege = useMemo(
+    () =>
+      approvedCourses
+        .filter((item) => item.collegeName === subjectForm.collegeName)
+        .map((item) => item.courseName)
+        .filter(Boolean),
+    [approvedCourses, subjectForm.collegeName]
   );
 
   return (
@@ -494,6 +773,401 @@ export function AdminPanelPage() {
         </div>
       </SectionCard>
 
+      <SectionCard
+        title="College & Course Setup"
+        description="Admin can add a new college course directly, or edit and delete any approved course record."
+      >
+        <form className="panel-form" onSubmit={handleSaveCourse}>
+          <div className="panel-form-grid">
+            <label className="auth-field">
+              <span>College Name</span>
+              <input
+                onChange={(event) =>
+                  setCourseForm((current) => ({ ...current, collegeName: event.target.value }))
+                }
+                placeholder="Motilal Nehru National Institute of Technology, Prayagraj"
+                required
+                type="text"
+                value={courseForm.collegeName}
+              />
+            </label>
+            <label className="auth-field">
+              <span>Course Name</span>
+              <input
+                onChange={(event) =>
+                  setCourseForm((current) => ({ ...current, courseName: event.target.value }))
+                }
+                placeholder="BTech"
+                required
+                type="text"
+                value={courseForm.courseName}
+              />
+            </label>
+            <label className="auth-field">
+              <span>Semester Count</span>
+              <input
+                max="12"
+                min="1"
+                onChange={(event) =>
+                  setCourseForm((current) => ({ ...current, semesterCount: event.target.value }))
+                }
+                required
+                type="number"
+                value={courseForm.semesterCount}
+              />
+            </label>
+          </div>
+          <div className="panel-actions">
+            <button className="auth-submit" type="submit">
+              {editingCourseId ? "Update Course" : "Create College Course"}
+            </button>
+            {editingCourseId ? (
+              <button className="action-button neutral" onClick={resetCourseForm} type="button">
+                Cancel
+              </button>
+            ) : null}
+          </div>
+        </form>
+
+        <div className="toolbar-grid">
+          <input
+            className="college-search"
+            onChange={(event) => setCourseSearch(event.target.value)}
+            placeholder="Search college or course..."
+            type="text"
+            value={courseSearch}
+          />
+          <p className="muted">{filteredCourses.length} course records visible</p>
+        </div>
+
+        <div className="panel-list">
+          {filteredCourses.map((course) => (
+            <article className="panel-card" key={course._id}>
+              <h3>{course.collegeName}</h3>
+              <p className="muted">
+                {course.courseName} | {course.semesterCount} semesters
+              </p>
+              <p className="muted">
+                Representative: {course.addedByRepresentative?.fullName || "Admin"} | Approved by:{" "}
+                {course.approvedByAdmin?.fullName || "Admin"}
+              </p>
+              <div className="panel-actions">
+                <button className="action-button approve" onClick={() => handleEditCourse(course)} type="button">
+                  Edit Course
+                </button>
+                <button className="action-button reject" onClick={() => handleDeleteCourse(course._id)} type="button">
+                  Delete Course
+                </button>
+              </div>
+            </article>
+          ))}
+        </div>
+      </SectionCard>
+
+      <SectionCard
+        title="Academic Structure Management"
+        description="Admin can create branches and semesters for any approved college course."
+      >
+        <form className="panel-form" onSubmit={handleSaveStructure}>
+          <div className="panel-form-grid">
+            <label className="auth-field">
+              <span>College Name</span>
+              <select
+                onChange={(event) =>
+                  setStructureForm((current) => ({
+                    ...current,
+                    collegeName: event.target.value,
+                    programId: "",
+                    programName: ""
+                  }))
+                }
+                required
+                value={structureForm.collegeName}
+              >
+                <option value="">Select college</option>
+                {adminCollegeNames.map((collegeName) => (
+                  <option key={collegeName} value={collegeName}>
+                    {collegeName}
+                  </option>
+                ))}
+              </select>
+            </label>
+            <label className="auth-field">
+              <span>Program / Course</span>
+              <select
+                onChange={(event) =>
+                  setStructureForm((current) => ({
+                    ...current,
+                    programId: event.target.value,
+                    programName: event.target.value
+                  }))
+                }
+                required
+                value={structureForm.programId}
+              >
+                <option value="">Select course</option>
+                {structureProgramsForCollege.map((courseName) => (
+                  <option key={courseName} value={courseName}>
+                    {courseName}
+                  </option>
+                ))}
+              </select>
+            </label>
+            <label className="auth-field">
+              <span>Branch ID</span>
+              <input
+                onChange={(event) =>
+                  setStructureForm((current) => ({ ...current, branchId: event.target.value }))
+                }
+                placeholder="computer-science-engineering"
+                required
+                type="text"
+                value={structureForm.branchId}
+              />
+            </label>
+            <label className="auth-field">
+              <span>Branch Name</span>
+              <input
+                onChange={(event) =>
+                  setStructureForm((current) => ({ ...current, branchName: event.target.value }))
+                }
+                placeholder="Computer Science & Engineering"
+                required
+                type="text"
+                value={structureForm.branchName}
+              />
+            </label>
+            <label className="auth-field">
+              <span>Semester ID</span>
+              <input
+                onChange={(event) =>
+                  setStructureForm((current) => ({ ...current, semesterId: event.target.value }))
+                }
+                placeholder="semester-1"
+                required
+                type="text"
+                value={structureForm.semesterId}
+              />
+            </label>
+            <label className="auth-field">
+              <span>Semester Name</span>
+              <input
+                onChange={(event) =>
+                  setStructureForm((current) => ({ ...current, semesterName: event.target.value }))
+                }
+                placeholder="Semester 1"
+                required
+                type="text"
+                value={structureForm.semesterName}
+              />
+            </label>
+            <label className="auth-field">
+              <span>Semester Order</span>
+              <input
+                max="20"
+                min="1"
+                onChange={(event) =>
+                  setStructureForm((current) => ({ ...current, semesterOrder: event.target.value }))
+                }
+                required
+                type="number"
+                value={structureForm.semesterOrder}
+              />
+            </label>
+            <label className="auth-field">
+              <span>Branch Description</span>
+              <input
+                onChange={(event) =>
+                  setStructureForm((current) => ({ ...current, branchDescription: event.target.value }))
+                }
+                placeholder="Core branch structure for this college course"
+                type="text"
+                value={structureForm.branchDescription}
+              />
+            </label>
+          </div>
+          <div className="panel-actions">
+            <button className="auth-submit" type="submit">
+              {editingStructureId ? "Update Structure" : "Create Structure"}
+            </button>
+            {editingStructureId ? (
+              <button className="action-button neutral" onClick={resetStructureForm} type="button">
+                Cancel
+              </button>
+            ) : null}
+          </div>
+        </form>
+
+        <div className="toolbar-grid">
+          <input
+            className="college-search"
+            onChange={(event) => setStructureSearch(event.target.value)}
+            placeholder="Search college, program, branch, or semester..."
+            type="text"
+            value={structureSearch}
+          />
+          <p className="muted">{filteredStructures.length} structures visible</p>
+        </div>
+
+        <div className="panel-list">
+          {filteredStructures.map((structure) => (
+            <article className="panel-card" key={structure._id}>
+              <h3>{structure.branchName}</h3>
+              <p className="muted">
+                {structure.collegeName} | {structure.programName} | {structure.semesterName}
+              </p>
+              <p className="muted">
+                Branch ID: {structure.branchId} | Semester ID: {structure.semesterId} | Order: {structure.semesterOrder}
+              </p>
+              <div className="panel-actions">
+                <button className="action-button approve" onClick={() => handleEditStructure(structure)} type="button">
+                  Edit Structure
+                </button>
+                <button className="action-button reject" onClick={() => handleDeleteStructure(structure._id)} type="button">
+                  Delete Structure
+                </button>
+              </div>
+            </article>
+          ))}
+        </div>
+      </SectionCard>
+
+      <SectionCard
+        title="Subject Management"
+        description="Admin can create semester-wise subjects for any approved college course."
+      >
+        <form className="panel-form" onSubmit={handleSaveSubject}>
+          <div className="panel-form-grid">
+            <label className="auth-field">
+              <span>College Name</span>
+              <select
+                onChange={(event) =>
+                  setSubjectForm((current) => ({
+                    ...current,
+                    collegeName: event.target.value,
+                    programId: ""
+                  }))
+                }
+                required
+                value={subjectForm.collegeName}
+              >
+                <option value="">Select college</option>
+                {adminCollegeNames.map((collegeName) => (
+                  <option key={collegeName} value={collegeName}>
+                    {collegeName}
+                  </option>
+                ))}
+              </select>
+            </label>
+            <label className="auth-field">
+              <span>Program / Course</span>
+              <select
+                onChange={(event) =>
+                  setSubjectForm((current) => ({ ...current, programId: event.target.value }))
+                }
+                required
+                value={subjectForm.programId}
+              >
+                <option value="">Select course</option>
+                {subjectProgramsForCollege.map((courseName) => (
+                  <option key={courseName} value={courseName}>
+                    {courseName}
+                  </option>
+                ))}
+              </select>
+            </label>
+            <label className="auth-field">
+              <span>Branch ID</span>
+              <input
+                onChange={(event) =>
+                  setSubjectForm((current) => ({ ...current, branchId: event.target.value }))
+                }
+                placeholder="computer-science-engineering"
+                required
+                type="text"
+                value={subjectForm.branchId}
+              />
+            </label>
+            <label className="auth-field">
+              <span>Semester ID</span>
+              <input
+                onChange={(event) =>
+                  setSubjectForm((current) => ({ ...current, semesterId: event.target.value }))
+                }
+                placeholder="semester-1"
+                required
+                type="text"
+                value={subjectForm.semesterId}
+              />
+            </label>
+            <label className="auth-field">
+              <span>Subject ID</span>
+              <input
+                onChange={(event) =>
+                  setSubjectForm((current) => ({ ...current, subjectId: event.target.value }))
+                }
+                placeholder="mathematics-1"
+                type="text"
+                value={subjectForm.subjectId}
+              />
+            </label>
+            <label className="auth-field">
+              <span>Subject Name</span>
+              <input
+                onChange={(event) =>
+                  setSubjectForm((current) => ({ ...current, name: event.target.value }))
+                }
+                placeholder="Mathematics-I"
+                required
+                type="text"
+                value={subjectForm.name}
+              />
+            </label>
+          </div>
+          <div className="panel-actions">
+            <button className="auth-submit" type="submit">
+              {editingSubjectId ? "Update Subject" : "Create Subject"}
+            </button>
+            {editingSubjectId ? (
+              <button className="action-button neutral" onClick={resetSubjectForm} type="button">
+                Cancel
+              </button>
+            ) : null}
+          </div>
+        </form>
+
+        <div className="toolbar-grid">
+          <input
+            className="college-search"
+            onChange={(event) => setSubjectSearch(event.target.value)}
+            placeholder="Search subject, branch, semester, or college..."
+            type="text"
+            value={subjectSearch}
+          />
+          <p className="muted">{filteredSubjects.length} subjects visible</p>
+        </div>
+
+        <div className="panel-list">
+          {filteredSubjects.map((subject) => (
+            <article className="panel-card" key={subject._id}>
+              <h3>{subject.name}</h3>
+              <p className="muted">
+                {subject.collegeName} | {subject.programId} | {subject.branchId} | {subject.semesterId}
+              </p>
+              <p className="muted">Subject ID: {subject.subjectId}</p>
+              <div className="panel-actions">
+                <button className="action-button approve" onClick={() => handleEditSubject(subject)} type="button">
+                  Edit Subject
+                </button>
+                <button className="action-button reject" onClick={() => handleDeleteSubject(subject._id)} type="button">
+                  Delete Subject
+                </button>
+              </div>
+            </article>
+          ))}
+        </div>
+      </SectionCard>
+
       <SectionCard title="User Management" description="Create users and control role/status safely.">
         <form className="panel-form" onSubmit={handleCreateUser}>
           <div className="panel-form-grid">
@@ -602,7 +1276,7 @@ export function AdminPanelPage() {
               </p>
               {user.studentProofUrl ? (
                 <p className="muted">
-                  <a href={user.studentProofUrl} rel="noreferrer" target="_blank">
+                  <a href={buildAuthorizedApiUrl(user.studentProofUrl)} rel="noreferrer" target="_blank">
                     Open proof: {user.studentProofOriginalName || "student-proof"}
                   </a>
                 </p>

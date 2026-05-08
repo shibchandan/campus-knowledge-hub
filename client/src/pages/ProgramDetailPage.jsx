@@ -83,8 +83,7 @@ export function ProgramDetailPage() {
       branches: []
     };
   }, [approvedCourses, programId]);
-  const hasDynamicCatalog = Boolean(dynamicPrograms.length || approvedCourses.length);
-  const program = dynamicProgram || approvedProgram || (!hasDynamicCatalog ? fallbackProgram : null);
+  const program = dynamicProgram || approvedProgram || fallbackProgram;
 
   if (!program) {
     return <Navigate to="/dashboard" replace />;

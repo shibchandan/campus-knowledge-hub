@@ -6,6 +6,7 @@ import {
   getMyMarketplaceItems,
   getMyPurchases,
   purchaseMarketplaceItem,
+  verifyMarketplacePayment,
   updateMarketplaceItem
 } from "./marketplace.controller.js";
 import { protect } from "../../middleware/authMiddleware.js";
@@ -17,5 +18,6 @@ marketplaceRouter.post("/", protect, createMarketplaceItem);
 marketplaceRouter.get("/mine", protect, getMyMarketplaceItems);
 marketplaceRouter.get("/purchases/me", protect, getMyPurchases);
 marketplaceRouter.post("/:itemId/purchase", protect, purchaseMarketplaceItem);
+marketplaceRouter.post("/:itemId/verify-payment", protect, verifyMarketplacePayment);
 marketplaceRouter.patch("/:itemId", protect, updateMarketplaceItem);
 marketplaceRouter.delete("/:itemId", protect, deleteMarketplaceItem);

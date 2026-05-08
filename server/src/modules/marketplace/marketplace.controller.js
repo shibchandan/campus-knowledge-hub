@@ -8,6 +8,13 @@ import {
 } from "../../utils/requestValidation.js";
 import { MarketplaceItem, MarketplacePurchase } from "./marketplace.model.js";
 import { env } from "../../config/env.js";
+import { PaymentOrder } from "../payments/payment.model.js";
+import {
+  buildRazorpayCheckoutPayload,
+  createRazorpayOrder,
+  verifyRazorpaySignature
+} from "../../services/payment.service.js";
+import { createAuditLog } from "../../services/audit.service.js";
 
 function normalizePrice(value) {
   const numeric = Number(value);
@@ -106,6 +113,84 @@ function buildItemPayload(body) {
     thumbnailUrl,
     previewVideoUrl
   };
+}
+
+function getMarketplacePurchaseType(item) {
+  if (item.resourceType === "subscription") {
+    return "monthly-subscription";
+  }
+
+  return Number(item.price || 0) > 0 ? "paid-purchase" : "free-enroll";
+}
+
+async function finalizeMarketplacePurchase({ item, buyerId }) {
+  const amount = item.price > 0 ? item.price : 0;
+  const purchaseType = getMarketplacePurchaseType(item);
+  let purchase;
+
+  if (purchaseType === "monthly-subscription") {
+    const durationDays = Math.max(
+      1,
+      Number(item.subscriptionDurationDays || env.marketplaceBasicSubscriptionDays || 30)
+    );
+    const now = new Date();
+    const existing = await MarketplacePurchase.findOne({ item: item._id, buyer: buyerId });
+    const baseStart =
+      existing?.accessExpiresAt && existing.accessExpiresAt > now ? existing.accessExpiresAt : now;
+    const nextExpiry = new Date(baseStart.getTime() + durationDays * 24 * 60 * 60 * 1000);
+
+    if (existing) {
+      existing.seller = item.seller._id || item.seller;
+      existing.basePrice = item.basePrice || 0;
+      existing.platformFeeAmount = item.platformFeeAmount || 0;
+      existing.gstAmount = item.gstAmount || 0;
+      existing.amount = amount;
+      existing.currency = item.currency;
+      existing.purchaseType = purchaseType;
+      existing.accessStartsAt = now;
+      existing.accessExpiresAt = nextExpiry;
+      await existing.save();
+      purchase = existing;
+    } else {
+      purchase = await MarketplacePurchase.create({
+        item: item._id,
+        buyer: buyerId,
+        seller: item.seller._id || item.seller,
+        basePrice: item.basePrice || 0,
+        platformFeeAmount: item.platformFeeAmount || 0,
+        gstAmount: item.gstAmount || 0,
+        amount,
+        currency: item.currency,
+        purchaseType,
+        accessStartsAt: now,
+        accessExpiresAt: nextExpiry
+      });
+    }
+  } else {
+    purchase = await MarketplacePurchase.findOneAndUpdate(
+      { item: item._id, buyer: buyerId },
+      {
+        $setOnInsert: {
+          seller: item.seller._id || item.seller,
+          basePrice: item.basePrice || 0,
+          platformFeeAmount: item.platformFeeAmount || 0,
+          gstAmount: item.gstAmount || 0,
+          amount,
+          currency: item.currency,
+          purchaseType
+        }
+      },
+      { upsert: true, new: true, setDefaultsOnInsert: true }
+    );
+  }
+
+  return MarketplacePurchase.findById(purchase._id)
+    .populate("buyer", "fullName email role")
+    .populate("seller", "fullName email role")
+    .populate(
+      "item",
+      "title courseTag basePrice platformFeePercent platformFeeAmount gstPercent gstAmount price currency resourceType subscriptionPlan subscriptionDurationDays isPublished downloadUrl"
+    );
 }
 
 export async function createMarketplaceItem(req, res, next) {
@@ -245,84 +330,190 @@ export async function purchaseMarketplaceItem(req, res, next) {
     }
 
     const amount = item.price > 0 ? item.price : 0;
-    const isMonthlySubscription = item.resourceType === "subscription";
-    const purchaseType = isMonthlySubscription
-      ? "monthly-subscription"
-      : amount > 0
-        ? "paid-purchase"
-        : "free-enroll";
+    const purchaseType = getMarketplacePurchaseType(item);
 
-    let purchase;
+    if (purchaseType === "free-enroll") {
+      const purchase = await finalizeMarketplacePurchase({
+        item,
+        buyerId: req.user.id
+      });
 
-    if (isMonthlySubscription) {
-      const durationDays = Math.max(1, Number(item.subscriptionDurationDays || env.marketplaceBasicSubscriptionDays || 30));
-      const now = new Date();
-      const existing = await MarketplacePurchase.findOne({ item: item._id, buyer: req.user.id });
-      const baseStart =
-        existing?.accessExpiresAt && existing.accessExpiresAt > now ? existing.accessExpiresAt : now;
-      const nextExpiry = new Date(baseStart.getTime() + durationDays * 24 * 60 * 60 * 1000);
-
-      if (existing) {
-        existing.seller = item.seller._id;
-        existing.basePrice = item.basePrice || 0;
-        existing.platformFeeAmount = item.platformFeeAmount || 0;
-        existing.gstAmount = item.gstAmount || 0;
-        existing.amount = amount;
-        existing.currency = item.currency;
-        existing.purchaseType = purchaseType;
-        existing.accessStartsAt = now;
-        existing.accessExpiresAt = nextExpiry;
-        await existing.save();
-        purchase = existing;
-      } else {
-        purchase = await MarketplacePurchase.create({
-          item: item._id,
-          buyer: req.user.id,
-          seller: item.seller._id,
-          basePrice: item.basePrice || 0,
-          platformFeeAmount: item.platformFeeAmount || 0,
-          gstAmount: item.gstAmount || 0,
-          amount,
-          currency: item.currency,
-          purchaseType,
-          accessStartsAt: now,
-          accessExpiresAt: nextExpiry
-        });
-      }
-    } else {
-      purchase = await MarketplacePurchase.findOneAndUpdate(
-        { item: item._id, buyer: req.user.id },
-        {
-          $setOnInsert: {
-            seller: item.seller._id,
-            basePrice: item.basePrice || 0,
-            platformFeeAmount: item.platformFeeAmount || 0,
-            gstAmount: item.gstAmount || 0,
-            amount,
-            currency: item.currency,
-            purchaseType
-          }
-        },
-        { upsert: true, new: true, setDefaultsOnInsert: true }
-      );
+      res.status(201).json({
+        success: true,
+        message: "Enrolled in free course.",
+        data: purchase
+      });
+      return;
     }
 
-    purchase = await MarketplacePurchase.findById(purchase._id)
-      .populate("buyer", "fullName email role")
-      .populate("seller", "fullName email role")
-      .populate(
-        "item",
-        "title courseTag basePrice platformFeePercent platformFeeAmount gstPercent gstAmount price currency resourceType subscriptionPlan subscriptionDurationDays"
-      );
+    const gatewayOrder = await createRazorpayOrder({
+      amount,
+      currency: item.currency,
+      receipt: `market-${item._id}-${Date.now()}`.slice(0, 40),
+      notes: {
+        itemId: String(item._id),
+        buyerId: String(req.user.id),
+        purchaseType
+      }
+    });
+
+    const paymentOrder = await PaymentOrder.create({
+      gateway: "razorpay",
+      purpose:
+        purchaseType === "monthly-subscription"
+          ? "marketplace-subscription"
+          : "marketplace-item",
+      buyer: req.user.id,
+      seller: item.seller._id,
+      marketplaceItem: item._id,
+      amount,
+      currency: item.currency,
+      gatewayOrderId: gatewayOrder.id,
+      gatewayReceipt: gatewayOrder.receipt || "",
+      metadata: {
+        purchaseType
+      }
+    });
 
     res.status(201).json({
       success: true,
+      paymentRequired: true,
       message:
-        purchaseType === "free-enroll"
-          ? "Enrolled in free course."
-          : purchaseType === "monthly-subscription"
-            ? "Monthly basic subscription activated."
-            : "Course purchase recorded.",
+        purchaseType === "monthly-subscription"
+          ? "Complete payment to start your monthly basic subscription."
+          : "Complete payment to unlock this marketplace item.",
+      data: {
+        paymentOrderId: paymentOrder._id,
+        purchaseType,
+        checkout: buildRazorpayCheckoutPayload({
+          order: gatewayOrder,
+          title: item.title,
+          description:
+            purchaseType === "monthly-subscription"
+              ? "Monthly basic subscription"
+              : "Marketplace course purchase",
+          customer: req.user
+        })
+      }
+    });
+  } catch (error) {
+    next(error);
+  }
+}
+
+export async function verifyMarketplacePayment(req, res, next) {
+  try {
+    const itemId = readMongoId(req.params.itemId, { field: "itemId" });
+    const paymentOrderId = readMongoId(req.body.paymentOrderId, { field: "paymentOrderId" });
+    const razorpayOrderId = readString(req.body.razorpayOrderId, {
+      field: "razorpayOrderId",
+      min: 6,
+      max: 120
+    });
+    const razorpayPaymentId = readString(req.body.razorpayPaymentId, {
+      field: "razorpayPaymentId",
+      min: 6,
+      max: 120
+    });
+    const razorpaySignature = readString(req.body.razorpaySignature, {
+      field: "razorpaySignature",
+      min: 6,
+      max: 200
+    });
+
+    const [item, paymentOrder] = await Promise.all([
+      MarketplaceItem.findById(itemId).populate("seller", "fullName email role"),
+      PaymentOrder.findById(paymentOrderId)
+    ]);
+
+    if (!item || item.isArchived || !item.isPublished) {
+      throw createHttpError("Course is not available.", 404);
+    }
+
+    if (!paymentOrder) {
+      throw createHttpError("Payment order not found.", 404);
+    }
+
+    if (String(paymentOrder.buyer) !== String(req.user.id)) {
+      throw createHttpError("This payment order does not belong to your account.", 403);
+    }
+
+    if (String(paymentOrder.marketplaceItem) !== String(item._id)) {
+      throw createHttpError("Payment order does not match this marketplace item.", 400);
+    }
+
+    if (paymentOrder.status === "verified") {
+      const existingPurchase = await MarketplacePurchase.findOne({
+        item: item._id,
+        buyer: req.user.id
+      })
+        .populate("buyer", "fullName email role")
+        .populate("seller", "fullName email role")
+        .populate(
+          "item",
+          "title courseTag basePrice platformFeePercent platformFeeAmount gstPercent gstAmount price currency resourceType subscriptionPlan subscriptionDurationDays isPublished downloadUrl"
+        );
+
+      res.json({
+        success: true,
+        message: "Payment already verified for this purchase.",
+        data: existingPurchase
+      });
+      return;
+    }
+
+    if (paymentOrder.status !== "created") {
+      throw createHttpError("This payment order is not in a payable state.", 400);
+    }
+
+    if (paymentOrder.gatewayOrderId !== razorpayOrderId) {
+      throw createHttpError("Gateway order mismatch for this payment.", 400);
+    }
+
+    const isSignatureValid = verifyRazorpaySignature({
+      orderId: razorpayOrderId,
+      paymentId: razorpayPaymentId,
+      signature: razorpaySignature
+    });
+
+    if (!isSignatureValid) {
+      paymentOrder.status = "failed";
+      paymentOrder.gatewayPaymentId = razorpayPaymentId;
+      paymentOrder.gatewaySignature = razorpaySignature;
+      await paymentOrder.save();
+      throw createHttpError("Payment signature verification failed.", 400);
+    }
+
+    paymentOrder.status = "verified";
+    paymentOrder.gatewayPaymentId = razorpayPaymentId;
+    paymentOrder.gatewaySignature = razorpaySignature;
+    paymentOrder.verifiedAt = new Date();
+    await paymentOrder.save();
+
+    const purchase = await finalizeMarketplacePurchase({
+      item,
+      buyerId: req.user.id
+    });
+
+    await createAuditLog({
+      req,
+      action: "marketplace.verify_payment",
+      entityType: "payment-order",
+      entityId: paymentOrder._id,
+      metadata: {
+        marketplaceItem: item._id,
+        purchaseType: paymentOrder.metadata?.purchaseType || getMarketplacePurchaseType(item),
+        amount: paymentOrder.amount,
+        currency: paymentOrder.currency
+      }
+    });
+
+    res.json({
+      success: true,
+      message:
+        paymentOrder.metadata?.purchaseType === "monthly-subscription"
+          ? "Monthly basic subscription activated successfully."
+          : "Marketplace purchase completed successfully.",
       data: purchase
     });
   } catch (error) {

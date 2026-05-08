@@ -13,11 +13,13 @@ export function BranchSemesterPage() {
   const fallbackBranch = getBranchById(fallbackProgram, branchId);
   const [dynamicPrograms, setDynamicPrograms] = useState([]);
   const [dynamicSubjects, setDynamicSubjects] = useState([]);
+  const [structureLoaded, setStructureLoaded] = useState(false);
 
   useEffect(() => {
     async function loadStructure() {
       if (!selectedCollege?.name) {
         setDynamicPrograms([]);
+        setStructureLoaded(true);
         return;
       }
 
@@ -28,9 +30,12 @@ export function BranchSemesterPage() {
         setDynamicPrograms(groupStructuresIntoPrograms(response.data.data));
       } catch {
         setDynamicPrograms([]);
+      } finally {
+        setStructureLoaded(true);
       }
     }
 
+    setStructureLoaded(false);
     loadStructure();
   }, [branchId, programId, selectedCollege?.name]);
 
@@ -89,6 +94,16 @@ export function BranchSemesterPage() {
         }))
     }));
   }, [branch, dynamicBranch, dynamicSubjects]);
+
+  if (!structureLoaded) {
+    return (
+      <div className="page-stack">
+        <SectionCard title="Loading academic structure" description="Fetching branch and semester data for this college.">
+          <p className="muted">Loading branch details...</p>
+        </SectionCard>
+      </div>
+    );
+  }
 
   if (!program || !branch) {
     return <Navigate to="/dashboard" replace />;

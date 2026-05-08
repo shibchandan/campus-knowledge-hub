@@ -1,10 +1,12 @@
 import { User } from "./auth.model.js";
 import { createToken } from "../../utils/createToken.js";
 import crypto from "crypto";
+import path from "path";
 import { sendEmail } from "../../services/email.service.js";
 import { createAuditLog } from "../../services/audit.service.js";
 import { env } from "../../config/env.js";
 import { removeTempFile, scanFileForMalware } from "../../services/malwareScan.service.js";
+import { uploadDirectory } from "../../middleware/uploadMiddleware.js";
 import {
   validateAdminCreateUserPayload,
   validateAdminUpdateUserPayload,
@@ -14,7 +16,8 @@ import {
   validateLoginPayload,
   validateProfilePayload,
   validateRegisterPayload,
-  validateResetPasswordPayload
+  validateResetPasswordPayload,
+  validateStudentVerificationSubmissionPayload
 } from "./auth.validation.js";
 
 const OTP_LENGTH = 6;
@@ -70,6 +73,25 @@ function isAllowedStudentProof(file) {
   return Boolean(
     file?.mimetype && studentProofMimeMatchers.some((pattern) => pattern.test(file.mimetype))
   );
+}
+
+function buildStudentProofPath(userId) {
+  return `/api/auth/student-proof/${userId}`;
+}
+
+function serializeUserForClient(user, req) {
+  const payload = user.toSafeObject();
+
+  if (payload.studentProofStoredName || user.studentProofStoredName) {
+    const proofPath = buildStudentProofPath(payload.id || user._id);
+    payload.studentProofUrl = req
+      ? `${req.protocol}://${req.get("host")}${proofPath}`
+      : proofPath;
+  } else {
+    payload.studentProofUrl = "";
+  }
+
+  return payload;
 }
 
 async function issueCollegeEmailOtp(user) {
@@ -147,9 +169,6 @@ export async function register(req, res, next) {
       await scanFileForMalware(req.file.path);
     }
 
-    const studentProofUrl = req.file
-      ? `${req.protocol}://${req.get("host")}/uploads/${req.file.filename}`
-      : "";
     const user = await User.create({
       ...payload,
       role: requestedRepresentative ? "student" : payload.role,
@@ -158,7 +177,7 @@ export async function register(req, res, next) {
       studentProofOriginalName: req.file?.originalname || "",
       studentProofStoredName: req.file?.filename || "",
       studentProofMimeType: req.file?.mimetype || "",
-      studentProofUrl,
+      studentProofUrl: "",
       officialCollegeEmailVerified: false
     });
 
@@ -186,7 +205,7 @@ export async function register(req, res, next) {
         : payload.role === "student" && collegeEmailOtpSent
           ? "Registration successful. A college email OTP has been sent to your official college email for verification."
         : "Registration successful.",
-      data: { token, user: user.toSafeObject() }
+      data: { token, user: serializeUserForClient(user, req) }
     });
   } catch (error) {
     if (req.file?.path) {
@@ -221,7 +240,7 @@ export async function login(req, res, next) {
 
     const token = createToken({ id: user._id, role: user.role, email: user.email });
     setAuthCookie(res, token);
-    res.json({ success: true, data: { token, user: user.toSafeObject() } });
+    res.json({ success: true, data: { token, user: serializeUserForClient(user, req) } });
   } catch (error) {
     next(error);
   }
@@ -230,7 +249,7 @@ export async function login(req, res, next) {
 export async function listUsers(_req, res, next) {
   try {
     const users = await User.find().sort({ createdAt: -1 });
-    res.json({ success: true, data: users.map((user) => user.toSafeObject()) });
+    res.json({ success: true, data: users.map((user) => serializeUserForClient(user, _req)) });
   } catch (error) {
     next(error);
   }
@@ -255,7 +274,7 @@ export async function adminCreateUser(req, res, next) {
       entityId: user._id,
       metadata: { email: user.email, role: user.role, status: user.status }
     });
-    res.status(201).json({ success: true, data: user.toSafeObject() });
+    res.status(201).json({ success: true, data: serializeUserForClient(user, req) });
   } catch (error) {
     next(error);
   }
@@ -318,7 +337,7 @@ export async function adminUpdateUser(req, res, next) {
     if (updates.studentVerificationStatus === "verified") {
       const nextCollegeName = updates.collegeName ?? user.collegeName ?? "";
       const nextCollegeStudentId = updates.collegeStudentId ?? user.collegeStudentId ?? "";
-      const nextStudentProofUrl = user.studentProofUrl || "";
+      const nextStudentProofStoredName = user.studentProofStoredName || "";
 
       if (!nextCollegeName || !nextCollegeStudentId) {
         const error = new Error("Verified student accounts must have both college name and college ID.");
@@ -326,7 +345,7 @@ export async function adminUpdateUser(req, res, next) {
         throw error;
       }
 
-      if (!nextStudentProofUrl) {
+      if (!nextStudentProofStoredName) {
         const error = new Error("Upload and review a student proof document before verifying the student.");
         error.statusCode = 400;
         throw error;
@@ -350,7 +369,7 @@ export async function adminUpdateUser(req, res, next) {
       metadata: updates
     });
 
-    res.json({ success: true, data: user.toSafeObject() });
+    res.json({ success: true, data: serializeUserForClient(user, req) });
   } catch (error) {
     next(error);
   }
@@ -366,7 +385,7 @@ export async function getCurrentUser(req, res, next) {
       throw error;
     }
 
-    res.json({ success: true, data: user.toSafeObject() });
+    res.json({ success: true, data: serializeUserForClient(user, req) });
   } catch (error) {
     next(error);
   }
@@ -386,7 +405,7 @@ export async function updateProfile(req, res, next) {
     Object.assign(user, updates);
     await user.save();
 
-    res.json({ success: true, data: user.toSafeObject() });
+    res.json({ success: true, data: serializeUserForClient(user, req) });
   } catch (error) {
     next(error);
   }
@@ -589,6 +608,101 @@ export async function sendCollegeEmailOtp(req, res, next) {
   }
 }
 
+export async function submitStudentVerification(req, res, next) {
+  try {
+    const payload = validateStudentVerificationSubmissionPayload(req.body);
+    const user = await User.findById(req.user.id).select(
+      "+collegeEmailOtpHash +collegeEmailOtpExpiresAt +collegeEmailOtpSentAt"
+    );
+
+    if (!user) {
+      const error = new Error("User not found");
+      error.statusCode = 404;
+      throw error;
+    }
+
+    if (user.role !== "student") {
+      const error = new Error("Only student accounts can submit student verification.");
+      error.statusCode = 403;
+      throw error;
+    }
+
+    if (!req.file && !user.studentProofStoredName) {
+      const error = new Error("Upload a student proof document to continue verification.");
+      error.statusCode = 400;
+      throw error;
+    }
+
+    if (req.file) {
+      if (!isAllowedStudentProof(req.file)) {
+        const error = new Error("Student proof must be an image or PDF document.");
+        error.statusCode = 400;
+        throw error;
+      }
+
+      await scanFileForMalware(req.file.path);
+    }
+
+    const emailChanged = payload.officialCollegeEmail !== (user.officialCollegeEmail || "");
+
+    user.collegeName = payload.collegeName;
+    user.collegeStudentId = payload.collegeStudentId;
+    user.officialCollegeEmail = payload.officialCollegeEmail;
+    user.studentVerificationStatus = "pending";
+
+    if (emailChanged) {
+      user.officialCollegeEmailVerified = false;
+      user.collegeEmailOtpHash = "";
+      user.collegeEmailOtpExpiresAt = null;
+      user.collegeEmailOtpSentAt = null;
+    }
+
+    if (req.file) {
+      user.studentProofOriginalName = req.file.originalname;
+      user.studentProofStoredName = req.file.filename;
+      user.studentProofMimeType = req.file.mimetype;
+      user.studentProofUrl = "";
+    }
+
+    await user.save();
+
+    let otpSent = false;
+    if (user.officialCollegeEmail && !user.officialCollegeEmailVerified) {
+      try {
+        await issueCollegeEmailOtp(user);
+        otpSent = true;
+      } catch {
+        otpSent = false;
+      }
+    }
+
+    await createAuditLog({
+      req,
+      action: "student.submit_verification",
+      entityType: "user",
+      entityId: user._id,
+      metadata: {
+        collegeName: user.collegeName,
+        hasOfficialCollegeEmail: Boolean(user.officialCollegeEmail),
+        hasStudentProof: Boolean(user.studentProofStoredName)
+      }
+    });
+
+    res.json({
+      success: true,
+      message: otpSent
+        ? "Student verification submitted. Admin review is pending, and a college email OTP has been sent."
+        : "Student verification submitted. Admin review is pending.",
+      data: serializeUserForClient(user, req)
+    });
+  } catch (error) {
+    if (req.file?.path) {
+      await removeTempFile(req.file.path);
+    }
+    next(error);
+  }
+}
+
 export async function verifyCollegeEmailOtp(req, res, next) {
   try {
     const { otp } = validateCollegeEmailOtpPayload(req.body);
@@ -632,7 +746,43 @@ export async function verifyCollegeEmailOtp(req, res, next) {
     res.json({
       success: true,
       message: "Official college email verified successfully.",
-      data: user.toSafeObject()
+      data: serializeUserForClient(user, req)
+    });
+  } catch (error) {
+    next(error);
+  }
+}
+
+export async function downloadStudentProof(req, res, next) {
+  try {
+    const targetUser = await User.findById(req.params.userId);
+
+    if (!targetUser) {
+      const error = new Error("User not found");
+      error.statusCode = 404;
+      throw error;
+    }
+
+    const isAdmin = req.user.role === "admin";
+    const isOwner = String(targetUser._id) === String(req.user.id);
+
+    if (!isAdmin && !isOwner) {
+      const error = new Error("You are not allowed to access this proof document.");
+      error.statusCode = 403;
+      throw error;
+    }
+
+    if (!targetUser.studentProofStoredName) {
+      const error = new Error("No proof document uploaded for this user.");
+      error.statusCode = 404;
+      throw error;
+    }
+
+    const proofPath = path.resolve(uploadDirectory, targetUser.studentProofStoredName);
+    res.sendFile(proofPath, {
+      headers: {
+        "Content-Disposition": `inline; filename="${targetUser.studentProofOriginalName || "student-proof"}"`
+      }
     });
   } catch (error) {
     next(error);

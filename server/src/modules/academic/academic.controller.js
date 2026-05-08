@@ -12,10 +12,13 @@ import {
   readMongoId,
   readString
 } from "../../utils/requestValidation.js";
-import { resolveStudentCollegeScope } from "../../utils/studentCollegeAccess.js";
+import {
+  normalizeCourseAccessKey,
+  resolveStudentCollegeScope
+} from "../../utils/studentCollegeAccess.js";
 
 function normalizeProgramCourse(programId = "", programName = "") {
-  return normalizeCollegeName(programName || programId);
+  return normalizeCourseAccessKey(programName || programId);
 }
 
 async function assertRepresentativeCollegeAccess(user, collegeNameNormalized, programId = "", programName = "") {
@@ -24,13 +27,16 @@ async function assertRepresentativeCollegeAccess(user, collegeNameNormalized, pr
   }
 
   const courseNameNormalized = normalizeProgramCourse(programId, programName);
-  const approvedCourse = await CollegeCourse.findOne({
+  const approvedCourses = await CollegeCourse.find({
     collegeNameNormalized,
-    courseNameNormalized,
     addedByRepresentative: user.id
-  });
+  }).select("courseName");
 
-  if (!approvedCourse) {
+  const hasMatch = approvedCourses.some(
+    (course) => normalizeCourseAccessKey(course.courseName) === courseNameNormalized
+  );
+
+  if (!hasMatch) {
     throw createHttpError(
       "Representative can manage academic structure only for approved college courses assigned to them.",
       403
