@@ -7,7 +7,11 @@ function createHttpError(message, statusCode = 400) {
 export function validateCollegeRequestPayload(payload) {
   const collegeName = payload.collegeName?.trim();
   const courseName = payload.courseName?.trim();
-  const semesterCount = Number(payload.semesterCount);
+  const hasSemesterCount =
+    payload.semesterCount !== undefined &&
+    payload.semesterCount !== null &&
+    String(payload.semesterCount).trim() !== "";
+  const semesterCount = hasSemesterCount ? Number(payload.semesterCount) : null;
 
   if (!collegeName || collegeName.length < 3) {
     throw createHttpError("College name must be at least 3 characters.");
@@ -17,7 +21,10 @@ export function validateCollegeRequestPayload(payload) {
     throw createHttpError("Course name must be at least 2 characters.");
   }
 
-  if (!Number.isInteger(semesterCount) || semesterCount < 1 || semesterCount > 12) {
+  if (
+    hasSemesterCount &&
+    (!Number.isInteger(semesterCount) || semesterCount < 1 || semesterCount > 12)
+  ) {
     throw createHttpError("Semester count must be a whole number between 1 and 12.");
   }
 

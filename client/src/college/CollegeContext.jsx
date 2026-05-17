@@ -15,6 +15,17 @@ function readStoredCollege() {
   }
 }
 
+function mergeColleges(...collegeGroups) {
+  return Array.from(
+    new Map(
+      collegeGroups
+        .flat()
+        .filter(Boolean)
+        .map((item) => [item.name.trim().toLowerCase(), item])
+    ).values()
+  ).sort((left, right) => left.name.localeCompare(right.name));
+}
+
 export function CollegeProvider({ children }) {
   const { user } = useAuth();
   const [availableColleges, setAvailableColleges] = useState(colleges);
@@ -48,23 +59,18 @@ export function CollegeProvider({ children }) {
           ).values()
         );
 
-        const mergedColleges = Array.from(
-          new Map(
-            [...colleges, ...approvedColleges].map((item) => [
-              item.name.toLowerCase(),
-              item
-            ])
-          ).values()
-        ).sort((left, right) => left.name.localeCompare(right.name));
-
-        setAvailableColleges(mergedColleges);
+        setAvailableColleges((current) =>
+          mergeColleges(current, colleges, approvedColleges, selectedCollege ? [selectedCollege] : [])
+        );
       } catch {
-        setAvailableColleges(colleges);
+        setAvailableColleges((current) =>
+          mergeColleges(current, colleges, selectedCollege ? [selectedCollege] : [])
+        );
       }
     }
 
     loadApprovedColleges();
-  }, []);
+  }, [selectedCollege]);
 
   useEffect(() => {
     if (selectedCollege) {
@@ -73,6 +79,12 @@ export function CollegeProvider({ children }) {
     }
 
     localStorage.removeItem(COLLEGE_STORAGE_KEY);
+  }, [selectedCollege]);
+
+  useEffect(() => {
+    if (selectedCollege) {
+      setAvailableColleges((current) => mergeColleges(current, [selectedCollege]));
+    }
   }, [selectedCollege]);
 
   useEffect(() => {

@@ -1,6 +1,7 @@
 import { UserSettings } from "./settings.model.js";
 import { createAuditLog } from "../../services/audit.service.js";
 import { createHttpError, readString } from "../../utils/requestValidation.js";
+import { requirePasswordConfirmation } from "../../utils/passwordConfirmation.js";
 
 const defaultPreferences = {
   emailAnnouncements: true,
@@ -173,6 +174,7 @@ export async function addBlockedUser(req, res, next) {
 
 export async function removeBlockedUser(req, res, next) {
   try {
+    await requirePasswordConfirmation(req);
     const settings = await getOrCreateSettings(req.user.id);
     const blockedUserId = readString(req.params.blockedUserId, {
       field: "blockedUserId",

@@ -5,6 +5,7 @@ import {
   createApprovedCollegeCourse,
   createCollegeRequest,
   deleteApprovedCollegeCourse,
+  deleteRepresentativeCollege,
   deleteCollegeProfile,
   decideCollegeRequest,
   getApprovedCollegeCourses,
@@ -28,7 +29,7 @@ governanceRouter.get(
 governanceRouter.post(
   "/approved-courses",
   protect,
-  authorize("admin"),
+  authorize("representative", "admin"),
   createApprovedCollegeCourse
 );
 governanceRouter.get(
@@ -42,6 +43,12 @@ governanceRouter.patch(
   protect,
   authorize("representative", "admin"),
   updateApprovedCollegeCourse
+);
+governanceRouter.delete(
+  "/approved-courses/:courseId/college",
+  protect,
+  authorize("representative", "admin"),
+  deleteRepresentativeCollege
 );
 governanceRouter.delete(
   "/approved-courses/:courseId",

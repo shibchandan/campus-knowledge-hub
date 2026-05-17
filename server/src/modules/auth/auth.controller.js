@@ -2,7 +2,7 @@ import { User } from "./auth.model.js";
 import { createToken } from "../../utils/createToken.js";
 import crypto from "crypto";
 import path from "path";
-import { sendEmail } from "../../services/email.service.js";
+import { sendAdminNotification, sendEmail } from "../../services/email.service.js";
 import { createAuditLog } from "../../services/audit.service.js";
 import { env } from "../../config/env.js";
 import { removeTempFile, scanFileForMalware } from "../../services/malwareScan.service.js";
@@ -92,6 +92,62 @@ function serializeUserForClient(user, req) {
   }
 
   return payload;
+}
+
+async function notifyAdminsAboutStudentVerification(user) {
+  const subject = `Student verification pending: ${user.fullName}`;
+  const text = [
+    `${user.fullName} has submitted student verification details for admin review.`,
+    `Email: ${user.email}`,
+    `College: ${user.collegeName || "Not submitted"}`,
+    `College ID: ${user.collegeStudentId || "Not submitted"}`,
+    `Official college email: ${user.officialCollegeEmail || "Not provided"}`,
+    "",
+    "Open the Admin Panel to review and verify this student."
+  ].join("\n");
+
+  const html = `
+    <p><strong>${user.fullName}</strong> has submitted student verification details for admin review.</p>
+    <ul>
+      <li><strong>Email:</strong> ${user.email}</li>
+      <li><strong>College:</strong> ${user.collegeName || "Not submitted"}</li>
+      <li><strong>College ID:</strong> ${user.collegeStudentId || "Not submitted"}</li>
+      <li><strong>Official college email:</strong> ${user.officialCollegeEmail || "Not provided"}</li>
+    </ul>
+    <p>Open the Admin Panel to review and verify this student.</p>
+  `;
+
+  try {
+    await sendAdminNotification({ subject, text, html });
+  } catch (error) {
+    console.log(`[Admin notification error] ${error.message}`);
+  }
+}
+
+async function notifyAdminsAboutRepresentativeRequest(user) {
+  const subject = `Representative request pending: ${user.fullName}`;
+  const text = [
+    `${user.fullName} has requested representative access and is waiting for admin approval.`,
+    `Email: ${user.email}`,
+    `Requested college: ${user.collegeName || "Not submitted"}`,
+    "",
+    "Open the Admin Panel to approve or reject this representative request."
+  ].join("\n");
+
+  const html = `
+    <p><strong>${user.fullName}</strong> has requested representative access and is waiting for admin approval.</p>
+    <ul>
+      <li><strong>Email:</strong> ${user.email}</li>
+      <li><strong>Requested college:</strong> ${user.collegeName || "Not submitted"}</li>
+    </ul>
+    <p>Open the Admin Panel to approve or reject this representative request.</p>
+  `;
+
+  try {
+    await sendAdminNotification({ subject, text, html });
+  } catch (error) {
+    console.log(`[Admin notification error] ${error.message}`);
+  }
 }
 
 async function issueCollegeEmailOtp(user) {
@@ -193,6 +249,14 @@ export async function register(req, res, next) {
       } catch {
         collegeEmailOtpSent = false;
       }
+    }
+
+    if (requestedRepresentative) {
+      await notifyAdminsAboutRepresentativeRequest(user);
+    }
+
+    if (payload.role === "student") {
+      await notifyAdminsAboutStudentVerification(user);
     }
 
     const token = createToken({ id: user._id, role: user.role, email: user.email });
@@ -687,6 +751,8 @@ export async function submitStudentVerification(req, res, next) {
         hasStudentProof: Boolean(user.studentProofStoredName)
       }
     });
+
+    await notifyAdminsAboutStudentVerification(user);
 
     res.json({
       success: true,

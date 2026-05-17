@@ -8,7 +8,7 @@ const collegeCourseSchema = new mongoose.Schema(
   {
     collegeName: { type: String, required: true, trim: true },
     courseName: { type: String, required: true, trim: true },
-    semesterCount: { type: Number, required: true, min: 1, max: 12 },
+    semesterCount: { type: Number, default: null, min: 1, max: 12 },
     addedByRepresentative: {
       type: mongoose.Schema.Types.ObjectId,
       ref: "User",
@@ -17,7 +17,7 @@ const collegeCourseSchema = new mongoose.Schema(
     approvedByAdmin: {
       type: mongoose.Schema.Types.ObjectId,
       ref: "User",
-      required: true
+      default: null
     },
     collegeNameNormalized: { type: String, required: true },
     courseNameNormalized: { type: String, required: true }
@@ -59,7 +59,7 @@ const collegeRequestSchema = new mongoose.Schema(
     },
     collegeName: { type: String, required: true, trim: true },
     courseName: { type: String, required: true, trim: true },
-    semesterCount: { type: Number, required: true, min: 1, max: 12 },
+    semesterCount: { type: Number, default: null, min: 1, max: 12 },
     status: {
       type: String,
       enum: ["pending", "approved", "rejected"],

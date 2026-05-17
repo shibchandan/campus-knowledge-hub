@@ -41,7 +41,7 @@ node src/server.js
 4. Start frontend in a new terminal
 
 ```powershell
-cd "C:\Users\shib chandan mistry\Documents\New project\client"
+cd "C:\Users\shib Cchandan mistry\Documents\New project\client"
 npm run dev
 ```
 

@@ -1,13 +1,14 @@
 import { useEffect, useMemo, useState } from "react";
+import { Link } from "react-router-dom";
 import { SectionCard } from "../components/SectionCard";
 import { useCollege } from "../college/CollegeContext";
 import { apiClient } from "../lib/apiClient";
+import { requestDeletePassword } from "../lib/deleteWithPassword";
 import { useToast } from "../ui/ToastContext";
 
 const initialForm = {
   collegeName: "",
-  courseName: "",
-  semesterCount: 8
+  courseName: ""
 };
 
 const initialProfileForm = {
@@ -72,6 +73,14 @@ const initialSubjectForm = {
 
 function normalizeSearchValue(value = "") {
   return value.toLowerCase().replace(/[^a-z0-9\s]/g, " ").replace(/\s+/g, " ").trim();
+}
+
+function normalizeRouteId(value = "") {
+  return String(value)
+    .trim()
+    .toLowerCase()
+    .replace(/[^a-z0-9]+/g, "-")
+    .replace(/^-|-$/g, "");
 }
 
 function mapProfileToForm(profile) {
@@ -212,12 +221,9 @@ export function RepresentativePanelPage() {
     setError("");
 
     try {
-      const [requestsResponse, collegesResponse] = await Promise.all([
-        apiClient.get("/governance/requests/my"),
-        apiClient.get("/governance/approved-courses/my")
-      ]);
+      const collegesResponse = await apiClient.get("/governance/approved-courses/my");
 
-      setRequests(requestsResponse.data.data);
+      setRequests([]);
       const collegeItems = collegesResponse.data.data || [];
       setMyColleges(collegeItems);
 
@@ -333,10 +339,8 @@ export function RepresentativePanelPage() {
 
     try {
       if (selectedCourseCatalogEntry?.hasActiveRepresentative) {
-        const representativeLabel = selectedCourseCatalogEntry.representativeName
-          ? `${selectedCourseCatalogEntry.representativeName} (${selectedCourseCatalogEntry.representativeEmail})`
-          : "an active representative";
-        const message = `This course already has ${representativeLabel}. Request cannot be submitted.`;
+        const message =
+          "This course already has an approved representative. Request cannot be submitted.";
         setError(message);
         showError(message);
         setSubmitting(false);
@@ -344,8 +348,7 @@ export function RepresentativePanelPage() {
       }
 
       const payload = {
-        ...form,
-        semesterCount: Number(form.semesterCount)
+        ...form
       };
 
       if (editingCourseId) {
@@ -353,9 +356,9 @@ export function RepresentativePanelPage() {
         setSuccess("College course details updated successfully.");
         showSuccess("College course details updated successfully.");
       } else {
-        await apiClient.post("/governance/requests", payload);
-        setSuccess("Request submitted for admin verification.");
-        showSuccess("Request submitted for admin verification.");
+        await apiClient.post("/governance/approved-courses", payload);
+        setSuccess("College course added successfully.");
+        showSuccess("College course added successfully.");
       }
 
       resetCourseForm();
@@ -410,8 +413,7 @@ export function RepresentativePanelPage() {
     setEditingCourseId(course._id);
     setForm({
       collegeName: course.collegeName,
-      courseName: course.courseName,
-      semesterCount: course.semesterCount
+      courseName: course.courseName
     });
   }
 
@@ -423,11 +425,10 @@ export function RepresentativePanelPage() {
   }
 
   async function handleDeleteCourse(course) {
-    const shouldDelete = window.confirm(
-      `Delete ${course.courseName} from ${course.collegeName}? This will remove the approved college-course entry from your account.`
+    const currentPassword = requestDeletePassword(
+      `${course.courseName} from ${course.collegeName}`
     );
-
-    if (!shouldDelete) {
+    if (!currentPassword) {
       return;
     }
 
@@ -435,7 +436,9 @@ export function RepresentativePanelPage() {
     setSuccess("");
 
     try {
-      const response = await apiClient.delete(`/governance/approved-courses/${course._id}`);
+      const response = await apiClient.delete(`/governance/approved-courses/${course._id}`, {
+        data: { currentPassword }
+      });
       if (editingCourseId === course._id) {
         resetCourseForm();
       }
@@ -452,10 +455,11 @@ export function RepresentativePanelPage() {
     }
   }
 
-  async function handleDeleteProfile(profile) {
-    const shouldDelete = window.confirm(`Delete the profile details for ${profile.collegeName}?`);
-
-    if (!shouldDelete) {
+  async function handleDeleteCollege(course) {
+    const currentPassword = requestDeletePassword(
+      `${course.collegeName} and all college records created under your account`
+    );
+    if (!currentPassword) {
       return;
     }
 
@@ -463,7 +467,43 @@ export function RepresentativePanelPage() {
     setSuccess("");
 
     try {
-      const response = await apiClient.delete(`/governance/college-profile/${profile._id}`);
+      const response = await apiClient.delete(
+        `/governance/approved-courses/${course._id}/college`,
+        {
+          data: { currentPassword }
+        }
+      );
+      if (editingCourseId === course._id) {
+        resetCourseForm();
+      }
+      if (editingProfileId && course.profile?._id === editingProfileId) {
+        resetProfileForm();
+      }
+      setSuccess(response.data.message || "College deleted successfully.");
+      showSuccess(response.data.message || "College deleted successfully.");
+      await loadRepresentativeData();
+    } catch (requestError) {
+      const message = requestError.response?.data?.message || "Failed to delete college.";
+      setError(message);
+      showError(message);
+    }
+  }
+
+  async function handleDeleteProfile(profile) {
+    const currentPassword = requestDeletePassword(
+      `the profile details for ${profile.collegeName}`
+    );
+    if (!currentPassword) {
+      return;
+    }
+
+    setError("");
+    setSuccess("");
+
+    try {
+      const response = await apiClient.delete(`/governance/college-profile/${profile._id}`, {
+        data: { currentPassword }
+      });
       if (editingProfileId === profile._id) {
         resetProfileForm();
       }
@@ -518,11 +558,15 @@ export function RepresentativePanelPage() {
   }
 
   async function handleDeleteNotice(noticeId) {
+    const currentPassword = requestDeletePassword("this notice");
+    if (!currentPassword) {
+      return;
+    }
     setError("");
     setSuccess("");
 
     try {
-      await apiClient.delete(`/notices/${noticeId}`);
+      await apiClient.delete(`/notices/${noticeId}`, { data: { currentPassword } });
       if (editingNoticeId === noticeId) {
         resetNoticeForm();
       }
@@ -621,11 +665,15 @@ export function RepresentativePanelPage() {
   }
 
   async function handleDeleteQuiz(quizId) {
+    const currentPassword = requestDeletePassword("this quiz");
+    if (!currentPassword) {
+      return;
+    }
     setError("");
     setSuccess("");
 
     try {
-      await apiClient.delete(`/quizzes/${quizId}`);
+      await apiClient.delete(`/quizzes/${quizId}`, { data: { currentPassword } });
       if (editingQuizId === quizId) {
         resetQuizForm();
       }
@@ -680,11 +728,17 @@ export function RepresentativePanelPage() {
   }
 
   async function handleDeleteStructure(structureId) {
+    const currentPassword = requestDeletePassword("this academic structure");
+    if (!currentPassword) {
+      return;
+    }
     setError("");
     setSuccess("");
 
     try {
-      await apiClient.delete(`/academic/structures/${structureId}`);
+      await apiClient.delete(`/academic/structures/${structureId}`, {
+        data: { currentPassword }
+      });
       if (editingStructureId === structureId) {
         resetStructureForm();
       }
@@ -736,11 +790,17 @@ export function RepresentativePanelPage() {
   }
 
   async function handleDeleteSubject(subjectId) {
+    const currentPassword = requestDeletePassword("this subject");
+    if (!currentPassword) {
+      return;
+    }
     setError("");
     setSuccess("");
 
     try {
-      await apiClient.delete(`/academic/subjects/${subjectId}`);
+      await apiClient.delete(`/academic/subjects/${subjectId}`, {
+        data: { currentPassword }
+      });
       if (editingSubjectId === subjectId) {
         resetSubjectForm();
       }
@@ -951,9 +1011,9 @@ export function RepresentativePanelPage() {
         note: "Editable from this panel"
       },
       {
-        label: "Pending Requests",
-        value: requests.filter((request) => request.status === "pending").length,
-        note: "Awaiting admin decision"
+        label: "Managed Courses",
+        value: myColleges.length,
+        note: "Directly editable after representative approval"
       },
       {
         label: "Profiles Added",
@@ -978,7 +1038,7 @@ export function RepresentativePanelPage() {
     <div className="page-stack">
       <SectionCard
         title="Representative Panel"
-        description="Submit new college-course requests and manage only the colleges approved under your account."
+        description="Manage only the colleges and courses assigned under your approved representative account."
       >
         {error ? <p className="auth-error">{error}</p> : null}
         {success ? <p className="success-note">{success}</p> : null}
@@ -995,7 +1055,7 @@ export function RepresentativePanelPage() {
 
       <SectionCard
         title="College Request Form"
-        description="Create a new approval request or update one of your approved course entries."
+        description="Add a college and course directly under your approved representative account, or update one of your assigned course entries."
       >
         <form className="panel-form" onSubmit={handleSubmit}>
           <div className="panel-form-grid">
@@ -1105,8 +1165,7 @@ export function RepresentativePanelPage() {
                           onClick={() => {
                             setForm((current) => ({
                               ...current,
-                              courseName: course.courseName,
-                              semesterCount: course.semesterCount
+                              courseName: course.courseName
                             }));
                             setOpenSelector("");
                           }}
@@ -1125,22 +1184,9 @@ export function RepresentativePanelPage() {
                 <p className="muted">
                   {selectedCourseCatalogEntry.hasActiveRepresentative
                     ? `Already managed by ${selectedCourseCatalogEntry.representativeName || "an active representative"}.`
-                    : "No active representative found for this course. You can send request."}
+                    : "No active representative found for this course. You can add it directly."}
                 </p>
               ) : null}
-            </label>
-            <label className="auth-field">
-              <span>Semester Count</span>
-              <input
-                max="12"
-                min="1"
-                onChange={(event) =>
-                  setForm((current) => ({ ...current, semesterCount: event.target.value }))
-                }
-                required
-                type="number"
-                value={form.semesterCount}
-              />
             </label>
           </div>
           <div className="panel-actions">
@@ -1151,7 +1197,7 @@ export function RepresentativePanelPage() {
                   : "Submitting..."
                 : editingCourseId
                   ? "Update College Course"
-                  : "Submit For Approval"}
+                  : "Add College Course"}
             </button>
             {editingCourseId ? (
               <button className="action-button neutral" onClick={resetCourseForm} type="button">
@@ -1160,10 +1206,10 @@ export function RepresentativePanelPage() {
             ) : null}
           </div>
           <p className="muted">
-            Type a starting letter like m to see matching colleges alphabetically, then choose the course to verify representative availability.
+            Type a starting letter like m to see matching colleges alphabetically, then choose or type the course you want to manage.
           </p>
           <p className="muted">
-            If your college is not listed, you can still type the full college name manually and submit a new request.
+            If your college is not listed, you can still type the full college name manually and add it directly.
           </p>
         </form>
       </SectionCard>
@@ -1417,145 +1463,20 @@ export function RepresentativePanelPage() {
 
       <SectionCard
         title="Academic Structure Management"
-        description="Create branch and semester structure dynamically for your approved colleges so each college can maintain its own academic map."
+        description="Track branch and semester records here. Use the college overview and course pages as the main place to add branches and semesters."
       >
-        <form className="panel-form" onSubmit={handleStructureSubmit}>
-          <div className="panel-form-grid">
-            <label className="auth-field">
-              <span>College Name</span>
-              <select
-                onChange={(event) =>
-                  setStructureForm((current) => ({ ...current, collegeName: event.target.value }))
-                }
-                required
-                value={structureForm.collegeName}
-              >
-                <option value="">Select college</option>
-                {[...new Set(myColleges.map((item) => item.collegeName))].map((collegeName) => (
-                  <option key={collegeName} value={collegeName}>
-                    {collegeName}
-                  </option>
-                ))}
-              </select>
-            </label>
-            <label className="auth-field">
-              <span>Program ID</span>
-              <input
-                onChange={(event) =>
-                  setStructureForm((current) => ({ ...current, programId: event.target.value }))
-                }
-                placeholder="btech, mca, mtech"
-                required
-                type="text"
-                value={structureForm.programId}
-              />
-            </label>
-            <label className="auth-field">
-              <span>Program Name</span>
-              <input
-                onChange={(event) =>
-                  setStructureForm((current) => ({ ...current, programName: event.target.value }))
-                }
-                placeholder="BTech"
-                required
-                type="text"
-                value={structureForm.programName}
-              />
-            </label>
-          </div>
-          <div className="panel-form-grid">
-            <label className="auth-field">
-              <span>Branch ID</span>
-              <input
-                onChange={(event) =>
-                  setStructureForm((current) => ({ ...current, branchId: event.target.value }))
-                }
-                placeholder="computer-science-engineering"
-                required
-                type="text"
-                value={structureForm.branchId}
-              />
-            </label>
-            <label className="auth-field">
-              <span>Branch Name</span>
-              <input
-                onChange={(event) =>
-                  setStructureForm((current) => ({ ...current, branchName: event.target.value }))
-                }
-                placeholder="Computer Science & Engineering"
-                required
-                type="text"
-                value={structureForm.branchName}
-              />
-            </label>
-            <label className="auth-field">
-              <span>Semester ID</span>
-              <input
-                onChange={(event) =>
-                  setStructureForm((current) => ({ ...current, semesterId: event.target.value }))
-                }
-                placeholder="semester-1"
-                required
-                type="text"
-                value={structureForm.semesterId}
-              />
-            </label>
-          </div>
-          <div className="panel-form-grid">
-            <label className="auth-field">
-              <span>Semester Name</span>
-              <input
-                onChange={(event) =>
-                  setStructureForm((current) => ({ ...current, semesterName: event.target.value }))
-                }
-                placeholder="Semester I"
-                required
-                type="text"
-                value={structureForm.semesterName}
-              />
-            </label>
-            <label className="auth-field">
-              <span>Semester Order</span>
-              <input
-                min="1"
-                onChange={(event) =>
-                  setStructureForm((current) => ({ ...current, semesterOrder: event.target.value }))
-                }
-                required
-                type="number"
-                value={structureForm.semesterOrder}
-              />
-            </label>
-            <label className="auth-field">
-              <span>Branch Description</span>
-              <input
-                onChange={(event) =>
-                  setStructureForm((current) => ({
-                    ...current,
-                    branchDescription: event.target.value
-                  }))
-                }
-                placeholder="Multiple engineering branches"
-                type="text"
-                value={structureForm.branchDescription}
-              />
-            </label>
-          </div>
+        <div className="panel-subsection">
+          <p className="muted">
+            Simpler workflow:
+            choose college from Overview, add course, open the course page, add branch with semester count,
+            then open the branch page to add subjects.
+          </p>
           <div className="panel-actions">
-            <button className="auth-submit" disabled={structureSubmitting} type="submit">
-              {structureSubmitting
-                ? "Saving..."
-                : editingStructureId
-                  ? "Update Academic Structure"
-                  : "Create Academic Structure"}
-            </button>
-            {editingStructureId ? (
-              <button className="action-button neutral" onClick={resetStructureForm} type="button">
-                Cancel Edit
-              </button>
-            ) : null}
+            <Link className="open-college-button" to="/dashboard">
+              Open Overview Workflow
+            </Link>
           </div>
-        </form>
+        </div>
 
         <div className="toolbar-grid">
           <input
@@ -1598,104 +1519,19 @@ export function RepresentativePanelPage() {
 
       <SectionCard
         title="Subject Management"
-        description="Create semester-wise subjects for your own colleges. These subjects drive the branch and subject pages dynamically."
+        description="Track created subjects here. The easier way to add new subjects is now from the branch page inside the overview workflow."
       >
-        <form className="panel-form" onSubmit={handleSubjectSubmit}>
-          <div className="panel-form-grid">
-            <label className="auth-field">
-              <span>College Name</span>
-              <select
-                onChange={(event) =>
-                  setSubjectForm((current) => ({ ...current, collegeName: event.target.value }))
-                }
-                required
-                value={subjectForm.collegeName}
-              >
-                <option value="">Select college</option>
-                {[...new Set(myColleges.map((item) => item.collegeName))].map((collegeName) => (
-                  <option key={collegeName} value={collegeName}>
-                    {collegeName}
-                  </option>
-                ))}
-              </select>
-            </label>
-            <label className="auth-field">
-              <span>Program ID</span>
-              <input
-                onChange={(event) =>
-                  setSubjectForm((current) => ({ ...current, programId: event.target.value }))
-                }
-                placeholder="btech"
-                required
-                type="text"
-                value={subjectForm.programId}
-              />
-            </label>
-            <label className="auth-field">
-              <span>Branch ID</span>
-              <input
-                onChange={(event) =>
-                  setSubjectForm((current) => ({ ...current, branchId: event.target.value }))
-                }
-                placeholder="computer-science-engineering"
-                required
-                type="text"
-                value={subjectForm.branchId}
-              />
-            </label>
-          </div>
-          <div className="panel-form-grid">
-            <label className="auth-field">
-              <span>Semester ID</span>
-              <input
-                onChange={(event) =>
-                  setSubjectForm((current) => ({ ...current, semesterId: event.target.value }))
-                }
-                placeholder="semester-1"
-                required
-                type="text"
-                value={subjectForm.semesterId}
-              />
-            </label>
-            <label className="auth-field">
-              <span>Subject ID</span>
-              <input
-                onChange={(event) =>
-                  setSubjectForm((current) => ({ ...current, subjectId: event.target.value }))
-                }
-                placeholder="mathematics-1"
-                type="text"
-                value={subjectForm.subjectId}
-              />
-            </label>
-            <label className="auth-field">
-              <span>Subject Name</span>
-              <input
-                onChange={(event) =>
-                  setSubjectForm((current) => ({ ...current, name: event.target.value }))
-                }
-                placeholder="Mathematics-I"
-                required
-                type="text"
-                value={subjectForm.name}
-              />
-            </label>
-          </div>
+        <div className="panel-subsection">
+          <p className="muted">
+            After a branch is created, open that branch page and add subjects there. Every subject automatically
+            gets Notice, Syllabus, Books, Class Notes, PDF/PPT, Lecture, Lab, PYQ, and Suggestion sections.
+          </p>
           <div className="panel-actions">
-            <button className="auth-submit" disabled={subjectSubmitting} type="submit">
-              {subjectSubmitting
-                ? "Saving..."
-                : editingSubjectId
-                  ? "Update Subject"
-                  : "Create Subject"}
-            </button>
-            {editingSubjectId ? (
-              <button className="action-button neutral" onClick={resetSubjectForm} type="button">
-                Cancel Edit
-              </button>
-            ) : null}
+            <Link className="open-college-button" to="/dashboard">
+              Go To Overview
+            </Link>
           </div>
-        </form>
+        </div>
 
         <div className="toolbar-grid">
           <input
@@ -2005,22 +1841,45 @@ export function RepresentativePanelPage() {
           <p className="muted">No approved colleges assigned to your account yet.</p>
         ) : null}
         <div className="panel-list">
-          {filteredColleges.map((item) => (
+          {filteredColleges.map((item, index) => {
+            const isFirstCollegeCard =
+              filteredColleges.findIndex(
+                (entry) =>
+                  String(entry.collegeName || "").trim().toLowerCase() ===
+                  String(item.collegeName || "").trim().toLowerCase()
+              ) === index;
+
+            return (
             <article className="panel-card" key={item._id}>
               <h3>{item.collegeName}</h3>
               <p className="muted">
-                Course: {item.courseName} | Semesters: {item.semesterCount}
+                Course: {item.courseName} | Semester count is branch-defined
               </p>
               <p className="muted">
                 Approved by: {item.approvedByAdmin?.fullName || "Admin"}
               </p>
               <div className="panel-actions">
+                <Link
+                  className="action-button neutral"
+                  to={`/dashboard/${normalizeRouteId(item.courseName)}`}
+                >
+                  Open Course Page
+                </Link>
                 <button className="action-button approve" onClick={() => handleEditCourse(item)} type="button">
                   Edit Course
                 </button>
                 <button className="action-button reject" onClick={() => handleDeleteCourse(item)} type="button">
                   Delete Course
                 </button>
+                {isFirstCollegeCard ? (
+                  <button
+                    className="action-button reject"
+                    onClick={() => handleDeleteCollege(item)}
+                    type="button"
+                  >
+                    Delete College
+                  </button>
+                ) : null}
               </div>
               {item.profile ? (
                 <div className="panel-subsection">
@@ -2062,47 +1921,11 @@ export function RepresentativePanelPage() {
                 </div>
               )}
             </article>
-          ))}
+            );
+          })}
         </div>
       </SectionCard>
 
-      <SectionCard title="My Requests" description="Track approval status with search and status filters.">
-        <div className="toolbar-grid">
-          <input
-            className="college-search"
-            onChange={(event) => setRequestSearch(event.target.value)}
-            placeholder="Search request by college or course..."
-            type="text"
-            value={requestSearch}
-          />
-          <select
-            className="college-search"
-            onChange={(event) => setRequestFilter(event.target.value)}
-            value={requestFilter}
-          >
-            <option value="all">All statuses</option>
-            <option value="pending">Pending</option>
-            <option value="approved">Approved</option>
-            <option value="rejected">Rejected</option>
-          </select>
-        </div>
-        {loading ? <p className="muted">Loading requests...</p> : null}
-        {!loading && filteredRequests.length === 0 ? (
-          <p className="muted">You have not submitted any matching requests yet.</p>
-        ) : null}
-        <div className="panel-list">
-          {filteredRequests.map((request) => (
-            <article className="panel-card" key={request._id}>
-              <h3>{request.collegeName}</h3>
-              <p className="muted">
-                Course: {request.courseName} | Semesters: {request.semesterCount}
-              </p>
-              <p className={`status-chip ${request.status}`}>Status: {request.status}</p>
-              {request.decisionNote ? <p className="muted">Note: {request.decisionNote}</p> : null}
-            </article>
-          ))}
-        </div>
-      </SectionCard>
     </div>
   );
 }

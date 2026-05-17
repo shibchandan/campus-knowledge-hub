@@ -19,7 +19,7 @@ export async function getLectures(req, res, next) {
     if (req.query.subject) filters.subject = req.query.subject;
     if (req.query.semester) filters.semester = req.query.semester;
 
-    const lectures = await Lecture.find(filters).populate("professor", "fullName email role");
+    const lectures = await Lecture.find(filters).populate("professor", "fullName role");
     res.json({ success: true, data: lectures });
   } catch (error) {
     next(error);

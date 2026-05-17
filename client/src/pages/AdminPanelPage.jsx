@@ -2,6 +2,7 @@ import { useEffect, useMemo, useState } from "react";
 import { useAuth } from "../auth/AuthContext";
 import { SectionCard } from "../components/SectionCard";
 import { apiClient, buildAuthorizedApiUrl } from "../lib/apiClient";
+import { requestDeletePassword } from "../lib/deleteWithPassword";
 import { useToast } from "../ui/ToastContext";
 
 const initialUserForm = {
@@ -23,8 +24,7 @@ const initialNoticeForm = {
 
 const initialCourseForm = {
   collegeName: "",
-  courseName: "",
-  semesterCount: 8
+  courseName: ""
 };
 
 const initialStructureForm = {
@@ -101,7 +101,6 @@ export function AdminPanelPage() {
 
     try {
       const [
-        pendingResponse,
         usersResponse,
         approvedResponse,
         noticesResponse,
@@ -111,7 +110,6 @@ export function AdminPanelPage() {
         syllabusResponse,
         auditResponse
       ] = await Promise.all([
-        apiClient.get("/governance/requests/pending"),
         apiClient.get("/auth/admin/users"),
         apiClient.get("/governance/approved-courses"),
         apiClient.get("/notices", { params: { includeUnpublished: true } }),
@@ -122,7 +120,7 @@ export function AdminPanelPage() {
         apiClient.get("/audit/logs", { params: { page: 1, limit: 20 } })
       ]);
 
-      setPendingRequests(pendingResponse.data.data || []);
+      setPendingRequests([]);
       setUsers(usersResponse.data.data || []);
       setApprovedCourses(approvedResponse.data.data || []);
       setNotices(noticesResponse.data.data || []);
@@ -275,8 +273,7 @@ export function AdminPanelPage() {
     clearMessages();
     try {
       const payload = {
-        ...courseForm,
-        semesterCount: Number(courseForm.semesterCount)
+        ...courseForm
       };
 
       if (editingCourseId) {
@@ -302,16 +299,21 @@ export function AdminPanelPage() {
     setEditingCourseId(course._id);
     setCourseForm({
       collegeName: course.collegeName || "",
-      courseName: course.courseName || "",
-      semesterCount: Number(course.semesterCount || 8)
+      courseName: course.courseName || ""
     });
     clearMessages();
   }
 
   async function handleDeleteCourse(courseId) {
+    const currentPassword = requestDeletePassword("this college course");
+    if (!currentPassword) {
+      return;
+    }
     clearMessages();
     try {
-      await apiClient.delete(`/governance/approved-courses/${courseId}`);
+      await apiClient.delete(`/governance/approved-courses/${courseId}`, {
+        data: { currentPassword }
+      });
       setSuccess("College course deleted successfully.");
       showSuccess("College course deleted successfully.");
       if (editingCourseId === courseId) {
@@ -370,9 +372,15 @@ export function AdminPanelPage() {
   }
 
   async function handleDeleteStructure(structureId) {
+    const currentPassword = requestDeletePassword("this academic structure");
+    if (!currentPassword) {
+      return;
+    }
     clearMessages();
     try {
-      await apiClient.delete(`/academic/structures/${structureId}`);
+      await apiClient.delete(`/academic/structures/${structureId}`, {
+        data: { currentPassword }
+      });
       setSuccess("Academic structure deleted successfully.");
       showSuccess("Academic structure deleted successfully.");
       if (editingStructureId === structureId) {
@@ -423,9 +431,15 @@ export function AdminPanelPage() {
   }
 
   async function handleDeleteSubject(subjectId) {
+    const currentPassword = requestDeletePassword("this subject");
+    if (!currentPassword) {
+      return;
+    }
     clearMessages();
     try {
-      await apiClient.delete(`/academic/subjects/${subjectId}`);
+      await apiClient.delete(`/academic/subjects/${subjectId}`, {
+        data: { currentPassword }
+      });
       setSuccess("Subject deleted successfully.");
       showSuccess("Subject deleted successfully.");
       if (editingSubjectId === subjectId) {
@@ -440,9 +454,13 @@ export function AdminPanelPage() {
   }
 
   async function handleDeleteNotice(noticeId) {
+    const currentPassword = requestDeletePassword("this notice");
+    if (!currentPassword) {
+      return;
+    }
     clearMessages();
     try {
-      await apiClient.delete(`/notices/${noticeId}`);
+      await apiClient.delete(`/notices/${noticeId}`, { data: { currentPassword } });
       setSuccess("Notice deleted successfully.");
       showSuccess("Notice deleted successfully.");
       await loadAdminData();
@@ -471,9 +489,13 @@ export function AdminPanelPage() {
   }
 
   async function handleDeleteResource(resourceId) {
+    const currentPassword = requestDeletePassword("this resource");
+    if (!currentPassword) {
+      return;
+    }
     clearMessages();
     try {
-      await apiClient.delete(`/resources/${resourceId}`);
+      await apiClient.delete(`/resources/${resourceId}`, { data: { currentPassword } });
       setSuccess("Resource deleted successfully.");
       showSuccess("Resource deleted successfully.");
       await loadAdminData();
@@ -616,14 +638,14 @@ export function AdminPanelPage() {
 
   const metrics = useMemo(
     () => [
-      { label: "Pending Requests", value: pendingRequests.length, note: "Needs admin review" },
+      { label: "Representative Users", value: users.filter((user) => user.role === "representative").length, note: "Approved representative accounts" },
       { label: "Total Users", value: users.length, note: "All account roles" },
       { label: "Active Users", value: users.filter((user) => user.status === "active").length, note: "Currently allowed access" },
       { label: "Approved Colleges", value: approvedCourses.length, note: "Available to students" },
       { label: "Published Notices", value: notices.filter((notice) => notice.isPublished).length, note: "Live announcements" },
       { label: "Managed Resources", value: resources.length, note: "Current moderation list" }
     ],
-    [approvedCourses.length, notices, pendingRequests.length, resources.length, users]
+    [approvedCourses.length, notices, resources.length, users]
   );
 
   const adminCollegeNames = useMemo(
@@ -693,39 +715,6 @@ export function AdminPanelPage() {
         </div>
       </SectionCard>
 
-      <SectionCard title="Representative Requests" description="Approve or reject pending submissions quickly.">
-        <div className="toolbar-grid">
-          <input
-            className="college-search"
-            onChange={(event) => setRequestSearch(event.target.value)}
-            placeholder="Search college, course, or representative..."
-            type="text"
-            value={requestSearch}
-          />
-          <p className="muted">{filteredRequests.length} pending requests</p>
-        </div>
-        <div className="panel-list">
-          {filteredRequests.map((request) => (
-            <article className="panel-card" key={request._id}>
-              <h3>{request.collegeName}</h3>
-              <p className="muted">Course: {request.courseName} | Semesters: {request.semesterCount}</p>
-              <p className="muted">
-                Representative: {request.representative?.fullName} ({request.representative?.email})
-              </p>
-              <div className="panel-actions">
-                <button className="action-button approve" onClick={() => handleDecision(request._id, "approve")} type="button">
-                  Approve
-                </button>
-                <button className="action-button reject" onClick={() => handleDecision(request._id, "reject")} type="button">
-                  Reject
-                </button>
-              </div>
-            </article>
-          ))}
-          {!filteredRequests.length ? <p className="muted">No matching requests.</p> : null}
-        </div>
-      </SectionCard>
-
       <SectionCard
         title="College Representative Directory"
         description="See which approved college-course entries are currently managed by which representative and whether that representative is active."
@@ -750,7 +739,7 @@ export function AdminPanelPage() {
             return (
               <article className="panel-card" key={course._id}>
                 <h3>{course.collegeName}</h3>
-                <p className="muted">Course: {course.courseName} | Semesters: {course.semesterCount}</p>
+              <p className="muted">Course: {course.courseName} | Semester count is branch-defined</p>
                 <p className="muted">
                   Representative: {representative?.fullName || "No representative"} ({representative?.email || "Not available"})
                 </p>
@@ -803,19 +792,6 @@ export function AdminPanelPage() {
                 value={courseForm.courseName}
               />
             </label>
-            <label className="auth-field">
-              <span>Semester Count</span>
-              <input
-                max="12"
-                min="1"
-                onChange={(event) =>
-                  setCourseForm((current) => ({ ...current, semesterCount: event.target.value }))
-                }
-                required
-                type="number"
-                value={courseForm.semesterCount}
-              />
-            </label>
           </div>
           <div className="panel-actions">
             <button className="auth-submit" type="submit">
@@ -845,7 +821,7 @@ export function AdminPanelPage() {
             <article className="panel-card" key={course._id}>
               <h3>{course.collegeName}</h3>
               <p className="muted">
-                {course.courseName} | {course.semesterCount} semesters
+                {course.courseName} | Semester count is branch-defined
               </p>
               <p className="muted">
                 Representative: {course.addedByRepresentative?.fullName || "Admin"} | Approved by:{" "}

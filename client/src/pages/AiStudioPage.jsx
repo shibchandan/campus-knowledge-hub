@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import { SectionCard } from "../components/SectionCard";
 import { useCollege } from "../college/CollegeContext";
 import { apiClient } from "../lib/apiClient";
+import { requestDeletePassword } from "../lib/deleteWithPassword";
 
 export function AiStudioPage() {
   const { selectedCollege } = useCollege();
@@ -54,11 +55,17 @@ export function AiStudioPage() {
   }
 
   async function handleDeleteHistoryItem(historyId) {
+    const currentPassword = requestDeletePassword("this AI history item");
+    if (!currentPassword) {
+      return;
+    }
     setHistoryBusyId(historyId);
     setError("");
 
     try {
-      await apiClient.delete(`/ai/history/${historyId}`);
+      await apiClient.delete(`/ai/history/${historyId}`, {
+        data: { currentPassword }
+      });
       setHistory((current) => current.filter((item) => item._id !== historyId));
     } catch (requestError) {
       setError(requestError.response?.data?.message || "Failed to delete AI history item.");
@@ -68,11 +75,15 @@ export function AiStudioPage() {
   }
 
   async function handleClearHistory() {
+    const currentPassword = requestDeletePassword("all AI history");
+    if (!currentPassword) {
+      return;
+    }
     setHistoryBusyId("all");
     setError("");
 
     try {
-      await apiClient.delete("/ai/history");
+      await apiClient.delete("/ai/history", { data: { currentPassword } });
       setHistory([]);
     } catch (requestError) {
       setError(requestError.response?.data?.message || "Failed to clear AI history.");

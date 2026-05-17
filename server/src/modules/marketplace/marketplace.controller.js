@@ -15,6 +15,7 @@ import {
   verifyRazorpaySignature
 } from "../../services/payment.service.js";
 import { createAuditLog } from "../../services/audit.service.js";
+import { requirePasswordConfirmation } from "../../utils/passwordConfirmation.js";
 
 function normalizePrice(value) {
   const numeric = Number(value);
@@ -185,8 +186,8 @@ async function finalizeMarketplacePurchase({ item, buyerId }) {
   }
 
   return MarketplacePurchase.findById(purchase._id)
-    .populate("buyer", "fullName email role")
-    .populate("seller", "fullName email role")
+    .populate("buyer", "fullName role")
+    .populate("seller", "fullName role")
     .populate(
       "item",
       "title courseTag basePrice platformFeePercent platformFeeAmount gstPercent gstAmount price currency resourceType subscriptionPlan subscriptionDurationDays isPublished downloadUrl"
@@ -201,7 +202,7 @@ export async function createMarketplaceItem(req, res, next) {
       seller: req.user.id
     });
 
-    const populated = await MarketplaceItem.findById(item._id).populate("seller", "fullName email role");
+    const populated = await MarketplaceItem.findById(item._id).populate("seller", "fullName role");
     res.status(201).json({ success: true, data: populated });
   } catch (error) {
     next(error);
@@ -227,7 +228,7 @@ export async function updateMarketplaceItem(req, res, next) {
     Object.assign(item, payload);
     await item.save();
 
-    const populated = await MarketplaceItem.findById(item._id).populate("seller", "fullName email role");
+    const populated = await MarketplaceItem.findById(item._id).populate("seller", "fullName role");
     res.json({ success: true, data: populated });
   } catch (error) {
     next(error);
@@ -236,6 +237,7 @@ export async function updateMarketplaceItem(req, res, next) {
 
 export async function deleteMarketplaceItem(req, res, next) {
   try {
+    await requirePasswordConfirmation(req);
     const itemId = readMongoId(req.params.itemId, { field: "itemId" });
     const item = await MarketplaceItem.findById(itemId);
 
@@ -281,7 +283,7 @@ export async function getMarketplaceItems(req, res, next) {
 
     const [items, total] = await Promise.all([
       MarketplaceItem.find(filters)
-        .populate("seller", "fullName email role")
+        .populate("seller", "fullName role")
         .sort({ createdAt: -1 })
         .skip(skip)
         .limit(limit),
@@ -308,7 +310,7 @@ export async function getMarketplaceItems(req, res, next) {
 export async function getMyMarketplaceItems(req, res, next) {
   try {
     const items = await MarketplaceItem.find({ seller: req.user.id, isArchived: false })
-      .populate("seller", "fullName email role")
+      .populate("seller", "fullName role")
       .sort({ createdAt: -1 });
     res.json({ success: true, data: items });
   } catch (error) {
@@ -319,7 +321,7 @@ export async function getMyMarketplaceItems(req, res, next) {
 export async function purchaseMarketplaceItem(req, res, next) {
   try {
     const itemId = readMongoId(req.params.itemId, { field: "itemId" });
-    const item = await MarketplaceItem.findById(itemId).populate("seller", "fullName email role");
+    const item = await MarketplaceItem.findById(itemId).populate("seller", "fullName role");
 
     if (!item || item.isArchived || !item.isPublished) {
       throw createHttpError("Course is not available.", 404);
@@ -422,7 +424,7 @@ export async function verifyMarketplacePayment(req, res, next) {
     });
 
     const [item, paymentOrder] = await Promise.all([
-      MarketplaceItem.findById(itemId).populate("seller", "fullName email role"),
+      MarketplaceItem.findById(itemId).populate("seller", "fullName role"),
       PaymentOrder.findById(paymentOrderId)
     ]);
 
@@ -447,8 +449,8 @@ export async function verifyMarketplacePayment(req, res, next) {
         item: item._id,
         buyer: req.user.id
       })
-        .populate("buyer", "fullName email role")
-        .populate("seller", "fullName email role")
+        .populate("buyer", "fullName role")
+        .populate("seller", "fullName role")
         .populate(
           "item",
           "title courseTag basePrice platformFeePercent platformFeeAmount gstPercent gstAmount price currency resourceType subscriptionPlan subscriptionDurationDays isPublished downloadUrl"
@@ -524,8 +526,8 @@ export async function verifyMarketplacePayment(req, res, next) {
 export async function getMyPurchases(req, res, next) {
   try {
     const purchases = await MarketplacePurchase.find({ buyer: req.user.id })
-      .populate("buyer", "fullName email role")
-      .populate("seller", "fullName email role")
+      .populate("buyer", "fullName role")
+      .populate("seller", "fullName role")
       .populate(
         "item",
         "title courseTag basePrice platformFeePercent platformFeeAmount gstPercent gstAmount price currency resourceType subscriptionPlan subscriptionDurationDays isPublished downloadUrl"

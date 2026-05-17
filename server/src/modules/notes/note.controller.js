@@ -20,7 +20,7 @@ export async function getNotes(req, res, next) {
     if (req.query.semester) filters.semester = req.query.semester;
     if (req.query.type) filters.type = req.query.type;
 
-    const notes = await Note.find(filters).populate("uploadedBy", "fullName email role");
+    const notes = await Note.find(filters).populate("uploadedBy", "fullName role");
     res.json({ success: true, data: notes });
   } catch (error) {
     next(error);

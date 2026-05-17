@@ -12,6 +12,7 @@ import {
 } from "../features/dashboard/data";
 import { getDynamicBranchById, getDynamicProgramById, groupStructuresIntoPrograms } from "../lib/academicHelpers";
 import { apiClient, buildAuthorizedApiUrl } from "../lib/apiClient";
+import { requestDeletePassword } from "../lib/deleteWithPassword";
 import { openRazorpayCheckout } from "../lib/paymentClient";
 import { useToast } from "../ui/ToastContext";
 
@@ -197,9 +198,7 @@ export function SubjectCategoryPage() {
       }
 
       if (sortBy === "uploader-asc") {
-        return (left.uploadedBy?.fullName || left.uploadedBy?.email || "").localeCompare(
-          right.uploadedBy?.fullName || right.uploadedBy?.email || ""
-        );
+        return (left.uploadedBy?.fullName || "").localeCompare(right.uploadedBy?.fullName || "");
       }
 
       if (sortBy === "file-first") {
@@ -380,11 +379,15 @@ export function SubjectCategoryPage() {
   }
 
   async function handleDelete(resourceId) {
+    const currentPassword = requestDeletePassword("this resource");
+    if (!currentPassword) {
+      return;
+    }
     setError("");
     setSuccess("");
 
     try {
-      await apiClient.delete(`/resources/${resourceId}`);
+      await apiClient.delete(`/resources/${resourceId}`, { data: { currentPassword } });
       setSuccess("Resource deleted.");
       if (editingResourceId === resourceId) {
         setEditingResourceId("");
@@ -520,11 +523,17 @@ export function SubjectCategoryPage() {
   }
 
   async function handleDeleteComment(resourceId, commentId) {
+    const currentPassword = requestDeletePassword("this comment");
+    if (!currentPassword) {
+      return;
+    }
     setFeedbackBusyByResource((current) => ({ ...current, [resourceId]: true }));
     setError("");
 
     try {
-      await apiClient.delete(`/ratings/comments/${commentId}`);
+      await apiClient.delete(`/ratings/comments/${commentId}`, {
+        data: { currentPassword }
+      });
       const response = await apiClient.get("/ratings/summary", {
         params: { resourceType: "resource", resourceId, commentLimit: 5 }
       });

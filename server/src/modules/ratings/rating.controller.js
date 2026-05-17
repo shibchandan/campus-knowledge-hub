@@ -2,6 +2,7 @@ import { Types } from "mongoose";
 import { createHttpError, readEnum, readMongoId, readPositiveInt, readString } from "../../utils/requestValidation.js";
 import { Rating } from "./rating.model.js";
 import { ResourceComment } from "./resourceComment.model.js";
+import { requirePasswordConfirmation } from "../../utils/passwordConfirmation.js";
 
 function readFeedbackResource(req) {
   const resourceType = readEnum(req.body.resourceType || req.query.resourceType, {
@@ -159,6 +160,7 @@ export async function addComment(req, res, next) {
 
 export async function deleteComment(req, res, next) {
   try {
+    await requirePasswordConfirmation(req);
     const commentId = readMongoId(req.params.commentId, { field: "commentId" });
     const comment = await ResourceComment.findById(commentId);
 

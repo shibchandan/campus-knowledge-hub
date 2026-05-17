@@ -2,6 +2,7 @@ import { useEffect, useMemo, useState } from "react";
 import { SectionCard } from "../components/SectionCard";
 import { useAuth } from "../auth/AuthContext";
 import { apiClient } from "../lib/apiClient";
+import { requestDeletePassword } from "../lib/deleteWithPassword";
 import { openRazorpayCheckout } from "../lib/paymentClient";
 
 const initialForm = {
@@ -151,11 +152,17 @@ export function MarketplacePage() {
   }
 
   async function handleArchive(itemId) {
+    const currentPassword = requestDeletePassword("this marketplace course");
+    if (!currentPassword) {
+      return;
+    }
     setBusyId(itemId);
     setError("");
     setSuccess("");
     try {
-      await apiClient.delete(`/marketplace/${itemId}`);
+      await apiClient.delete(`/marketplace/${itemId}`, {
+        data: { currentPassword }
+      });
       setSuccess("Course archived.");
       if (editingId === itemId) {
         resetForm();
@@ -360,7 +367,7 @@ export function MarketplacePage() {
               <article className="panel-card" key={item._id}>
                 <h3>{item.title}</h3>
                 <p className="muted">
-                  Type: {getListingLabel(item)} | Seller: {item.seller?.fullName || item.seller?.email || "Unknown"} (
+                  Type: {getListingLabel(item)} | Seller: {item.seller?.fullName || "Unknown"} (
                   {item.seller?.role || "user"})
                 </p>
                 <p className="muted">
@@ -442,7 +449,7 @@ export function MarketplacePage() {
                 {purchase.platformFeeAmount || 0} | GST: {purchase.currency} {purchase.gstAmount || 0}
               </p>
               <p className="muted">
-                Seller: {purchase.seller?.fullName || purchase.seller?.email || "Unknown"}
+                Seller: {purchase.seller?.fullName || "Unknown"}
               </p>
               <p className="muted">{new Date(purchase.createdAt).toLocaleString()}</p>
             </article>

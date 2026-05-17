@@ -12,6 +12,7 @@ import {
   readMongoId,
   readString
 } from "../../utils/requestValidation.js";
+import { requirePasswordConfirmation } from "../../utils/passwordConfirmation.js";
 import {
   normalizeCourseAccessKey,
   resolveStudentCollegeScope
@@ -185,6 +186,7 @@ export async function updateAcademicStructure(req, res, next) {
 
 export async function deleteAcademicStructure(req, res, next) {
   try {
+    await requirePasswordConfirmation(req);
     const structureId = readMongoId(req.params.structureId, { field: "structureId" });
     const structure = await AcademicStructure.findById(structureId);
 
@@ -303,6 +305,7 @@ export async function updateAcademicSubject(req, res, next) {
 
 export async function deleteAcademicSubject(req, res, next) {
   try {
+    await requirePasswordConfirmation(req);
     const subjectRecordId = readMongoId(req.params.subjectRecordId, { field: "subjectRecordId" });
     const subject = await AcademicSubject.findById(subjectRecordId);
 

@@ -1,19 +1,37 @@
 import { useEffect, useMemo, useState } from "react";
 import { Link, Navigate, useParams } from "react-router-dom";
+import { useAuth } from "../auth/AuthContext";
 import { SectionCard } from "../components/SectionCard";
 import { useCollege } from "../college/CollegeContext";
 import { getBranchById, getProgramById } from "../features/dashboard/data";
 import { getDynamicBranchById, getDynamicProgramById, groupStructuresIntoPrograms } from "../lib/academicHelpers";
 import { apiClient } from "../lib/apiClient";
+import { useToast } from "../ui/ToastContext";
+
+function slugify(value = "") {
+  return String(value)
+    .trim()
+    .toLowerCase()
+    .replace(/[^a-z0-9]+/g, "-")
+    .replace(/^-|-$/g, "");
+}
 
 export function BranchSemesterPage() {
   const { programId, branchId } = useParams();
+  const { user } = useAuth();
   const { selectedCollege } = useCollege();
+  const { showError, showSuccess } = useToast();
   const fallbackProgram = getProgramById(programId, selectedCollege?.name || "");
   const fallbackBranch = getBranchById(fallbackProgram, branchId);
   const [dynamicPrograms, setDynamicPrograms] = useState([]);
   const [dynamicSubjects, setDynamicSubjects] = useState([]);
   const [structureLoaded, setStructureLoaded] = useState(false);
+  const [subjectForm, setSubjectForm] = useState({
+    semesterId: "",
+    subjectName: "",
+    subjectId: ""
+  });
+  const [subjectBusy, setSubjectBusy] = useState(false);
 
   useEffect(() => {
     async function loadStructure() {
@@ -94,6 +112,63 @@ export function BranchSemesterPage() {
         }))
     }));
   }, [branch, dynamicBranch, dynamicSubjects]);
+  const canManageBranch = user?.role === "admin" || user?.role === "representative";
+
+  useEffect(() => {
+    if (!semesters.length) {
+      return;
+    }
+
+    setSubjectForm((current) => ({
+      semesterId: current.semesterId || semesters[0].id,
+      subjectName: current.subjectName,
+      subjectId: current.subjectId
+    }));
+  }, [semesters]);
+
+  async function handleCreateSubject(event) {
+    event.preventDefault();
+
+    if (!selectedCollege?.name || !program || !branch) {
+      showError("Choose a valid college branch first.");
+      return;
+    }
+
+    setSubjectBusy(true);
+
+    try {
+      await apiClient.post("/academic/subjects", {
+        collegeName: selectedCollege.name,
+        programId: program.id,
+        branchId: branch.id,
+        semesterId: subjectForm.semesterId,
+        subjectId: subjectForm.subjectId || slugify(subjectForm.subjectName),
+        name: subjectForm.subjectName
+      });
+
+      setSubjectForm((current) => ({
+        ...current,
+        subjectName: "",
+        subjectId: ""
+      }));
+      showSuccess(
+        "Subject created successfully. Its notice, syllabus, books, class notes, PDF/PPT, lecture, lab, PYQ, and suggestion pages are now available."
+      );
+
+      const response = await apiClient.get("/academic/subjects", {
+        params: {
+          collegeName: selectedCollege.name,
+          programId,
+          branchId
+        }
+      });
+      setDynamicSubjects(response.data.data);
+    } catch (requestError) {
+      showError(requestError.response?.data?.message || "Failed to create subject.");
+    } finally {
+      setSubjectBusy(false);
+    }
+  }
 
   if (!structureLoaded) {
     return (
@@ -162,6 +237,65 @@ export function BranchSemesterPage() {
           ))}
         </div>
       </SectionCard>
+
+      {canManageBranch && semesters.length ? (
+        <SectionCard
+          title="Add Subject"
+          description="Choose a semester and add subjects one by one. Each subject automatically gets notice, syllabus, books, class notes, PDF/PPT, lecture, lab, PYQ, and suggestion sections."
+        >
+          <form className="panel-form" onSubmit={handleCreateSubject}>
+            <div className="panel-form-grid">
+              <label className="auth-field">
+                <span>Branch</span>
+                <input readOnly type="text" value={branch.name} />
+              </label>
+              <label className="auth-field">
+                <span>Semester</span>
+                <select
+                  onChange={(event) =>
+                    setSubjectForm((current) => ({ ...current, semesterId: event.target.value }))
+                  }
+                  value={subjectForm.semesterId}
+                >
+                  {semesters.map((semester) => (
+                    <option key={semester.id} value={semester.id}>
+                      {semester.semester}
+                    </option>
+                  ))}
+                </select>
+              </label>
+              <label className="auth-field">
+                <span>Subject Name</span>
+                <input
+                  onChange={(event) =>
+                    setSubjectForm((current) => ({ ...current, subjectName: event.target.value }))
+                  }
+                  placeholder="Mathematics-I"
+                  required
+                  type="text"
+                  value={subjectForm.subjectName}
+                />
+              </label>
+              <label className="auth-field">
+                <span>Subject ID</span>
+                <input
+                  onChange={(event) =>
+                    setSubjectForm((current) => ({ ...current, subjectId: event.target.value }))
+                  }
+                  placeholder="mathematics-1"
+                  type="text"
+                  value={subjectForm.subjectId}
+                />
+              </label>
+            </div>
+            <div className="panel-actions">
+              <button className="open-college-button" disabled={subjectBusy} type="submit">
+                {subjectBusy ? "Creating Subject..." : "Add Subject"}
+              </button>
+            </div>
+          </form>
+        </SectionCard>
+      ) : null}
     </div>
   );
 }

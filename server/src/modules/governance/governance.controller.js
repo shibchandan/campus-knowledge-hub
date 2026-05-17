@@ -1,5 +1,11 @@
 import { CollegeCourse, CollegeProfile, CollegeRequest } from "./governance.model.js";
+import { AcademicSubject } from "../academic/academic.model.js";
+import { AcademicStructure } from "../academic/academicStructure.model.js";
+import { Notice } from "../notices/notice.model.js";
+import { Quiz } from "../quizzes/quiz.model.js";
+import { Resource } from "../resources/resource.model.js";
 import { createAuditLog } from "../../services/audit.service.js";
+import { removeStoredFile } from "../../services/resourceStorage.service.js";
 import {
   validateAdminDecisionPayload,
   validateCollegeProfilePayload,
@@ -11,8 +17,12 @@ import {
   readMongoId,
   readString
 } from "../../utils/requestValidation.js";
+import { requirePasswordConfirmation } from "../../utils/passwordConfirmation.js";
 import { runWithOptionalTransaction, withSession } from "../../utils/transaction.js";
-import { resolveStudentCollegeScope } from "../../utils/studentCollegeAccess.js";
+import {
+  normalizeCourseAccessKey,
+  resolveStudentCollegeScope
+} from "../../utils/studentCollegeAccess.js";
 
 export async function createCollegeRequest(req, res, next) {
   try {
@@ -99,7 +109,6 @@ export async function getAvailableRepresentativeColleges(req, res, next) {
         semesterCount: course.semesterCount,
         hasActiveRepresentative: Boolean(isActiveRepresentative),
         representativeName: representative?.fullName || "",
-        representativeEmail: representative?.email || "",
         representativeStatus: representative?.status || "missing"
       });
 
@@ -246,8 +255,8 @@ export async function getApprovedCollegeCourses(req, res, next) {
     }
 
     const courses = await CollegeCourse.find(courseFilters)
-      .populate("addedByRepresentative", "fullName email")
-      .populate("approvedByAdmin", "fullName email")
+      .populate("addedByRepresentative", "fullName email role status")
+      .populate("approvedByAdmin", "fullName email role status")
       .sort({ createdAt: -1 })
       .lean();
 
@@ -262,10 +271,36 @@ export async function getApprovedCollegeCourses(req, res, next) {
       profiles.map((profile) => [profile.collegeNameNormalized, profile])
     );
 
-    const data = courses.map((course) => ({
-      ...course,
-      profile: profileByCollege.get(course.collegeNameNormalized) || null
-    }));
+    const exposeContactDetails = req.user?.role === "admin";
+    const sanitizePerson = (person) => {
+      if (!person) {
+        return null;
+      }
+
+      return exposeContactDetails
+        ? person
+        : {
+            _id: person._id,
+            fullName: person.fullName || "",
+            role: person.role,
+            status: person.status
+          };
+    };
+
+    const data = courses.map((course) => {
+      const profile = profileByCollege.get(course.collegeNameNormalized) || null;
+      return {
+        ...course,
+        addedByRepresentative: sanitizePerson(course.addedByRepresentative),
+        approvedByAdmin: sanitizePerson(course.approvedByAdmin),
+        profile: profile
+          ? {
+              ...profile,
+              enteredByRepresentative: sanitizePerson(profile.enteredByRepresentative)
+            }
+          : null
+      };
+    });
 
     res.json({ success: true, data });
   } catch (error) {
@@ -293,7 +328,7 @@ export async function createApprovedCollegeCourse(req, res, next) {
       courseName: payload.courseName,
       semesterCount: payload.semesterCount,
       addedByRepresentative: req.user.id,
-      approvedByAdmin: req.user.id
+      approvedByAdmin: req.user.role === "admin" ? req.user.id : null
     });
 
     const populatedCourse = await CollegeCourse.findById(course._id)
@@ -302,7 +337,7 @@ export async function createApprovedCollegeCourse(req, res, next) {
 
     await createAuditLog({
       req,
-      action: "admin.create_college_course",
+      action: req.user.role === "admin" ? "admin.create_college_course" : "representative.create_college_course",
       entityType: "college_course",
       entityId: course._id,
       metadata: { collegeName: course.collegeName, courseName: course.courseName }
@@ -465,6 +500,7 @@ export async function updateApprovedCollegeCourse(req, res, next) {
 
 export async function deleteApprovedCollegeCourse(req, res, next) {
   try {
+    await requirePasswordConfirmation(req);
     const courseId = readMongoId(req.params.courseId, { field: "courseId" });
     const result = await runWithOptionalTransaction(async (session) => {
       const course = await withSession(CollegeCourse.findById(courseId), session);
@@ -521,6 +557,154 @@ export async function deleteApprovedCollegeCourse(req, res, next) {
         collegeName: result.course.collegeName,
         courseName: result.course.courseName
       }
+    });
+  } catch (error) {
+    next(error);
+  }
+}
+
+export async function deleteRepresentativeCollege(req, res, next) {
+  try {
+    await requirePasswordConfirmation(req);
+    const courseId = readMongoId(req.params.courseId, { field: "courseId" });
+
+    const result = await runWithOptionalTransaction(async (session) => {
+      const referenceCourse = await withSession(CollegeCourse.findById(courseId), session);
+
+      if (!referenceCourse) {
+        throw createHttpError("College course not found.", 404);
+      }
+
+      if (
+        req.user.role === "representative" &&
+        referenceCourse.addedByRepresentative.toString() !== req.user.id
+      ) {
+        throw createHttpError("You can delete only colleges created under your own account.", 403);
+      }
+
+      if (req.user.role === "representative") {
+        const otherOwnersExist = await withSession(
+          CollegeCourse.exists({
+            collegeNameNormalized: referenceCourse.collegeNameNormalized,
+            addedByRepresentative: { $ne: req.user.id }
+          }),
+          session
+        );
+
+        if (otherOwnersExist) {
+          throw createHttpError(
+            "This college also has course records owned by another account. Delete only your course entries, or ask admin to review the college.",
+            409
+          );
+        }
+      }
+
+      const ownedCourses = await withSession(
+        CollegeCourse.find({
+          collegeNameNormalized: referenceCourse.collegeNameNormalized,
+          ...(req.user.role === "representative"
+            ? { addedByRepresentative: req.user.id }
+            : {})
+        }),
+        session
+      );
+
+      const programKeys = [
+        ...new Set(
+          ownedCourses.map((course) => normalizeCourseAccessKey(course.courseName))
+        )
+      ];
+      const courseIds = ownedCourses.map((course) => course._id);
+
+      const resourceFilters = {
+        collegeName: new RegExp(`^${referenceCourse.collegeName.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")}$`, "i"),
+        ...(req.user.role === "representative" ? { uploadedBy: req.user.id } : {})
+      };
+      if (programKeys.length) {
+        resourceFilters.programId = { $in: programKeys };
+      }
+
+      const resources = await withSession(Resource.find(resourceFilters), session);
+
+      await Promise.all(
+        resources.map((resource) => removeStoredFile(resource))
+      );
+
+      await withSession(
+        Resource.deleteMany({ _id: { $in: resources.map((resource) => resource._id) } }),
+        session
+      );
+
+      await withSession(
+        Quiz.deleteMany({
+          collegeNameNormalized: referenceCourse.collegeNameNormalized,
+          ...(programKeys.length ? { programId: { $in: programKeys } } : {}),
+          ...(req.user.role === "representative" ? { createdByUser: req.user.id } : {})
+        }),
+        session
+      );
+
+      await withSession(
+        Notice.deleteMany({
+          collegeNameNormalized: referenceCourse.collegeNameNormalized,
+          ...(req.user.role === "representative" ? { createdByAdmin: req.user.id } : {})
+        }),
+        session
+      );
+
+      await withSession(
+        AcademicSubject.deleteMany({
+          collegeNameNormalized: referenceCourse.collegeNameNormalized,
+          ...(programKeys.length ? { programId: { $in: programKeys } } : {}),
+          ...(req.user.role === "representative" ? { createdByAdmin: req.user.id } : {})
+        }),
+        session
+      );
+
+      await withSession(
+        AcademicStructure.deleteMany({
+          collegeNameNormalized: referenceCourse.collegeNameNormalized,
+          ...(programKeys.length ? { programId: { $in: programKeys } } : {}),
+          ...(req.user.role === "representative" ? { createdByAdmin: req.user.id } : {})
+        }),
+        session
+      );
+
+      await withSession(
+        CollegeProfile.deleteOne({
+          collegeNameNormalized: referenceCourse.collegeNameNormalized,
+          ...(req.user.role === "representative"
+            ? { enteredByRepresentative: req.user.id }
+            : {})
+        }),
+        session
+      );
+
+      await withSession(
+        CollegeCourse.deleteMany({
+          _id: { $in: courseIds }
+        }),
+        session
+      );
+
+      return {
+        collegeName: referenceCourse.collegeName,
+        deletedCourseCount: courseIds.length,
+        deletedResourceCount: resources.length
+      };
+    });
+
+    await createAuditLog({
+      req,
+      action: `${req.user.role}.delete_college_bundle`,
+      entityType: "college",
+      entityId: courseId,
+      metadata: result
+    });
+
+    res.json({
+      success: true,
+      message: `College ${result.collegeName} deleted successfully from your managed records.`
     });
   } catch (error) {
     next(error);
@@ -596,6 +780,7 @@ export async function upsertCollegeProfile(req, res, next) {
 
 export async function deleteCollegeProfile(req, res, next) {
   try {
+    await requirePasswordConfirmation(req);
     const profileId = readMongoId(req.params.profileId, { field: "profileId" });
     const profile = await CollegeProfile.findById(profileId);
 

@@ -1,10 +1,13 @@
 import { useEffect, useMemo, useState } from "react";
 import { Link } from "react-router-dom";
+import { useAuth } from "../auth/AuthContext";
 import { SectionCard } from "../components/SectionCard";
 import { useCollege } from "../college/CollegeContext";
 import { academicPrograms } from "../features/dashboard/data";
 import { groupStructuresIntoPrograms } from "../lib/academicHelpers";
 import { apiClient } from "../lib/apiClient";
+import { requestDeletePassword } from "../lib/deleteWithPassword";
+import { useToast } from "../ui/ToastContext";
 
 function normalizeProgramKey(value = "") {
   return String(value)
@@ -14,8 +17,30 @@ function normalizeProgramKey(value = "") {
     .replace(/^-|-$/g, "");
 }
 
+function slugify(value = "") {
+  return String(value)
+    .trim()
+    .toLowerCase()
+    .replace(/[^a-z0-9]+/g, "-")
+    .replace(/^-|-$/g, "");
+}
+
+const defaultSubjectCategories = [
+  { id: "notice", label: "Notice" },
+  { id: "syllabus", label: "Syllabus" },
+  { id: "books", label: "Books" },
+  { id: "class-notes", label: "Class Notes" },
+  { id: "pdf-ppt", label: "PDF / PPT" },
+  { id: "lecture", label: "Lecture" },
+  { id: "lab", label: "Lab" },
+  { id: "pyq", label: "PYQ" },
+  { id: "suggestion", label: "Suggestion" }
+];
+
 export function DashboardPage() {
+  const { user } = useAuth();
   const { selectedCollege } = useCollege();
+  const { showError, showSuccess } = useToast();
   const [programSearch, setProgramSearch] = useState("");
   const [noticeSearch, setNoticeSearch] = useState("");
   const [profile, setProfile] = useState(null);
@@ -25,6 +50,52 @@ export function DashboardPage() {
   const [activeRepresentativeKey, setActiveRepresentativeKey] = useState("");
   const [loadingProfile, setLoadingProfile] = useState(false);
   const [profileError, setProfileError] = useState("");
+  const [quickSubjectForm, setQuickSubjectForm] = useState({
+    programId: "",
+    branchId: "",
+    semesterId: "",
+    subjectName: "",
+    subjectId: ""
+  });
+  const [quickCreateBusy, setQuickCreateBusy] = useState(false);
+  const [quickCreateMessage, setQuickCreateMessage] = useState("");
+  const [lastCreatedSubject, setLastCreatedSubject] = useState(null);
+  const [courseForm, setCourseForm] = useState({ courseName: "" });
+  const [courseBusy, setCourseBusy] = useState(false);
+
+  async function reloadApprovedCourses() {
+    if (!selectedCollege?.name) {
+      setApprovedCourses([]);
+      return;
+    }
+
+    try {
+      const response = await apiClient.get("/governance/approved-courses");
+      setApprovedCourses(
+        (response.data.data || []).filter(
+          (item) => item.collegeName?.toLowerCase() === selectedCollege.name.toLowerCase()
+        )
+      );
+    } catch {
+      setApprovedCourses([]);
+    }
+  }
+
+  async function reloadStructures() {
+    if (!selectedCollege?.name) {
+      setStructures([]);
+      return;
+    }
+
+    try {
+      const response = await apiClient.get("/academic/structures", {
+        params: { collegeName: selectedCollege.name }
+      });
+      setStructures(groupStructuresIntoPrograms(response.data.data));
+    } catch {
+      setStructures([]);
+    }
+  }
 
   useEffect(() => {
     async function loadCollegeProfile() {
@@ -55,22 +126,51 @@ export function DashboardPage() {
   }, [selectedCollege?.name]);
 
   useEffect(() => {
-    async function loadApprovedCourses() {
-      if (!selectedCollege?.name) {
-        setApprovedCourses([]);
-        return;
-      }
+    if (!selectedCollege?.name) {
+      setQuickSubjectForm({
+        programId: "",
+        branchId: "",
+        semesterId: "",
+        subjectName: "",
+        subjectId: ""
+      });
+      setLastCreatedSubject(null);
+      return;
+    }
 
-      try {
-        const response = await apiClient.get("/governance/approved-courses");
-        setApprovedCourses(
-          (response.data.data || []).filter(
-            (item) => item.collegeName?.toLowerCase() === selectedCollege.name.toLowerCase()
+    const firstProgram = structures[0];
+    const firstBranch = firstProgram?.branches?.[0];
+    const firstSemester = firstBranch?.semesters?.[0];
+
+    setQuickSubjectForm((current) => ({
+      programId:
+        current.programId && structures.some((program) => program.id === current.programId)
+          ? current.programId
+          : firstProgram?.id || "",
+      branchId:
+        current.branchId &&
+        structures.some((program) =>
+          program.branches.some((branch) => branch.id === current.branchId)
+        )
+          ? current.branchId
+          : firstBranch?.id || "",
+      semesterId:
+        current.semesterId &&
+        structures.some((program) =>
+          program.branches.some((branch) =>
+            branch.semesters.some((semester) => semester.id === current.semesterId)
           )
-        );
-      } catch {
-        setApprovedCourses([]);
-      }
+        )
+          ? current.semesterId
+          : firstSemester?.id || "",
+      subjectName: current.subjectName || "",
+      subjectId: current.subjectId || ""
+    }));
+  }, [selectedCollege?.name, structures]);
+
+  useEffect(() => {
+    async function loadApprovedCourses() {
+      await reloadApprovedCourses();
     }
 
     loadApprovedCourses();
@@ -98,19 +198,7 @@ export function DashboardPage() {
 
   useEffect(() => {
     async function loadStructures() {
-      if (!selectedCollege?.name) {
-        setStructures([]);
-        return;
-      }
-
-      try {
-        const response = await apiClient.get("/academic/structures", {
-          params: { collegeName: selectedCollege.name }
-        });
-        setStructures(groupStructuresIntoPrograms(response.data.data));
-      } catch {
-        setStructures([]);
-      }
+      await reloadStructures();
     }
 
     loadStructures();
@@ -118,12 +206,22 @@ export function DashboardPage() {
 
   const programCards = useMemo(() => {
     if (structures.length) {
-      return structures.map((program) => ({
-        id: program.id,
-        name: program.name,
-        branch: `${program.branches.length} database-managed branches`,
-        description: "This department structure is managed from the admin panel."
-      }));
+      return structures.map((program) => {
+        const branchNames = program.branches.map((branch) => branch.name).filter(Boolean);
+        const branchPreview = branchNames.slice(0, 3).join(", ");
+
+        return {
+          id: program.id,
+          name: program.name,
+          branch:
+            branchPreview ||
+            `${program.branches.length} database-managed branch${program.branches.length === 1 ? "" : "es"}`,
+          description:
+            branchNames.length > 3
+              ? `+${branchNames.length - 3} more branches available inside this course.`
+              : "Open this course to manage branch, semester, and subject flow."
+        };
+      });
     }
 
     if (approvedCourses.length) {
@@ -151,8 +249,8 @@ export function DashboardPage() {
           branch: `${program.branchCount} approved course entr${program.branchCount === 1 ? "y" : "ies"}`,
           description:
             program.maxSemesters > 0
-              ? `Up to ${program.maxSemesters} semesters approved for this college. Branch structure can now be managed from panel.`
-              : "Approved course available for this college."
+              ? `Legacy course data includes up to ${program.maxSemesters} semesters. Branch structure can now be managed from the course page.`
+              : "Approved course available. Branches will define their own semester count."
         }));
     }
 
@@ -194,11 +292,10 @@ export function DashboardPage() {
 
     approvedCourses.forEach((course) => {
       const representative = course.addedByRepresentative;
-      const key = representative?._id || representative?.email || course._id;
+      const key = representative?._id || course._id;
       const existing = grouped.get(key) || {
         key,
         fullName: representative?.fullName || "Representative",
-        email: representative?.email || "Email not available",
         status: representative?.status || "active",
         courses: [],
         totalSemesters: 0
@@ -216,6 +313,135 @@ export function DashboardPage() {
       left.fullName.localeCompare(right.fullName)
     );
   }, [approvedCourses]);
+
+  const canManageOverviewSubjects = user?.role === "admin" || user?.role === "representative";
+  const selectedProgramStructure = useMemo(
+    () => structures.find((program) => program.id === quickSubjectForm.programId) || null,
+    [quickSubjectForm.programId, structures]
+  );
+  const selectedBranchStructure = useMemo(
+    () =>
+      selectedProgramStructure?.branches?.find((branch) => branch.id === quickSubjectForm.branchId) || null,
+    [quickSubjectForm.branchId, selectedProgramStructure]
+  );
+  const selectedSemesterStructure = useMemo(
+    () =>
+      selectedBranchStructure?.semesters?.find((semester) => semester.id === quickSubjectForm.semesterId) ||
+      null,
+    [quickSubjectForm.semesterId, selectedBranchStructure]
+  );
+
+  useEffect(() => {
+    if (!quickSubjectForm.subjectName) {
+      return;
+    }
+
+    const nextSubjectId = slugify(quickSubjectForm.subjectName);
+    setQuickSubjectForm((current) =>
+      current.subjectId && current.subjectId !== slugify(current.subjectName)
+        ? current
+        : { ...current, subjectId: nextSubjectId }
+    );
+  }, [quickSubjectForm.subjectName]);
+
+  async function handleQuickCreateSubject(event) {
+    event.preventDefault();
+
+    if (!selectedCollege?.name) {
+      showError("Choose a college first.");
+      return;
+    }
+
+    if (!selectedProgramStructure || !selectedBranchStructure || !selectedSemesterStructure) {
+      showError("Create branch and semester structure first, then add subjects here.");
+      return;
+    }
+
+    setQuickCreateBusy(true);
+    setQuickCreateMessage("");
+
+    try {
+      const payload = {
+        collegeName: selectedCollege.name,
+        programId: quickSubjectForm.programId,
+        branchId: quickSubjectForm.branchId,
+        semesterId: quickSubjectForm.semesterId,
+        subjectId: quickSubjectForm.subjectId || slugify(quickSubjectForm.subjectName),
+        name: quickSubjectForm.subjectName
+      };
+
+      const response = await apiClient.post("/academic/subjects", payload);
+      const createdSubject = response.data.data;
+      setLastCreatedSubject(createdSubject);
+      setQuickSubjectForm((current) => ({
+        ...current,
+        subjectName: "",
+        subjectId: ""
+      }));
+      const message =
+        "Subject created successfully. Notice, syllabus, books, class notes, PDF/PPT, lecture, lab, PYQ, and suggestion sections are now ready for this subject.";
+      setQuickCreateMessage(message);
+      showSuccess(message);
+    } catch (requestError) {
+      const message = requestError.response?.data?.message || "Failed to create subject from overview.";
+      setQuickCreateMessage(message);
+      showError(message);
+    } finally {
+      setQuickCreateBusy(false);
+    }
+  }
+
+  async function handleCreateCourse(event) {
+    event.preventDefault();
+
+    if (!selectedCollege?.name) {
+      showError("Choose a college first.");
+      return;
+    }
+
+    setCourseBusy(true);
+
+    try {
+      const payload = {
+        collegeName: selectedCollege.name,
+        courseName: courseForm.courseName
+      };
+
+      if (user?.role === "admin") {
+        await apiClient.post("/governance/approved-courses", payload);
+        showSuccess("Course added directly by admin.");
+      } else {
+        await apiClient.post("/governance/approved-courses", payload);
+        showSuccess("Course added successfully.");
+      }
+
+      setCourseForm({ courseName: "" });
+      await reloadApprovedCourses();
+    } catch (requestError) {
+      showError(requestError.response?.data?.message || "Failed to add course.");
+    } finally {
+      setCourseBusy(false);
+    }
+  }
+
+  async function handleDeleteCourse(course) {
+    const currentPassword = requestDeletePassword(
+      `${course.courseName} from ${course.collegeName}`
+    );
+    if (!currentPassword) {
+      return;
+    }
+
+    try {
+      await apiClient.delete(`/governance/approved-courses/${course._id}`, {
+        data: { currentPassword }
+      });
+      showSuccess("Course deleted successfully.");
+      await Promise.all([reloadApprovedCourses(), reloadStructures()]);
+    } catch (requestError) {
+      showError(requestError.response?.data?.message || "Failed to delete course.");
+    }
+  }
 
   const dashboardStats = useMemo(
     () => [
@@ -351,10 +577,9 @@ export function DashboardPage() {
           {representativeDirectory.map((representative) => (
             <article className="panel-card" key={representative.key}>
               <h3>{representative.fullName}</h3>
-              <p className="muted">{representative.email}</p>
               <p className="muted">
                 Manages {representative.courses.length} course entries | Total semesters covered:{" "}
-                {representative.totalSemesters}
+                {representative.totalSemesters || "Branch-defined"}
               </p>
               <div className="panel-actions">
                 <button
@@ -374,10 +599,10 @@ export function DashboardPage() {
                   {representative.courses.map((course) => (
                     <article
                       className="detail-card"
-                      key={`${representative.key}-${course.courseName}-${course.semesterCount}`}
+                      key={`${representative.key}-${course.courseName}-${course.semesterCount || "branch-defined"}`}
                     >
                       <h3>{course.courseName}</h3>
-                      <p>{course.semesterCount} semesters</p>
+                      <p>{course.semesterCount ? `${course.semesterCount} semesters` : "Semester count is branch-defined"}</p>
                     </article>
                   ))}
                 </div>
@@ -395,8 +620,7 @@ export function DashboardPage() {
           <p className="muted">Database-managed academic structure is active for this college.</p>
         ) : approvedCourses.length ? (
           <p className="muted">
-            Approved courses are available for this college. Representatives can now add branch and semester
-            structure from the panel.
+            Approved courses are available for this college. Representatives can now open the course page and add branches with their own semester count.
           </p>
         ) : null}
         <div className="list-toolbar">
@@ -419,6 +643,206 @@ export function DashboardPage() {
           ))}
         </div>
       </SectionCard>
+
+      {canManageOverviewSubjects ? (
+        <SectionCard
+          title="Course Manager"
+          description="Add a course for this college first. Then open the course page to add branches, semesters, and subjects."
+        >
+          {!selectedCollege ? <p className="muted">Choose a college first from Colleges page.</p> : null}
+          {selectedCollege ? (
+            <form className="panel-form" onSubmit={handleCreateCourse}>
+              <div className="panel-form-grid">
+                <label className="auth-field">
+                  <span>College Name</span>
+                  <input readOnly type="text" value={selectedCollege.name} />
+                </label>
+                <label className="auth-field">
+                  <span>Course Name</span>
+                  <input
+                    onChange={(event) =>
+                      setCourseForm((current) => ({ ...current, courseName: event.target.value }))
+                    }
+                    placeholder="BTech"
+                    required
+                    type="text"
+                    value={courseForm.courseName}
+                  />
+                </label>
+              </div>
+              <div className="panel-actions">
+                <button className="open-college-button" disabled={courseBusy} type="submit">
+                  {courseBusy
+                    ? "Saving Course..."
+                    : user?.role === "admin"
+                      ? "Add Course Directly"
+                      : "Add Course"}
+                </button>
+              </div>
+            </form>
+          ) : null}
+          <div className="detail-grid">
+            {approvedCourses.map((course) => (
+              <article className="detail-card" key={course._id}>
+                <h3>{course.courseName}</h3>
+                <p>{course.semesterCount ? `${course.semesterCount} legacy semesters` : "Semester count will be created branch-wise"}</p>
+                <div className="panel-actions">
+                  <Link
+                    className="notes-focus-chip"
+                    to={`/dashboard/${normalizeProgramKey(course.courseName)}`}
+                  >
+                    Open Course Page
+                  </Link>
+                  <button
+                    className="action-button reject"
+                    onClick={() => handleDeleteCourse(course)}
+                    type="button"
+                  >
+                    Delete Course
+                  </button>
+                </div>
+              </article>
+            ))}
+          </div>
+        </SectionCard>
+      ) : null}
+
+      {canManageOverviewSubjects ? (
+        <SectionCard
+          title="Quick Subject Creator"
+          description="After branch and semester are created from Panel, you can add subjects directly from the overview page."
+        >
+          {!selectedCollege ? <p className="muted">Choose a college first.</p> : null}
+          {selectedCollege && !structures.length ? (
+            <p className="muted">
+              No branch-semester structure is available yet for this college. Create the academic structure from Panel first.
+            </p>
+          ) : null}
+          {selectedCollege && structures.length ? (
+            <form className="panel-form" onSubmit={handleQuickCreateSubject}>
+              <div className="panel-form-grid">
+                <label className="auth-field">
+                  <span>Program</span>
+                  <select
+                    onChange={(event) =>
+                      setQuickSubjectForm({
+                        programId: event.target.value,
+                        branchId:
+                          structures.find((program) => program.id === event.target.value)?.branches?.[0]?.id || "",
+                        semesterId:
+                          structures
+                            .find((program) => program.id === event.target.value)
+                            ?.branches?.[0]?.semesters?.[0]?.id || "",
+                        subjectName: quickSubjectForm.subjectName,
+                        subjectId: quickSubjectForm.subjectId
+                      })
+                    }
+                    value={quickSubjectForm.programId}
+                  >
+                    <option value="">Select program</option>
+                    {structures.map((program) => (
+                      <option key={program.id} value={program.id}>
+                        {program.name}
+                      </option>
+                    ))}
+                  </select>
+                </label>
+                <label className="auth-field">
+                  <span>Branch</span>
+                  <select
+                    onChange={(event) =>
+                      setQuickSubjectForm((current) => ({
+                        ...current,
+                        branchId: event.target.value,
+                        semesterId:
+                          selectedProgramStructure?.branches?.find((branch) => branch.id === event.target.value)
+                            ?.semesters?.[0]?.id || ""
+                      }))
+                    }
+                    value={quickSubjectForm.branchId}
+                  >
+                    <option value="">Select branch</option>
+                    {selectedProgramStructure?.branches?.map((branch) => (
+                      <option key={branch.id} value={branch.id}>
+                        {branch.name}
+                      </option>
+                    ))}
+                  </select>
+                </label>
+                <label className="auth-field">
+                  <span>Semester</span>
+                  <select
+                    onChange={(event) =>
+                      setQuickSubjectForm((current) => ({ ...current, semesterId: event.target.value }))
+                    }
+                    value={quickSubjectForm.semesterId}
+                  >
+                    <option value="">Select semester</option>
+                    {selectedBranchStructure?.semesters?.map((semester) => (
+                      <option key={semester.id} value={semester.id}>
+                        {semester.semester}
+                      </option>
+                    ))}
+                  </select>
+                </label>
+                <label className="auth-field">
+                  <span>Subject Name</span>
+                  <input
+                    onChange={(event) =>
+                      setQuickSubjectForm((current) => ({ ...current, subjectName: event.target.value }))
+                    }
+                    placeholder="Mathematics-I"
+                    required
+                    type="text"
+                    value={quickSubjectForm.subjectName}
+                  />
+                </label>
+                <label className="auth-field">
+                  <span>Subject ID</span>
+                  <input
+                    onChange={(event) =>
+                      setQuickSubjectForm((current) => ({ ...current, subjectId: event.target.value }))
+                    }
+                    placeholder="mathematics-1"
+                    type="text"
+                    value={quickSubjectForm.subjectId}
+                  />
+                </label>
+              </div>
+              <div className="panel-actions">
+                <button className="open-college-button" disabled={quickCreateBusy} type="submit">
+                  {quickCreateBusy ? "Creating Subject..." : "Create Subject From Overview"}
+                </button>
+              </div>
+            </form>
+          ) : null}
+          {quickCreateMessage ? (
+            <p className={lastCreatedSubject ? "muted" : "auth-error"}>{quickCreateMessage}</p>
+          ) : null}
+          {lastCreatedSubject && selectedProgramStructure && selectedBranchStructure && selectedSemesterStructure ? (
+            <div className="detail-grid">
+              <article className="detail-card">
+                <h3>{lastCreatedSubject.name}</h3>
+                <p>
+                  {selectedProgramStructure.name} | {selectedBranchStructure.name} | {selectedSemesterStructure.semester}
+                </p>
+                <p className="muted">The resource sections below are available automatically for this subject.</p>
+                <div className="notes-focus-wrap">
+                  {defaultSubjectCategories.map((category) => (
+                    <Link
+                      className="notes-focus-chip"
+                      key={category.id}
+                      to={`/dashboard/${selectedProgramStructure.id}/branch/${selectedBranchStructure.id}/${selectedSemesterStructure.id}/${lastCreatedSubject.subjectId}/${category.id}`}
+                    >
+                      {category.label}
+                    </Link>
+                  ))}
+                </div>
+              </article>
+            </div>
+          ) : null}
+        </SectionCard>
+      ) : null}
 
       <SectionCard
         title="Latest Notices"

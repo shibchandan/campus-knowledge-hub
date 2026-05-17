@@ -27,6 +27,7 @@ import {
   normalizeCourseAccessKey,
   requireStudentAssignedCollege
 } from "../../utils/studentCollegeAccess.js";
+import { requirePasswordConfirmation } from "../../utils/passwordConfirmation.js";
 
 const CATEGORY_POLICIES = {
   lecture: {
@@ -405,7 +406,7 @@ export async function uploadResource(req, res, next) {
       }
     });
 
-    const createdResource = await Resource.findById(resource._id).populate("uploadedBy", "fullName email role");
+    const createdResource = await Resource.findById(resource._id).populate("uploadedBy", "fullName role");
     res.status(201).json({ success: true, data: serializeResourceForClient(createdResource, req) });
   } catch (error) {
     if (req.file?.path) {
@@ -473,7 +474,7 @@ export async function getResources(req, res, next) {
 
     const [accessContext, rawItems] = await Promise.all([
       loadCrossCollegeAccessContext(req.user),
-      Resource.find(filters).populate("uploadedBy", "fullName email role").sort({ createdAt: -1 })
+      Resource.find(filters).populate("uploadedBy", "fullName role").sort({ createdAt: -1 })
     ]);
 
     const items = rawItems.filter((resource) => canAccessResource(resource, req.user, accessContext));
@@ -580,6 +581,7 @@ export async function viewResourceFile(req, res, next) {
 
 export async function deleteResource(req, res, next) {
   try {
+    await requirePasswordConfirmation(req);
     const resourceId = readMongoId(req.params.resourceId, { field: "resourceId" });
     const resource = await Resource.findById(resourceId);
 
@@ -676,7 +678,7 @@ export async function updateResource(req, res, next) {
       }
     });
 
-    const updated = await Resource.findById(resource._id).populate("uploadedBy", "fullName email role");
+    const updated = await Resource.findById(resource._id).populate("uploadedBy", "fullName role");
     res.json({ success: true, data: serializeResourceForClient(updated, req) });
   } catch (error) {
     next(error);
@@ -686,7 +688,7 @@ export async function updateResource(req, res, next) {
 export async function unlockProtectedResource(req, res, next) {
   try {
     const resourceId = readMongoId(req.params.resourceId, { field: "resourceId" });
-    const resource = await Resource.findById(resourceId).populate("uploadedBy", "fullName email role");
+    const resource = await Resource.findById(resourceId).populate("uploadedBy", "fullName role");
 
     if (!resource) {
       throw createHttpError("Resource not found.", 404);
@@ -817,7 +819,7 @@ export async function verifyProtectedResourcePayment(req, res, next) {
     });
 
     const [resource, paymentOrder] = await Promise.all([
-      Resource.findById(resourceId).populate("uploadedBy", "fullName email role"),
+      Resource.findById(resourceId).populate("uploadedBy", "fullName role"),
       PaymentOrder.findById(paymentOrderId)
     ]);
 

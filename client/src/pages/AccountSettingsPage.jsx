@@ -2,6 +2,7 @@ import { useEffect, useMemo, useState } from "react";
 import { SectionCard } from "../components/SectionCard";
 import { useAuth } from "../auth/AuthContext";
 import { apiClient, buildAuthorizedApiUrl } from "../lib/apiClient";
+import { requestDeletePassword } from "../lib/deleteWithPassword";
 
 const ACCOUNT_TABS = [
   { id: "general", label: "General" },
@@ -247,12 +248,18 @@ export function AccountSettingsPage() {
   }
 
   async function handleRemoveBlockedUser(blockedUserId) {
+    const currentPassword = requestDeletePassword("this blocked user entry");
+    if (!currentPassword) {
+      return;
+    }
     setBlockedUserSaving(true);
     setError("");
     setSuccess("");
 
     try {
-      const response = await apiClient.delete(`/settings/blocked-users/${blockedUserId}`);
+      const response = await apiClient.delete(`/settings/blocked-users/${blockedUserId}`, {
+        data: { currentPassword }
+      });
       setBlockedUsers(response.data.data?.blockedUsers || []);
       setSuccess(response.data.message || "Blocked user removed successfully.");
     } catch (requestError) {

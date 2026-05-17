@@ -12,6 +12,7 @@ import {
   readMongoId,
   readString
 } from "../../utils/requestValidation.js";
+import { requirePasswordConfirmation } from "../../utils/passwordConfirmation.js";
 
 function readBoolean(value, defaultValue = true) {
   if (value === undefined) {
@@ -153,7 +154,7 @@ export async function listQuizzes(req, res, next) {
     }
 
     const quizzes = await Quiz.find(filters)
-      .populate("createdByUser", "fullName email role")
+      .populate("createdByUser", "fullName role")
       .sort({ createdAt: -1 });
 
     res.json({ success: true, data: quizzes });
@@ -171,7 +172,7 @@ export async function getQuizById(req, res, next) {
       min: 3,
       max: 120
     });
-    const quiz = await Quiz.findById(quizId).populate("createdByUser", "fullName email role");
+    const quiz = await Quiz.findById(quizId).populate("createdByUser", "fullName role");
 
     if (!quiz) {
       throw createHttpError("Quiz arrangement not found.", 404);
@@ -228,7 +229,7 @@ export async function createQuiz(req, res, next) {
       metadata: { collegeName: quiz.collegeName, title: quiz.title }
     });
 
-    const populated = await Quiz.findById(quiz._id).populate("createdByUser", "fullName email role");
+    const populated = await Quiz.findById(quiz._id).populate("createdByUser", "fullName role");
     res.status(201).json({ success: true, data: populated });
   } catch (error) {
     next(error);
@@ -264,7 +265,7 @@ export async function updateQuiz(req, res, next) {
       metadata: { collegeName: quiz.collegeName, title: quiz.title }
     });
 
-    const populated = await Quiz.findById(quiz._id).populate("createdByUser", "fullName email role");
+    const populated = await Quiz.findById(quiz._id).populate("createdByUser", "fullName role");
     res.json({ success: true, data: populated });
   } catch (error) {
     next(error);
@@ -273,6 +274,7 @@ export async function updateQuiz(req, res, next) {
 
 export async function deleteQuiz(req, res, next) {
   try {
+    await requirePasswordConfirmation(req);
     const quizId = readMongoId(req.params.quizId, { field: "quizId" });
     const quiz = await Quiz.findById(quizId);
 

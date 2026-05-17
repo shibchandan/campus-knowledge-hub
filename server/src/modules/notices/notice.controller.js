@@ -8,6 +8,7 @@ import {
   readMongoId,
   readString
 } from "../../utils/requestValidation.js";
+import { requirePasswordConfirmation } from "../../utils/passwordConfirmation.js";
 import { resolveStudentCollegeScope } from "../../utils/studentCollegeAccess.js";
 
 async function assertRepresentativeCollegeAccess(userId, collegeName) {
@@ -149,6 +150,7 @@ export async function updateNotice(req, res, next) {
 
 export async function deleteNotice(req, res, next) {
   try {
+    await requirePasswordConfirmation(req);
     const noticeId = readMongoId(req.params.noticeId, { field: "noticeId" });
     const notice = await Notice.findById(noticeId);
 

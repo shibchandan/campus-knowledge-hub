@@ -48,6 +48,7 @@ export const env = {
   smtpUser: process.env.SMTP_USER || "",
   smtpPass: readConfigValue("SMTP_PASS", ""),
   smtpFrom: process.env.SMTP_FROM || "no-reply@campus-knowledge-hub.local",
+  adminNotificationEmails: readListValue("ADMIN_NOTIFICATION_EMAILS"),
   r2Endpoint: process.env.R2_ENDPOINT || "",
   r2BucketName: process.env.R2_BUCKET_NAME || "",
   r2AccessKeyId: process.env.R2_ACCESS_KEY_ID || "",
