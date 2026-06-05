@@ -2,6 +2,7 @@ import { User } from "./auth.model.js";
 import { createToken } from "../../utils/createToken.js";
 import crypto from "crypto";
 import path from "path";
+import { CollegeCourse } from "../governance/governance.model.js";
 import { sendAdminNotification, sendEmail } from "../../services/email.service.js";
 import { createAuditLog } from "../../services/audit.service.js";
 import { env } from "../../config/env.js";
@@ -92,6 +93,26 @@ function serializeUserForClient(user, req) {
   }
 
   return payload;
+}
+
+async function syncRepresentativeCollegeFromCourses(user) {
+  if (!user || user.role !== "representative" || user.collegeName) {
+    return user;
+  }
+
+  const ownedCourse = await CollegeCourse.findOne({
+    addedByRepresentative: user._id
+  })
+    .sort({ updatedAt: -1, createdAt: -1 })
+    .select("collegeName");
+
+  if (!ownedCourse?.collegeName) {
+    return user;
+  }
+
+  user.collegeName = ownedCourse.collegeName;
+  await user.save();
+  return user;
 }
 
 async function notifyAdminsAboutStudentVerification(user) {
@@ -302,6 +323,8 @@ export async function login(req, res, next) {
       throw error;
     }
 
+    await syncRepresentativeCollegeFromCourses(user);
+
     const token = createToken({ id: user._id, role: user.role, email: user.email });
     setAuthCookie(res, token);
     res.json({ success: true, data: { token, user: serializeUserForClient(user, req) } });
@@ -448,6 +471,8 @@ export async function getCurrentUser(req, res, next) {
       error.statusCode = 404;
       throw error;
     }
+
+    await syncRepresentativeCollegeFromCourses(user);
 
     res.json({ success: true, data: serializeUserForClient(user, req) });
   } catch (error) {

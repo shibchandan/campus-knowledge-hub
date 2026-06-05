@@ -12,6 +12,14 @@ import {
 import { getDynamicBranchById, getDynamicProgramById, groupStructuresIntoPrograms } from "../lib/academicHelpers";
 import { apiClient } from "../lib/apiClient";
 
+function humanizeSlug(value = "") {
+  return String(value)
+    .split("-")
+    .filter(Boolean)
+    .map((part) => part.charAt(0).toUpperCase() + part.slice(1))
+    .join(" ");
+}
+
 export function SubjectResourcePage() {
   const { programId, branchId, semesterId, subjectId } = useParams();
   const { selectedCollege } = useCollege();
@@ -94,11 +102,18 @@ export function SubjectResourcePage() {
     [dynamicSubjects, subjectId]
   );
   const hasDynamicSubjectData = Boolean(dynamicSubjects.length);
-  const subject = dynamicSubject
+  const resolvedSubject = dynamicSubject
     ? { id: dynamicSubject.subjectId, name: dynamicSubject.name }
     : !hasDynamicSubjectData
       ? fallbackSubject
       : null;
+  const programName = program?.name || humanizeSlug(programId);
+  const branchName = branch?.name || humanizeSlug(branchId);
+  const semesterName = semester?.semester || humanizeSlug(semesterId);
+  const subject = resolvedSubject || {
+    id: subjectId,
+    name: humanizeSlug(subjectId)
+  };
 
   if (!structureLoaded) {
     return (
@@ -110,7 +125,7 @@ export function SubjectResourcePage() {
     );
   }
 
-  if (!program || !branch || (!semester && !dynamicSubject) || !subject) {
+  if (!selectedCollege?.name) {
     return <Navigate to="/dashboard" replace />;
   }
 
@@ -118,12 +133,12 @@ export function SubjectResourcePage() {
     <div className="page-stack">
       <SectionCard
         title={subject.name}
-        description={`${program.name} | ${branch.name} | ${(semester?.semester || semesterId)} resource categories`}
+        description={`${programName} | ${branchName} | ${semesterName} resource categories`}
       >
         <div className="detail-header">
           <div>
-            <p className="program-badge">{program.name}</p>
-            <p className="muted">{branch.name}</p>
+            <p className="program-badge">{programName}</p>
+            <p className="muted">{branchName}</p>
             <h3>{subject.name}</h3>
             <p className="muted">
               Open any category to organize study material for this subject.

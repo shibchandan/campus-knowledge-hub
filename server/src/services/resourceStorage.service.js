@@ -5,7 +5,7 @@ import { DeleteObjectCommand, PutObjectCommand, S3Client } from "@aws-sdk/client
 import { env } from "../config/env.js";
 import { uploadDirectory } from "../middleware/uploadMiddleware.js";
 
-function cloudflareR2Configured() {
+export function cloudflareR2Configured() {
   return Boolean(
     env.r2Endpoint &&
       env.r2BucketName &&

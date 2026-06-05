@@ -14,6 +14,7 @@ import {
 } from "../../utils/requestValidation.js";
 import { requirePasswordConfirmation } from "../../utils/passwordConfirmation.js";
 import {
+  collegeNameMatches,
   normalizeCourseAccessKey,
   resolveStudentCollegeScope
 } from "../../utils/studentCollegeAccess.js";
@@ -22,24 +23,44 @@ function normalizeProgramCourse(programId = "", programName = "") {
   return normalizeCourseAccessKey(programName || programId);
 }
 
+function buildAcademicScopeFilters(req, queryKeys, mismatchMessage) {
+  const filters = {};
+  const collegeScope = resolveStudentCollegeScope(req, req.query.collegeName, {
+    mismatchMessage
+  });
+
+  if (collegeScope.collegeNameNormalized) {
+    filters.collegeNameNormalized = collegeScope.collegeNameNormalized;
+  }
+
+  queryKeys.forEach((key) => {
+    if (req.query[key]) {
+      filters[key] = readString(req.query[key], { field: key, min: 2, max: 60 });
+    }
+  });
+
+  return filters;
+}
+
 async function assertRepresentativeCollegeAccess(user, collegeNameNormalized, programId = "", programName = "") {
   if (user.role !== "representative") {
     return;
   }
 
-  const courseNameNormalized = normalizeProgramCourse(programId, programName);
-  const approvedCourses = await CollegeCourse.find({
-    collegeNameNormalized,
-    addedByRepresentative: user.id
-  }).select("courseName");
+  if (collegeNameMatches(user.collegeName, collegeNameNormalized)) {
+    return;
+  }
 
-  const hasMatch = approvedCourses.some(
-    (course) => normalizeCourseAccessKey(course.courseName) === courseNameNormalized
-  );
+  const courseNameNormalized = normalizeProgramCourse(programId, programName);
+  const hasMatch = await CollegeCourse.exists({
+    collegeNameNormalized,
+    addedByRepresentative: user.id,
+    courseNameNormalized
+  });
 
   if (!hasMatch) {
     throw createHttpError(
-      "Representative can manage academic structure only for approved college courses assigned to them.",
+      "Representative can manage academic structure only for their directly assigned college or approved college courses assigned to them.",
       403
     );
   }
@@ -47,31 +68,16 @@ async function assertRepresentativeCollegeAccess(user, collegeNameNormalized, pr
 
 export async function listAcademicSubjects(req, res, next) {
   try {
-    const filters = {};
-    const collegeScope = resolveStudentCollegeScope(req, req.query.collegeName, {
-      mismatchMessage: "Students can view subjects only for their assigned college."
-    });
-    if (collegeScope.collegeNameNormalized) {
-      filters.collegeNameNormalized = collegeScope.collegeNameNormalized;
-    }
-    if (req.query.programId) {
-      filters.programId = readString(req.query.programId, { field: "programId", min: 2, max: 60 });
-    }
-    if (req.query.branchId) {
-      filters.branchId = readString(req.query.branchId, { field: "branchId", min: 2, max: 60 });
-    }
-    if (req.query.semesterId) {
-      filters.semesterId = readString(req.query.semesterId, {
-        field: "semesterId",
-        min: 2,
-        max: 60
-      });
-    }
+    const filters = buildAcademicScopeFilters(
+      req,
+      ["programId", "branchId", "semesterId"],
+      "Students can view subjects only for their assigned college."
+    );
 
     const subjects = await AcademicSubject.find(filters).sort({
       semesterId: 1,
       createdAt: 1
-    });
+    }).lean();
 
     res.json({ success: true, data: subjects });
   } catch (error) {
@@ -81,25 +87,17 @@ export async function listAcademicSubjects(req, res, next) {
 
 export async function listAcademicStructures(req, res, next) {
   try {
-    const filters = {};
-    const collegeScope = resolveStudentCollegeScope(req, req.query.collegeName, {
-      mismatchMessage: "Students can view academic structure only for their assigned college."
-    });
-    if (collegeScope.collegeNameNormalized) {
-      filters.collegeNameNormalized = collegeScope.collegeNameNormalized;
-    }
-    if (req.query.programId) {
-      filters.programId = readString(req.query.programId, { field: "programId", min: 2, max: 60 });
-    }
-    if (req.query.branchId) {
-      filters.branchId = readString(req.query.branchId, { field: "branchId", min: 2, max: 60 });
-    }
+    const filters = buildAcademicScopeFilters(
+      req,
+      ["programId", "branchId"],
+      "Students can view academic structure only for their assigned college."
+    );
 
     const structures = await AcademicStructure.find(filters).sort({
       programName: 1,
       branchName: 1,
       semesterOrder: 1
-    });
+    }).lean();
 
     res.json({ success: true, data: structures });
   } catch (error) {
@@ -201,14 +199,15 @@ export async function deleteAcademicStructure(req, res, next) {
       structure.programName
     );
 
-    await AcademicSubject.deleteMany({
-      collegeNameNormalized: structure.collegeNameNormalized,
-      programId: structure.programId,
-      branchId: structure.branchId,
-      semesterId: structure.semesterId
-    });
-
-    await structure.deleteOne();
+    await Promise.all([
+      AcademicSubject.deleteMany({
+        collegeNameNormalized: structure.collegeNameNormalized,
+        programId: structure.programId,
+        branchId: structure.branchId,
+        semesterId: structure.semesterId
+      }),
+      structure.deleteOne()
+    ]);
     await createAuditLog({
       req,
       action: `${req.user.role}.delete_academic_structure`,

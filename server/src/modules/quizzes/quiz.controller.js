@@ -2,6 +2,7 @@ import { Quiz } from "./quiz.model.js";
 import { CollegeCourse } from "../governance/governance.model.js";
 import { createAuditLog } from "../../services/audit.service.js";
 import {
+  collegeNameMatches,
   normalizeCourseAccessKey,
   requireStudentAssignedCollege,
   resolveStudentCollegeScope
@@ -93,6 +94,10 @@ async function assertRepresentativeCollegeAccess(user, collegeNameNormalized, pr
     return;
   }
 
+  if (collegeNameMatches(user.collegeName, collegeNameNormalized)) {
+    return;
+  }
+
   const approvedCourses = await CollegeCourse.find({
     collegeNameNormalized,
     addedByRepresentative: user.id
@@ -105,7 +110,7 @@ async function assertRepresentativeCollegeAccess(user, collegeNameNormalized, pr
 
   if (!hasMatch) {
     throw createHttpError(
-      "Representative can manage quizzes only for approved college courses assigned to them.",
+      "Representative can manage quizzes only for their directly assigned college or approved college courses assigned to them.",
       403
     );
   }

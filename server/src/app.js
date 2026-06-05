@@ -1,6 +1,7 @@
 import cors from "cors";
 import express from "express";
 import morgan from "morgan";
+import { getDeploymentReadiness } from "./config/deployment.js";
 import { env } from "./config/env.js";
 import { abuseProtection } from "./middleware/abuseProtection.js";
 import { errorHandler } from "./middleware/errorHandler.js";
@@ -20,6 +21,10 @@ export function createApp() {
       credentials: true
     })
   );
+  app.use((req, res, next) => {
+    res.set("X-Instance-Id", env.instanceId);
+    next();
+  });
   app.use(securityHeaders);
   app.use(morgan("combined", { stream: requestLogStream }));
   app.use(express.json({ limit: "10mb" }));
@@ -39,7 +44,23 @@ export function createApp() {
   });
 
   app.get("/health", (_req, res) => {
-    res.json({ success: true, message: "Campus Knowledge Hub API is healthy" });
+    res.json({
+      success: true,
+      message: "Campus Knowledge Hub API is healthy",
+      instanceId: env.instanceId
+    });
+  });
+
+  app.get("/ready", (_req, res) => {
+    const readiness = getDeploymentReadiness();
+
+    res.status(readiness.ok ? 200 : 503).json({
+      success: readiness.ok,
+      message: readiness.ok
+        ? "Campus Knowledge Hub API is ready"
+        : "Campus Knowledge Hub API is not ready",
+      data: readiness
+    });
   });
 
   app.use("/api", apiRouter);

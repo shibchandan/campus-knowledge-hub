@@ -34,8 +34,16 @@ collegeCourseSchema.index(
   { name: "idx_college_course_by_representative" }
 );
 collegeCourseSchema.index(
+  { addedByRepresentative: 1, updatedAt: -1, createdAt: -1 },
+  { name: "idx_college_course_by_representative_recent" }
+);
+collegeCourseSchema.index(
   { collegeNameNormalized: 1, addedByRepresentative: 1 },
   { name: "idx_college_course_by_college_rep" }
+);
+collegeCourseSchema.index(
+  { collegeNameNormalized: 1, createdAt: -1 },
+  { name: "idx_college_course_by_college_created" }
 );
 
 collegeCourseSchema.pre("validate", function normalizeKeys(next) {

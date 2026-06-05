@@ -65,6 +65,10 @@ export function AccountSettingsPage() {
   const [success, setSuccess] = useState("");
 
   useEffect(() => {
+    refreshCurrentUser().catch(() => {});
+  }, [refreshCurrentUser]);
+
+  useEffect(() => {
     setProfileForm({
       fullName: user?.fullName || "",
       avatarUrl: user?.avatarUrl || ""

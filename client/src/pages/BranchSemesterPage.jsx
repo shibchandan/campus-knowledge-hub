@@ -211,8 +211,8 @@ export function BranchSemesterPage() {
         title="Semester Structure"
         description={
           dynamicBranch
-            ? "Admin-managed semester and subject structure is active for this college."
-            : "Fallback semester-wise subject structure is shown for the selected college."
+            ? "Admin-managed semester and subject structure is active for this college. Click any subject to open its resource workspace."
+            : "Fallback semester-wise subject structure is shown for the selected college. Click any subject to open its resource workspace."
         }
       >
         <div className="semester-grid">

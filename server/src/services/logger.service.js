@@ -1,5 +1,6 @@
 import fs from "fs";
 import path from "path";
+import { env } from "../config/env.js";
 
 const logsDirectory = path.resolve(process.cwd(), "logs");
 
@@ -13,13 +14,14 @@ function writeLine(filename, line) {
 
 export const requestLogStream = {
   write(message) {
-    writeLine("requests.log", `${new Date().toISOString()} ${message.trimEnd()}`);
+    writeLine("requests.log", `${new Date().toISOString()} [${env.instanceId}] ${message.trimEnd()}`);
   }
 };
 
 export function logAppEvent(level, message, metadata = {}) {
   const payload = {
     timestamp: new Date().toISOString(),
+    instanceId: env.instanceId,
     level,
     message,
     metadata

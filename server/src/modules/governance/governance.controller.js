@@ -1,6 +1,7 @@
 import { CollegeCourse, CollegeProfile, CollegeRequest } from "./governance.model.js";
 import { AcademicSubject } from "../academic/academic.model.js";
 import { AcademicStructure } from "../academic/academicStructure.model.js";
+import { User } from "../auth/auth.model.js";
 import { Notice } from "../notices/notice.model.js";
 import { Quiz } from "../quizzes/quiz.model.js";
 import { Resource } from "../resources/resource.model.js";
@@ -23,6 +24,90 @@ import {
   normalizeCourseAccessKey,
   resolveStudentCollegeScope
 } from "../../utils/studentCollegeAccess.js";
+
+function escapeRegex(value = "") {
+  return String(value).replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+}
+
+function sanitizeGovernancePerson(person, exposeContactDetails) {
+  if (!person) {
+    return null;
+  }
+
+  return exposeContactDetails
+    ? person
+    : {
+        _id: person._id,
+        fullName: person.fullName || "",
+        role: person.role,
+        status: person.status
+      };
+}
+
+async function findLatestRepresentativeCourse(representativeId, extraFilters = {}, session = null) {
+  return withSession(
+    CollegeCourse.findOne({
+      addedByRepresentative: representativeId,
+      ...extraFilters
+    })
+      .sort({ updatedAt: -1, createdAt: -1 })
+      .select("collegeName collegeNameNormalized"),
+    session
+  );
+}
+
+async function syncRepresentativeCollegeName(representativeId, preferredCollegeName = "", session = null) {
+  const representative = await withSession(User.findById(representativeId).select("role collegeName"), session);
+
+  if (!representative || representative.role !== "representative") {
+    return;
+  }
+
+  const preferredCollegeNormalized = preferredCollegeName
+    ? normalizeCollegeName(preferredCollegeName)
+    : "";
+  const currentCollegeNormalized = representative.collegeName
+    ? normalizeCollegeName(representative.collegeName)
+    : "";
+
+  let nextCollegeName = "";
+
+  if (preferredCollegeNormalized) {
+    const matchingPreferredCourse = await findLatestRepresentativeCourse(
+      representativeId,
+      { collegeNameNormalized: preferredCollegeNormalized },
+      session
+    );
+
+    if (matchingPreferredCourse?.collegeName) {
+      nextCollegeName = matchingPreferredCourse.collegeName;
+    }
+  }
+
+  if (!nextCollegeName && currentCollegeNormalized) {
+    const currentCollegeStillAssigned = await findLatestRepresentativeCourse(
+      representativeId,
+      { collegeNameNormalized: currentCollegeNormalized },
+      session
+    );
+
+    if (currentCollegeStillAssigned?.collegeName) {
+      nextCollegeName = currentCollegeStillAssigned.collegeName;
+    }
+  }
+
+  if (!nextCollegeName) {
+    const latestCourse = await findLatestRepresentativeCourse(representativeId, {}, session);
+    nextCollegeName = latestCourse?.collegeName || "";
+  }
+
+  if ((representative.collegeName || "") === nextCollegeName) {
+    return;
+  }
+
+  representative.collegeName = nextCollegeName;
+  await representative.save(session ? { session } : undefined);
+}
 
 export async function createCollegeRequest(req, res, next) {
   try {
@@ -84,52 +169,56 @@ export async function getAvailableRepresentativeColleges(req, res, next) {
       min: 1,
       max: 120
     });
-    const approvedCourses = await CollegeCourse.find()
-      .populate("addedByRepresentative", "role status fullName email")
-      .sort({ collegeName: 1, courseName: 1 })
-      .lean();
-
-    const groupedByCollege = new Map();
-
-    approvedCourses.forEach((course) => {
-      const key = course.collegeNameNormalized;
-      const existing = groupedByCollege.get(key) || {
-        collegeName: course.collegeName,
-        collegeNameNormalized: course.collegeNameNormalized,
-        courses: []
-      };
-
-      const representative = course.addedByRepresentative;
-      const isActiveRepresentative =
-        representative &&
-        representative.role === "representative" &&
-        representative.status === "active";
-      existing.courses.push({
-        courseName: course.courseName,
-        semesterCount: course.semesterCount,
-        hasActiveRepresentative: Boolean(isActiveRepresentative),
-        representativeName: representative?.fullName || "",
-        representativeStatus: representative?.status || "missing"
-      });
-
-      groupedByCollege.set(key, existing);
-    });
-
     const normalizedSearch = search ? normalizeCollegeName(search) : "";
+    const courseMatch = normalizedSearch
+      ? {
+          collegeNameNormalized: {
+            $regex: escapeRegex(normalizedSearch),
+            $options: "i"
+          }
+        }
+      : {};
 
-    const requestableColleges = Array.from(groupedByCollege.values())
-      .filter((item) =>
-        normalizedSearch
-          ? item.collegeNameNormalized.startsWith(normalizedSearch) ||
-            item.collegeNameNormalized.includes(normalizedSearch)
-          : true
-      )
-      .map((item) => ({
-        collegeName: item.collegeName,
-        collegeNameNormalized: item.collegeNameNormalized,
-        courses: item.courses.sort((left, right) => left.courseName.localeCompare(right.courseName))
-      }))
-      .sort((left, right) => left.collegeName.localeCompare(right.collegeName));
+    const requestableColleges = await CollegeCourse.aggregate([
+      { $match: courseMatch },
+      {
+        $lookup: {
+          from: User.collection.name,
+          localField: "addedByRepresentative",
+          foreignField: "_id",
+          as: "representative"
+        }
+      },
+      {
+        $unwind: {
+          path: "$representative",
+          preserveNullAndEmptyArrays: true
+        }
+      },
+      { $sort: { collegeName: 1, courseName: 1 } },
+      {
+        $group: {
+          _id: "$collegeNameNormalized",
+          collegeName: { $first: "$collegeName" },
+          collegeNameNormalized: { $first: "$collegeNameNormalized" },
+          courses: {
+            $push: {
+              courseName: "$courseName",
+              semesterCount: "$semesterCount",
+              hasActiveRepresentative: {
+                $and: [
+                  { $eq: ["$representative.role", "representative"] },
+                  { $eq: ["$representative.status", "active"] }
+                ]
+              },
+              representativeName: { $ifNull: ["$representative.fullName", ""] },
+              representativeStatus: { $ifNull: ["$representative.status", "missing"] }
+            }
+          }
+        }
+      },
+      { $sort: { collegeName: 1 } }
+    ]);
 
     res.json({ success: true, data: requestableColleges });
   } catch (error) {
@@ -141,7 +230,7 @@ export async function getRepresentativeRequests(req, res, next) {
   try {
     const requests = await CollegeRequest.find({ representative: req.user.id }).sort({
       createdAt: -1
-    });
+    }).lean();
     res.json({ success: true, data: requests });
   } catch (error) {
     next(error);
@@ -152,7 +241,8 @@ export async function getPendingRequestsForAdmin(_req, res, next) {
   try {
     const requests = await CollegeRequest.find({ status: "pending" })
       .populate("representative", "fullName email")
-      .sort({ createdAt: -1 });
+      .sort({ createdAt: -1 })
+      .lean();
 
     res.json({ success: true, data: requests });
   } catch (error) {
@@ -215,6 +305,7 @@ export async function decideCollegeRequest(req, res, next) {
       request.decisionNote = decisionNote;
       request.adminDecisionBy = req.user.id;
       await request.save(session ? { session } : undefined);
+      await syncRepresentativeCollegeName(request.representative, request.collegeName, session);
       return { request, approved };
     });
 
@@ -254,49 +345,81 @@ export async function getApprovedCollegeCourses(req, res, next) {
       courseFilters.collegeNameNormalized = collegeScope.collegeNameNormalized;
     }
 
-    const courses = await CollegeCourse.find(courseFilters)
-      .populate("addedByRepresentative", "fullName email role status")
-      .populate("approvedByAdmin", "fullName email role status")
-      .sort({ createdAt: -1 })
-      .lean();
-
-    const normalizedNames = [...new Set(courses.map((course) => course.collegeNameNormalized))];
-    const profiles = await CollegeProfile.find({
-      collegeNameNormalized: { $in: normalizedNames }
-    })
-      .populate("enteredByRepresentative", "fullName email")
-      .lean();
-
-    const profileByCollege = new Map(
-      profiles.map((profile) => [profile.collegeNameNormalized, profile])
-    );
-
     const exposeContactDetails = req.user?.role === "admin";
-    const sanitizePerson = (person) => {
-      if (!person) {
-        return null;
+    const courses = await CollegeCourse.aggregate([
+      { $match: courseFilters },
+      { $sort: { createdAt: -1 } },
+      {
+        $lookup: {
+          from: User.collection.name,
+          localField: "addedByRepresentative",
+          foreignField: "_id",
+          as: "addedByRepresentative"
+        }
+      },
+      {
+        $lookup: {
+          from: User.collection.name,
+          localField: "approvedByAdmin",
+          foreignField: "_id",
+          as: "approvedByAdmin"
+        }
+      },
+      {
+        $lookup: {
+          from: CollegeProfile.collection.name,
+          localField: "collegeNameNormalized",
+          foreignField: "collegeNameNormalized",
+          as: "profile"
+        }
+      },
+      {
+        $unwind: {
+          path: "$addedByRepresentative",
+          preserveNullAndEmptyArrays: true
+        }
+      },
+      {
+        $unwind: {
+          path: "$approvedByAdmin",
+          preserveNullAndEmptyArrays: true
+        }
+      },
+      {
+        $unwind: {
+          path: "$profile",
+          preserveNullAndEmptyArrays: true
+        }
+      },
+      {
+        $lookup: {
+          from: User.collection.name,
+          localField: "profile.enteredByRepresentative",
+          foreignField: "_id",
+          as: "profileRepresentative"
+        }
+      },
+      {
+        $unwind: {
+          path: "$profileRepresentative",
+          preserveNullAndEmptyArrays: true
+        }
       }
-
-      return exposeContactDetails
-        ? person
-        : {
-            _id: person._id,
-            fullName: person.fullName || "",
-            role: person.role,
-            status: person.status
-          };
-    };
+    ]);
 
     const data = courses.map((course) => {
-      const profile = profileByCollege.get(course.collegeNameNormalized) || null;
+      const { profile, profileRepresentative, ...courseData } = course;
       return {
-        ...course,
-        addedByRepresentative: sanitizePerson(course.addedByRepresentative),
-        approvedByAdmin: sanitizePerson(course.approvedByAdmin),
+        ...courseData,
+        addedByRepresentative: sanitizeGovernancePerson(courseData.addedByRepresentative, exposeContactDetails),
+        approvedByAdmin: sanitizeGovernancePerson(courseData.approvedByAdmin, exposeContactDetails),
         profile: profile
           ? {
               ...profile,
-              enteredByRepresentative: sanitizePerson(profile.enteredByRepresentative)
+              enteredByRepresentative: sanitizeGovernancePerson(
+                profileRepresentative,
+                exposeContactDetails
+              )
             }
           : null
       };
@@ -323,27 +446,38 @@ export async function createApprovedCollegeCourse(req, res, next) {
       throw createHttpError("This college and course is already approved on the platform.", 409);
     }
 
-    const course = await CollegeCourse.create({
-      collegeName: payload.collegeName,
-      courseName: payload.courseName,
-      semesterCount: payload.semesterCount,
-      addedByRepresentative: req.user.id,
-      approvedByAdmin: req.user.role === "admin" ? req.user.id : null
-    });
+    const result = await runWithOptionalTransaction(async (session) => {
+      const [course] = await CollegeCourse.create(
+        [
+          {
+            collegeName: payload.collegeName,
+            courseName: payload.courseName,
+            semesterCount: payload.semesterCount,
+            addedByRepresentative: req.user.id,
+            approvedByAdmin: req.user.role === "admin" ? req.user.id : null
+          }
+        ],
+        session ? { session } : undefined
+      );
 
-    const populatedCourse = await CollegeCourse.findById(course._id)
-      .populate("addedByRepresentative", "fullName email")
-      .populate("approvedByAdmin", "fullName email");
+      await syncRepresentativeCollegeName(req.user.id, payload.collegeName, session);
+
+      const populatedCourse = await withSession(CollegeCourse.findById(course._id), session)
+        .populate("addedByRepresentative", "fullName email")
+        .populate("approvedByAdmin", "fullName email");
+
+      return { course, populatedCourse };
+    });
 
     await createAuditLog({
       req,
       action: req.user.role === "admin" ? "admin.create_college_course" : "representative.create_college_course",
       entityType: "college_course",
-      entityId: course._id,
-      metadata: { collegeName: course.collegeName, courseName: course.courseName }
+      entityId: result.course._id,
+      metadata: { collegeName: result.course.collegeName, courseName: result.course.courseName }
     });
 
-    res.status(201).json({ success: true, data: populatedCourse });
+    res.status(201).json({ success: true, data: result.populatedCourse });
   } catch (error) {
     next(error);
   }
@@ -351,28 +485,68 @@ export async function createApprovedCollegeCourse(req, res, next) {
 
 export async function getRepresentativeColleges(req, res, next) {
   try {
-    const courses = await CollegeCourse.find({ addedByRepresentative: req.user.id })
-      .populate("approvedByAdmin", "fullName email")
-      .sort({ createdAt: -1 })
-      .lean();
+    const data = await CollegeCourse.aggregate([
+      { $match: { addedByRepresentative: readMongoId(req.user.id, { field: "userId" }) } },
+      { $sort: { createdAt: -1 } },
+      {
+        $lookup: {
+          from: User.collection.name,
+          localField: "approvedByAdmin",
+          foreignField: "_id",
+          as: "approvedByAdmin"
+        }
+      },
+      {
+        $lookup: {
+          from: CollegeProfile.collection.name,
+          localField: "collegeNameNormalized",
+          foreignField: "collegeNameNormalized",
+          as: "profile"
+        }
+      },
+      {
+        $unwind: {
+          path: "$approvedByAdmin",
+          preserveNullAndEmptyArrays: true
+        }
+      },
+      {
+        $unwind: {
+          path: "$profile",
+          preserveNullAndEmptyArrays: true
+        }
+      },
+      {
+        $lookup: {
+          from: User.collection.name,
+          localField: "profile.enteredByRepresentative",
+          foreignField: "_id",
+          as: "profileRepresentative"
+        }
+      },
+      {
+        $unwind: {
+          path: "$profileRepresentative",
+          preserveNullAndEmptyArrays: true
+        }
+      }
+    ]);
 
-    const normalizedNames = [...new Set(courses.map((course) => course.collegeNameNormalized))];
-    const profiles = await CollegeProfile.find({
-      collegeNameNormalized: { $in: normalizedNames }
-    })
-      .populate("enteredByRepresentative", "fullName email")
-      .lean();
+    const normalizedData = data.map((course) => {
+      const { profile, profileRepresentative, ...courseData } = course;
 
-    const profileByCollege = new Map(
-      profiles.map((profile) => [profile.collegeNameNormalized, profile])
-    );
+      return {
+        ...courseData,
+        profile: profile
+        ? {
+            ...profile,
+            enteredByRepresentative: profileRepresentative || null
+          }
+        : null
+      };
+    });
 
-    const data = courses.map((course) => ({
-      ...course,
-      profile: profileByCollege.get(course.collegeNameNormalized) || null
-    }));
-
-    res.json({ success: true, data });
+    res.json({ success: true, data: normalizedData });
   } catch (error) {
     next(error);
   }
@@ -478,6 +652,8 @@ export async function updateApprovedCollegeCourse(req, res, next) {
         }
       }
 
+      await syncRepresentativeCollegeName(course.addedByRepresentative, course.collegeName, session);
+
       const updatedCourse = await withSession(CollegeCourse.findById(course._id), session)
       .populate("addedByRepresentative", "fullName email")
       .populate("approvedByAdmin", "fullName email");
@@ -537,6 +713,8 @@ export async function deleteApprovedCollegeCourse(req, res, next) {
         );
         profileDeleted = Boolean(deletedProfile);
       }
+
+      await syncRepresentativeCollegeName(course.addedByRepresentative, "", session);
 
       return { course, profileDeleted };
     });
@@ -624,7 +802,12 @@ export async function deleteRepresentativeCollege(req, res, next) {
         resourceFilters.programId = { $in: programKeys };
       }
 
-      const resources = await withSession(Resource.find(resourceFilters), session);
+      const resources = await withSession(
+        Resource.find(resourceFilters).select(
+          "_id storageProvider fileStoredName cloudObjectKey"
+        ),
+        session
+      );
 
       await Promise.all(
         resources.map((resource) => removeStoredFile(resource))
@@ -686,6 +869,10 @@ export async function deleteRepresentativeCollege(req, res, next) {
         }),
         session
       );
+
+      if (req.user.role === "representative") {
+        await syncRepresentativeCollegeName(req.user.id, "", session);
+      }
 
       return {
         collegeName: referenceCourse.collegeName,
@@ -825,7 +1012,7 @@ export async function getCollegeProfile(req, res, next) {
     });
     const profile = await CollegeProfile.findOne({
       collegeNameNormalized: collegeScope.collegeNameNormalized
-    }).populate("enteredByRepresentative", "fullName email");
+    }).populate("enteredByRepresentative", "fullName email").lean();
 
     if (!profile) {
       res.json({ success: true, data: null });

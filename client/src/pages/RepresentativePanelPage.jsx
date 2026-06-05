@@ -1,5 +1,6 @@
 import { useEffect, useMemo, useState } from "react";
 import { Link } from "react-router-dom";
+import { useAuth } from "../auth/AuthContext";
 import { SectionCard } from "../components/SectionCard";
 import { useCollege } from "../college/CollegeContext";
 import { apiClient } from "../lib/apiClient";
@@ -164,6 +165,7 @@ function mapSubjectToForm(subject) {
 }
 
 export function RepresentativePanelPage() {
+  const { refreshCurrentUser } = useAuth();
   const { colleges: platformColleges } = useCollege();
   const { showError, showSuccess } = useToast();
   const [form, setForm] = useState(initialForm);
@@ -362,7 +364,7 @@ export function RepresentativePanelPage() {
       }
 
       resetCourseForm();
-      await loadRepresentativeData();
+      await Promise.all([loadRepresentativeData(), refreshCurrentUser()]);
     } catch (requestError) {
       const message = requestError.response?.data?.message || "Failed to save college course details.";
       setError(message);
@@ -447,7 +449,7 @@ export function RepresentativePanelPage() {
       }
       setSuccess(response.data.message || "College course deleted successfully.");
       showSuccess(response.data.message || "College course deleted successfully.");
-      await loadRepresentativeData();
+      await Promise.all([loadRepresentativeData(), refreshCurrentUser()]);
     } catch (requestError) {
       const message = requestError.response?.data?.message || "Failed to delete college course.";
       setError(message);
@@ -481,7 +483,7 @@ export function RepresentativePanelPage() {
       }
       setSuccess(response.data.message || "College deleted successfully.");
       showSuccess(response.data.message || "College deleted successfully.");
-      await loadRepresentativeData();
+      await Promise.all([loadRepresentativeData(), refreshCurrentUser()]);
     } catch (requestError) {
       const message = requestError.response?.data?.message || "Failed to delete college.";
       setError(message);

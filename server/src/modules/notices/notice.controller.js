@@ -9,18 +9,23 @@ import {
   readString
 } from "../../utils/requestValidation.js";
 import { requirePasswordConfirmation } from "../../utils/passwordConfirmation.js";
-import { resolveStudentCollegeScope } from "../../utils/studentCollegeAccess.js";
+import { collegeNameMatches, resolveStudentCollegeScope } from "../../utils/studentCollegeAccess.js";
 
-async function assertRepresentativeCollegeAccess(userId, collegeName) {
+async function assertRepresentativeCollegeAccess(user, collegeName) {
   const normalizedCollege = normalizeCollegeName(collegeName);
+
+  if (collegeNameMatches(user.collegeName, normalizedCollege)) {
+    return normalizedCollege;
+  }
+
   const course = await CollegeCourse.findOne({
     collegeNameNormalized: normalizedCollege,
-    addedByRepresentative: userId
+    addedByRepresentative: user.id
   });
 
   if (!course) {
     throw createHttpError(
-      "Representative can manage notices only for approved colleges assigned to them.",
+      "Representative can manage notices only for their directly assigned college or approved colleges assigned to them.",
       403
     );
   }
@@ -45,11 +50,15 @@ export async function listNotices(req, res, next) {
       const ownedCourses = await CollegeCourse.find({ addedByRepresentative: req.user.id }).select(
         "collegeNameNormalized"
       );
-      const ownedCollegeNames = [...new Set(ownedCourses.map((course) => course.collegeNameNormalized))];
+      const ownedCollegeNames = new Set(ownedCourses.map((course) => course.collegeNameNormalized));
+      const directCollegeName = normalizeCollegeName(req.user.collegeName || "");
+      if (directCollegeName) {
+        ownedCollegeNames.add(directCollegeName);
+      }
 
       if (collegeName) {
         const normalizedCollege = normalizeCollegeName(collegeName);
-        if (!ownedCollegeNames.includes(normalizedCollege)) {
+        if (!ownedCollegeNames.has(normalizedCollege)) {
           throw createHttpError(
             "Representative can view unpublished notices only for their assigned colleges.",
             403
@@ -57,7 +66,7 @@ export async function listNotices(req, res, next) {
         }
         filters.collegeNameNormalized = normalizedCollege;
       } else {
-        filters.collegeNameNormalized = { $in: ownedCollegeNames };
+        filters.collegeNameNormalized = { $in: [...ownedCollegeNames] };
       }
     }
 
@@ -87,7 +96,7 @@ export async function createNotice(req, res, next) {
   try {
     const payload = validateNoticePayload(req.body);
     if (req.user.role === "representative") {
-      await assertRepresentativeCollegeAccess(req.user.id, payload.collegeName);
+      await assertRepresentativeCollegeAccess(req.user, payload.collegeName);
     }
     const notice = await Notice.create({
       ...payload,
@@ -119,16 +128,18 @@ export async function updateNotice(req, res, next) {
     }
 
     if (req.user.role === "representative") {
-      const currentCollegeAllowed = await CollegeCourse.findOne({
-        collegeNameNormalized: notice.collegeNameNormalized,
-        addedByRepresentative: req.user.id
-      });
+      if (!collegeNameMatches(req.user.collegeName, notice.collegeNameNormalized)) {
+        const currentCollegeAllowed = await CollegeCourse.findOne({
+          collegeNameNormalized: notice.collegeNameNormalized,
+          addedByRepresentative: req.user.id
+        });
 
-      if (!currentCollegeAllowed) {
-        throw createHttpError("You are not allowed to edit this notice.", 403);
+        if (!currentCollegeAllowed) {
+          throw createHttpError("You are not allowed to edit this notice.", 403);
+        }
       }
 
-      await assertRepresentativeCollegeAccess(req.user.id, payload.collegeName);
+      await assertRepresentativeCollegeAccess(req.user, payload.collegeName);
     }
 
     Object.assign(notice, payload);
@@ -159,13 +170,15 @@ export async function deleteNotice(req, res, next) {
     }
 
     if (req.user.role === "representative") {
-      const allowedCourse = await CollegeCourse.findOne({
-        collegeNameNormalized: notice.collegeNameNormalized,
-        addedByRepresentative: req.user.id
-      });
+      if (!collegeNameMatches(req.user.collegeName, notice.collegeNameNormalized)) {
+        const allowedCourse = await CollegeCourse.findOne({
+          collegeNameNormalized: notice.collegeNameNormalized,
+          addedByRepresentative: req.user.id
+        });
 
-      if (!allowedCourse) {
-        throw createHttpError("You are not allowed to delete this notice.", 403);
+        if (!allowedCourse) {
+          throw createHttpError("You are not allowed to delete this notice.", 403);
+        }
       }
     }
 

@@ -169,6 +169,10 @@ async function assertRepresentativeResourceAccess(user, collegeName, programId) 
     return;
   }
 
+  if (collegeNameMatches(user.collegeName, collegeName)) {
+    return;
+  }
+
   const targetCollege = String(collegeName || "").trim().toLowerCase().replace(/\s+/g, " ");
   const targetProgram = normalizeCourseAccessKey(programId);
   const approvedCourses = await CollegeCourse.find({
@@ -182,7 +186,7 @@ async function assertRepresentativeResourceAccess(user, collegeName, programId) 
 
   if (!hasMatch) {
     throw createHttpError(
-      "Representative can manage shared resources only for approved college courses assigned to them.",
+      "Representative can manage shared resources only for their directly assigned college or approved college courses assigned to them.",
       403
     );
   }
@@ -258,6 +262,65 @@ function canAccessResource(resource, user, accessContext = { protectedGrantIds: 
   }
 
   return false;
+}
+
+function combineMongoFilters(...filters) {
+  const activeFilters = filters.filter((filter) => filter && Object.keys(filter).length > 0);
+
+  if (!activeFilters.length) {
+    return {};
+  }
+
+  if (activeFilters.length === 1) {
+    return activeFilters[0];
+  }
+
+  return { $and: activeFilters };
+}
+
+export function buildAccessibleResourceFilter(
+  user,
+  accessContext = { protectedGrantIds: new Set(), hasBasicSubscription: false }
+) {
+  if (user?.role === "admin") {
+    return {};
+  }
+
+  if (!user?.id) {
+    return { visibility: "public" };
+  }
+
+  const filters = [{ uploadedBy: user.id }, { visibility: "public" }];
+
+  if (user.collegeName) {
+    const sameCollegeFilter = { collegeName: buildCollegeNameRegex(user.collegeName) };
+
+    filters.push(
+      { $and: [{ visibility: "private" }, sameCollegeFilter] },
+      { $and: [{ visibility: "protected" }, sameCollegeFilter] }
+    );
+  }
+
+  const protectedAccessFilters = [];
+
+  if (accessContext.protectedGrantIds?.size) {
+    protectedAccessFilters.push({
+      _id: { $in: Array.from(accessContext.protectedGrantIds) }
+    });
+  }
+
+  if (accessContext.hasBasicSubscription) {
+    protectedAccessFilters.push({ allowBasicSubscription: true });
+  }
+
+  if (protectedAccessFilters.length) {
+    filters.push({
+      visibility: "protected",
+      $or: protectedAccessFilters
+    });
+  }
+
+  return { $or: filters };
 }
 
 async function grantProtectedResourceAccess(resource, buyerId, accessType, amount = 0) {
@@ -472,14 +535,23 @@ export async function getResources(req, res, next) {
       maxLimit: 50
     });
 
-    const [accessContext, rawItems] = await Promise.all([
-      loadCrossCollegeAccessContext(req.user),
-      Resource.find(filters).populate("uploadedBy", "fullName role").sort({ createdAt: -1 })
+    const accessContext =
+      req.user?.role === "admin" || !req.user?.id
+        ? { protectedGrantIds: new Set(), hasBasicSubscription: false }
+        : await loadCrossCollegeAccessContext(req.user);
+    const accessFilter = buildAccessibleResourceFilter(req.user, accessContext);
+    const queryFilters = combineMongoFilters(filters, accessFilter);
+
+    const [total, items] = await Promise.all([
+      Resource.countDocuments(queryFilters),
+      Resource.find(queryFilters)
+        .sort({ createdAt: -1 })
+        .skip(skip)
+        .limit(limit)
+        .populate("uploadedBy", "fullName role")
     ]);
 
-    const items = rawItems.filter((resource) => canAccessResource(resource, req.user, accessContext));
-    const total = items.length;
-    const paginatedItems = items.slice(skip, skip + limit).map((resource) => serializeResourceForClient(resource, req));
+    const paginatedItems = items.map((resource) => serializeResourceForClient(resource, req));
 
     res.json({
       success: true,

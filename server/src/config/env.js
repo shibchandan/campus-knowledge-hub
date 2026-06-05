@@ -1,3 +1,4 @@
+import os from "os";
 import dotenv from "dotenv";
 import { readConfigValue, readListValue } from "./secretLoader.js";
 
@@ -9,6 +10,7 @@ const resolvedJwtPreviousSecrets = readListValue("JWT_PREVIOUS_SECRETS").filter(
 );
 
 export const env = {
+  instanceId: process.env.INSTANCE_ID || process.env.HOSTNAME || os.hostname(),
   port: Number(process.env.PORT || 5000),
   mongodbUri: process.env.MONGODB_URI || "",
   jwtSecret: resolvedJwtSecret,
@@ -64,5 +66,11 @@ export const env = {
     String(process.env.ABUSE_PROTECTION_ENABLED || "true").trim().toLowerCase() === "true",
   abuseRequireUserAgent:
     String(process.env.ABUSE_REQUIRE_USER_AGENT || "true").trim().toLowerCase() === "true",
-  blockedIpSet: new Set(readListValue("BLOCKED_IPS"))
+  blockedIpSet: new Set(readListValue("BLOCKED_IPS")),
+  multiInstanceEnabled:
+    String(process.env.MULTI_INSTANCE_ENABLED || "false").trim().toLowerCase() === "true",
+  serverRequestTimeoutMs: Number(process.env.SERVER_REQUEST_TIMEOUT_MS || 60000),
+  serverHeadersTimeoutMs: Number(process.env.SERVER_HEADERS_TIMEOUT_MS || 65000),
+  serverKeepAliveTimeoutMs: Number(process.env.SERVER_KEEP_ALIVE_TIMEOUT_MS || 5000),
+  serverShutdownGraceMs: Number(process.env.SERVER_SHUTDOWN_GRACE_MS || 10000)
 };

@@ -16,6 +16,54 @@ import { requestDeletePassword } from "../lib/deleteWithPassword";
 import { openRazorpayCheckout } from "../lib/paymentClient";
 import { useToast } from "../ui/ToastContext";
 
+const CATEGORY_UPLOAD_GUIDANCE = {
+  lecture: {
+    accepts: "video/*",
+    heading: "Allowed format",
+    detail: "Upload video files only."
+  },
+  "pdf-ppt": {
+    accepts: ".pdf,.ppt,.pptx,application/pdf,application/vnd.ms-powerpoint,application/vnd.openxmlformats-officedocument.presentationml.presentation",
+    heading: "Allowed formats",
+    detail: "PDF, PPT, and PPTX files only."
+  },
+  books: {
+    accepts: ".pdf,.doc,.docx,application/pdf,application/msword,application/vnd.openxmlformats-officedocument.wordprocessingml.document",
+    heading: "Allowed formats",
+    detail: "PDF, DOC, and DOCX files. Text-only notes are also allowed."
+  },
+  "class-notes": {
+    accepts: ".pdf,.doc,.docx,.txt,application/pdf,application/msword,application/vnd.openxmlformats-officedocument.wordprocessingml.document,text/*",
+    heading: "Allowed formats",
+    detail: "PDF, DOC, DOCX, and text files. You can also add text directly."
+  },
+  lab: {
+    accepts: ".pdf,.doc,.docx,.txt,application/pdf,application/msword,application/vnd.openxmlformats-officedocument.wordprocessingml.document,text/*",
+    heading: "Allowed formats",
+    detail: "PDF, DOC, DOCX, and text files. You can also add text directly."
+  },
+  pyq: {
+    accepts: ".pdf,.jpg,.jpeg,.png,.webp,application/pdf,image/*",
+    heading: "Allowed formats",
+    detail: "PDF and image files only."
+  },
+  notice: {
+    accepts: ".pdf,.jpg,.jpeg,.png,.webp,.txt,application/pdf,image/*,text/*",
+    heading: "Allowed formats",
+    detail: "PDF, image, and text files. You can also add text directly."
+  },
+  syllabus: {
+    accepts: ".pdf,.doc,.docx,.txt,application/pdf,application/msword,text/*",
+    heading: "Allowed formats",
+    detail: "PDF, DOC, DOCX, and text files. You can also add text directly."
+  },
+  suggestion: {
+    accepts: ".pdf,.txt,application/pdf,text/*",
+    heading: "Allowed formats",
+    detail: "PDF and text files. You can also add text directly."
+  }
+};
+
 const initialUploadForm = {
   title: "",
   description: "",
@@ -116,6 +164,14 @@ function ResourcePreview({ resource }) {
   }
 
   return null;
+}
+
+function humanizeSlug(value = "") {
+  return String(value)
+    .split("-")
+    .filter(Boolean)
+    .map((part) => part.charAt(0).toUpperCase() + part.slice(1))
+    .join(" ");
 }
 
 export function SubjectCategoryPage() {
@@ -252,6 +308,18 @@ export function SubjectCategoryPage() {
   const program = dynamicProgram || (!hasDynamicProgramData ? fallbackProgram : null);
   const branch = dynamicBranch || (!hasDynamicProgramData ? fallbackBranch : null);
   const semester = dynamicSemester || (!hasDynamicProgramData ? fallbackSemester : null);
+  const programName = program?.name || humanizeSlug(programId);
+  const branchName = branch?.name || humanizeSlug(branchId);
+  const semesterName = semester?.semester || humanizeSlug(semesterId);
+  const resolvedSubject = subject || {
+    id: subjectId,
+    name: humanizeSlug(subjectId)
+  };
+  const uploadGuidance = CATEGORY_UPLOAD_GUIDANCE[categoryId] || {
+    accepts: undefined,
+    heading: "Allowed formats",
+    detail: "This category accepts the supported upload types configured for the platform."
+  };
 
   async function loadResources(nextPage = 1) {
     if (!selectedCollege?.name) {
@@ -331,7 +399,7 @@ export function SubjectCategoryPage() {
     );
   }
 
-  if (!program || !branch || (!semester && !subject) || !subject || !category) {
+  if (!selectedCollege?.name || !category) {
     return <Navigate to="/dashboard" replace />;
   }
 
@@ -552,12 +620,15 @@ export function SubjectCategoryPage() {
     <div className="page-stack">
       <SectionCard
         title={`${category.label} Resources`}
-        description={`${selectedCollege?.shortName || selectedCollege?.name || "College"} | ${subject.name}`}
+        description={`${selectedCollege?.shortName || selectedCollege?.name || "College"} | ${resolvedSubject.name}`}
       >
         <div className="detail-header">
           <div>
-            <p className="program-badge">{program.name}</p>
-            <h3>{subject.name}</h3>
+            <p className="program-badge">{programName}</p>
+            <h3>{resolvedSubject.name}</h3>
+            <p className="muted">
+              {branchName} | {semesterName}
+            </p>
             <p className="muted">{category.description}</p>
           </div>
           <Link className="back-link" to={`/dashboard/${programId}/branch/${branchId}/${semesterId}/${subjectId}`}>
@@ -663,8 +734,11 @@ export function SubjectCategoryPage() {
             ) : null}
             <label className="auth-field">
               <span>{isLectureCategory ? "Video Upload (required)" : "File Upload (optional)"}</span>
+              <p className="muted">
+                {uploadGuidance.heading}: {uploadGuidance.detail}
+              </p>
               <input
-                accept={isLectureCategory ? "video/*" : undefined}
+                accept={uploadGuidance.accepts}
                 onChange={(event) => setSelectedFile(event.target.files?.[0] || null)}
                 required={isLectureCategory}
                 type="file"
