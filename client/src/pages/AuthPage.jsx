@@ -55,7 +55,8 @@ export function AuthPage() {
     }
 
     if (requestError?.request) {
-      return "Cannot reach backend server. Make sure API is running on http://localhost:5000.";
+      const targetUrl = apiClient.defaults.baseURL || "http://localhost:5000/api";
+      return `Cannot reach backend server. Make sure API is running on ${targetUrl}.`;
     }
 
     return requestError?.message || fallbackMessage;
