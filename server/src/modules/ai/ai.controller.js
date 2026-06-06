@@ -255,7 +255,6 @@ export async function getAiHistory(req, res, next) {
 
 export async function deleteAiHistoryItem(req, res, next) {
   try {
-    await requirePasswordConfirmation(req);
     const historyId = readMongoId(req.params.historyId, { field: "historyId" });
     const historyItem = await AiHistory.findById(historyId);
 
@@ -279,7 +278,6 @@ export async function deleteAiHistoryItem(req, res, next) {
 
 export async function clearAiHistory(req, res, next) {
   try {
-    await requirePasswordConfirmation(req);
     await AiHistory.deleteMany({ user: req.user.id });
     res.json({ success: true, message: "AI history cleared." });
   } catch (error) {

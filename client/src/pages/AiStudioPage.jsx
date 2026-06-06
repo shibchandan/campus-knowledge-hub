@@ -2,7 +2,6 @@ import { useEffect, useState } from "react";
 import { SectionCard } from "../components/SectionCard";
 import { useCollege } from "../college/CollegeContext";
 import { apiClient } from "../lib/apiClient";
-import { requestDeletePassword } from "../lib/deleteWithPassword";
 
 export function AiStudioPage() {
   const { selectedCollege } = useCollege();
@@ -11,20 +10,14 @@ export function AiStudioPage() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
   const [answer, setAnswer] = useState(null);
-  const [status, setStatus] = useState(null);
   const [history, setHistory] = useState([]);
   const [historyBusyId, setHistoryBusyId] = useState("");
 
   async function loadMeta() {
     try {
-      const [statusResponse, historyResponse] = await Promise.all([
-        apiClient.get("/ai/status"),
-        apiClient.get("/ai/history")
-      ]);
-      setStatus(statusResponse.data.data);
+      const historyResponse = await apiClient.get("/ai/history");
       setHistory(historyResponse.data.data);
     } catch {
-      setStatus(null);
       setHistory([]);
     }
   }
@@ -55,17 +48,15 @@ export function AiStudioPage() {
   }
 
   async function handleDeleteHistoryItem(historyId) {
-    const currentPassword = requestDeletePassword("this AI history item");
-    if (!currentPassword) {
+    const confirmed = window.confirm("Are you sure you want to delete this AI history item?");
+    if (!confirmed) {
       return;
     }
     setHistoryBusyId(historyId);
     setError("");
 
     try {
-      await apiClient.delete(`/ai/history/${historyId}`, {
-        data: { currentPassword }
-      });
+      await apiClient.delete(`/ai/history/${historyId}`);
       setHistory((current) => current.filter((item) => item._id !== historyId));
     } catch (requestError) {
       setError(requestError.response?.data?.message || "Failed to delete AI history item.");
@@ -75,15 +66,15 @@ export function AiStudioPage() {
   }
 
   async function handleClearHistory() {
-    const currentPassword = requestDeletePassword("all AI history");
-    if (!currentPassword) {
+    const confirmed = window.confirm("Are you sure you want to clear all your AI history? This cannot be undone.");
+    if (!confirmed) {
       return;
     }
     setHistoryBusyId("all");
     setError("");
 
     try {
-      await apiClient.delete("/ai/history", { data: { currentPassword } });
+      await apiClient.delete("/ai/history");
       setHistory([]);
     } catch (requestError) {
       setError(requestError.response?.data?.message || "Failed to clear AI history.");
@@ -98,37 +89,7 @@ export function AiStudioPage() {
         AI Q&A is active with provider verification, uploaded-resource grounding, and saved student history.
       </div>
 
-      <SectionCard
-        title="AI Provider Status"
-        description="Checks whether the configured provider is reachable and ready for campus-grounded responses."
-      >
-        {status ? (
-          <div className="detail-grid">
-            <article className="detail-card">
-              <h3>Provider</h3>
-              <p>{status.provider || "Not configured"}</p>
-            </article>
-            <article className="detail-card">
-              <h3>Model</h3>
-              <p>{status.model || "Not configured"}</p>
-            </article>
-            <article className="detail-card">
-              <h3>Configured</h3>
-              <p>{status.configured ? "Yes" : "No"}</p>
-            </article>
-            <article className="detail-card">
-              <h3>Verified</h3>
-              <p>{status.verified ? "Verified" : "Not verified"}</p>
-            </article>
-            <article className="detail-card">
-              <h3>Status Message</h3>
-              <p>{status.message}</p>
-            </article>
-          </div>
-        ) : (
-          <p className="muted">Unable to load AI provider status.</p>
-        )}
-      </SectionCard>
+
 
       <SectionCard
         title="AI Learning Engine"

@@ -6,6 +6,11 @@ import { useCollege } from "../college/CollegeContext";
 import { apiClient } from "../lib/apiClient";
 import { requestDeletePassword } from "../lib/deleteWithPassword";
 import { useToast } from "../ui/ToastContext";
+import { CourseForm } from "../components/forms/CourseForm";
+import { StructureForm } from "../components/forms/StructureForm";
+import { SubjectForm } from "../components/forms/SubjectForm";
+import { NoticeForm } from "../components/forms/NoticeForm";
+import { normalizeSearchValue, normalizeRouteId } from "../lib/stringUtils";
 
 const initialForm = {
   collegeName: "",
@@ -71,18 +76,6 @@ const initialSubjectForm = {
   subjectId: "",
   name: ""
 };
-
-function normalizeSearchValue(value = "") {
-  return value.toLowerCase().replace(/[^a-z0-9\s]/g, " ").replace(/\s+/g, " ").trim();
-}
-
-function normalizeRouteId(value = "") {
-  return String(value)
-    .trim()
-    .toLowerCase()
-    .replace(/[^a-z0-9]+/g, "-")
-    .replace(/^-|-$/g, "");
-}
 
 function mapProfileToForm(profile) {
   if (!profile) {
@@ -165,7 +158,7 @@ function mapSubjectToForm(subject) {
 }
 
 export function RepresentativePanelPage() {
-  const { refreshCurrentUser } = useAuth();
+  const { user, refreshCurrentUser } = useAuth();
   const { colleges: platformColleges } = useCollege();
   const { showError, showSuccess } = useToast();
   const [form, setForm] = useState(initialForm);
@@ -974,6 +967,19 @@ export function RepresentativePanelPage() {
       .slice(0, 8);
   }, [collegeCatalogOptions, form.collegeName]);
 
+  const noticeCollegesList = useMemo(() => {
+    const list = [];
+    if (user?.collegeName) {
+      list.push(user.collegeName);
+    }
+    myColleges.forEach((item) => {
+      if (item.collegeName && !list.includes(item.collegeName)) {
+        list.push(item.collegeName);
+      }
+    });
+    return list;
+  }, [user?.collegeName, myColleges]);
+
   const suggestedCourses = useMemo(() => {
     if (!matchingCollegeOption) {
       return [];
@@ -1037,9 +1043,10 @@ export function RepresentativePanelPage() {
   );
 
   return (
-    <div className="page-stack">
+    <div className="dense-admin">
+      <div className="page-stack">
       <SectionCard
-        title="Representative Panel"
+        title={user?.collegeName ? `Representative Panel — ${user.collegeName}` : "Representative Panel"}
         description="Manage only the colleges and courses assigned under your approved representative account."
       >
         {error ? <p className="auth-error">{error}</p> : null}
@@ -1059,161 +1066,17 @@ export function RepresentativePanelPage() {
         title="College Request Form"
         description="Add a college and course directly under your approved representative account, or update one of your assigned course entries."
       >
-        <form className="panel-form" onSubmit={handleSubmit}>
-          <div className="panel-form-grid">
-            <label className="auth-field">
-              <span>College Name</span>
-              <div className="selector-field">
-                <input
-                  onChange={(event) => {
-                    setForm((current) => ({ ...current, collegeName: event.target.value }));
-                    setOpenSelector("college");
-                  }}
-                  onFocus={() => setOpenSelector("college")}
-                  placeholder="Type college name"
-                  required
-                  type="text"
-                  value={form.collegeName}
-                />
-                <button
-                  aria-label="Open college list"
-                  className="selector-trigger-button"
-                  onClick={() =>
-                    setOpenSelector((current) => (current === "college" ? "" : "college"))
-                  }
-                  type="button"
-                >
-                  ˅
-                </button>
-                {openSelector === "college" ? (
-                  <div className="selector-dropdown-panel">
-                    {filteredRequestableColleges.length ? (
-                      filteredRequestableColleges.map((item) => (
-                        <button
-                          className="selector-dropdown-option"
-                          key={item.collegeNameNormalized}
-                          onClick={() => {
-                            setForm((current) => ({
-                              ...current,
-                              collegeName: item.collegeName,
-                              courseName:
-                                item.courses.some(
-                                  (course) =>
-                                    course.courseName.toLowerCase() ===
-                                    current.courseName.trim().toLowerCase()
-                                )
-                                  ? current.courseName
-                                  : ""
-                            }));
-                            setOpenSelector("");
-                          }}
-                          type="button"
-                        >
-                          {item.collegeName}
-                        </button>
-                      ))
-                    ) : (
-                      <p className="selector-dropdown-empty">
-                        No matching college found. You can type full name manually.
-                      </p>
-                    )}
-                  </div>
-                ) : null}
-              </div>
-            </label>
-            <label className="auth-field">
-              <span>Course Name</span>
-              <div className="selector-field">
-                <input
-                  onChange={(event) => {
-                    setForm((current) => ({ ...current, courseName: event.target.value }));
-                    if (matchingCollegeOption?.courses?.length) {
-                      setOpenSelector("course");
-                    }
-                  }}
-                  onFocus={() => {
-                    if (matchingCollegeOption?.courses?.length) {
-                      setOpenSelector("course");
-                    }
-                  }}
-                  placeholder={
-                    matchingCollegeOption
-                      ? "Choose suggested course or type manually"
-                      : "Type course name"
-                  }
-                  required
-                  type="text"
-                  value={form.courseName}
-                />
-                <button
-                  aria-label="Open course list"
-                  className="selector-trigger-button"
-                  onClick={() =>
-                    setOpenSelector((current) =>
-                      current === "course" ? "" : matchingCollegeOption?.courses?.length ? "course" : ""
-                    )
-                  }
-                  type="button"
-                >
-                  ˅
-                </button>
-                {openSelector === "course" && matchingCollegeOption?.courses?.length ? (
-                  <div className="selector-dropdown-panel">
-                    {suggestedCourses.length ? (
-                      suggestedCourses.map((course) => (
-                        <button
-                          className="selector-dropdown-option"
-                          key={`${course.courseName}-${course.semesterCount}`}
-                          onClick={() => {
-                            setForm((current) => ({
-                              ...current,
-                              courseName: course.courseName
-                            }));
-                            setOpenSelector("");
-                          }}
-                          type="button"
-                        >
-                          {course.courseName}
-                        </button>
-                      ))
-                    ) : (
-                      <p className="selector-dropdown-empty">No matching course found.</p>
-                    )}
-                  </div>
-                ) : null}
-              </div>
-              {selectedCourseCatalogEntry ? (
-                <p className="muted">
-                  {selectedCourseCatalogEntry.hasActiveRepresentative
-                    ? `Already managed by ${selectedCourseCatalogEntry.representativeName || "an active representative"}.`
-                    : "No active representative found for this course. You can add it directly."}
-                </p>
-              ) : null}
-            </label>
-          </div>
-          <div className="panel-actions">
-            <button className="auth-submit" disabled={submitting} type="submit">
-              {submitting
-                ? editingCourseId
-                  ? "Updating..."
-                  : "Submitting..."
-                : editingCourseId
-                  ? "Update College Course"
-                  : "Add College Course"}
-            </button>
-            {editingCourseId ? (
-              <button className="action-button neutral" onClick={resetCourseForm} type="button">
-                Cancel Edit
-              </button>
-            ) : null}
-          </div>
-          <p className="muted">
-            Type a starting letter like m to see matching colleges alphabetically, then choose or type the course you want to manage.
-          </p>
-          <p className="muted">
-            If your college is not listed, you can still type the full college name manually and add it directly.
-          </p>
-        </form>
+        <CourseForm
+          formValue={form}
+          onChange={(key, val) => setForm((current) => ({ ...current, [key]: val }))}
+          onSubmit={handleSubmit}
+          onCancel={resetCourseForm}
+          isEditing={Boolean(editingCourseId)}
+          isDropdown={true}
+          collegesList={requestableColleges}
+          selectedCourseCatalogEntry={selectedCourseCatalogEntry}
+          submitting={submitting}
+        />
       </SectionCard>
 
       <SectionCard
@@ -1357,75 +1220,16 @@ export function RepresentativePanelPage() {
         title="College Notices"
         description="Create and manage published or draft notices only for colleges assigned to your account."
       >
-        <form className="panel-form" onSubmit={handleNoticeSubmit}>
-          <div className="panel-form-grid">
-            <label className="auth-field">
-              <span>College Name</span>
-              <select
-                onChange={(event) =>
-                  setNoticeForm((current) => ({ ...current, collegeName: event.target.value }))
-                }
-                required
-                value={noticeForm.collegeName}
-              >
-                <option value="">Select college</option>
-                {[...new Set(myColleges.map((item) => item.collegeName))].map((collegeName) => (
-                  <option key={collegeName} value={collegeName}>
-                    {collegeName}
-                  </option>
-                ))}
-              </select>
-            </label>
-            <label className="auth-field">
-              <span>Status</span>
-              <select
-                onChange={(event) =>
-                  setNoticeForm((current) => ({
-                    ...current,
-                    isPublished: event.target.value === "published"
-                  }))
-                }
-                value={noticeForm.isPublished ? "published" : "draft"}
-              >
-                <option value="published">Published</option>
-                <option value="draft">Draft</option>
-              </select>
-            </label>
-          </div>
-          <label className="auth-field">
-            <span>Notice Title</span>
-            <input
-              onChange={(event) => setNoticeForm((current) => ({ ...current, title: event.target.value }))}
-              required
-              type="text"
-              value={noticeForm.title}
-            />
-          </label>
-          <label className="auth-field">
-            <span>Notice Content</span>
-            <textarea
-              className="panel-textarea"
-              onChange={(event) => setNoticeForm((current) => ({ ...current, content: event.target.value }))}
-              required
-              rows={4}
-              value={noticeForm.content}
-            />
-          </label>
-          <div className="panel-actions">
-            <button className="auth-submit" disabled={noticeSubmitting} type="submit">
-              {noticeSubmitting
-                ? "Saving..."
-                : editingNoticeId
-                  ? "Update Notice"
-                  : "Create Notice"}
-            </button>
-            {editingNoticeId ? (
-              <button className="action-button neutral" onClick={resetNoticeForm} type="button">
-                Cancel Edit
-              </button>
-            ) : null}
-          </div>
-        </form>
+        <NoticeForm
+          formValue={noticeForm}
+          onChange={(key, val) => setNoticeForm((current) => ({ ...current, [key]: val }))}
+          onSubmit={handleNoticeSubmit}
+          onCancel={resetNoticeForm}
+          isEditing={Boolean(editingNoticeId)}
+          isDropdown={true}
+          collegesList={noticeCollegesList}
+          submitting={noticeSubmitting}
+        />
 
         <div className="toolbar-grid">
           <input
@@ -1927,7 +1731,7 @@ export function RepresentativePanelPage() {
           })}
         </div>
       </SectionCard>
-
     </div>
+  </div>
   );
 }

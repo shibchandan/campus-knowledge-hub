@@ -7,7 +7,7 @@ Backend tests are available in `server/test`.
 Run:
 
 ```powershell
-cd "C:\Users\shib chandan mistry\Documents\New project"
+cd "C:\Users\shib chandan mistry\Documents\campus-knowledge-hub"
 npm run test:server
 ```
 

@@ -4,6 +4,10 @@ import { SectionCard } from "../components/SectionCard";
 import { apiClient, buildAuthorizedApiUrl } from "../lib/apiClient";
 import { requestDeletePassword } from "../lib/deleteWithPassword";
 import { useToast } from "../ui/ToastContext";
+import { CourseForm } from "../components/forms/CourseForm";
+import { StructureForm } from "../components/forms/StructureForm";
+import { SubjectForm } from "../components/forms/SubjectForm";
+import { NoticeForm } from "../components/forms/NoticeForm";
 
 const initialUserForm = {
   fullName: "",
@@ -63,9 +67,11 @@ export function AdminPanelPage() {
   const [notices, setNotices] = useState([]);
   const [subjects, setSubjects] = useState([]);
   const [structures, setStructures] = useState([]);
-  const [resources, setResources] = useState([]);
+   const [resources, setResources] = useState([]);
   const [syllabusResources, setSyllabusResources] = useState([]);
   const [auditLogs, setAuditLogs] = useState([]);
+  const [aiStatus, setAiStatus] = useState(null);
+  const [aiStatusLoading, setAiStatusLoading] = useState(false);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
   const [success, setSuccess] = useState("");
@@ -133,6 +139,17 @@ export function AdminPanelPage() {
       setError(requestError.response?.data?.message || "Failed to load admin control data.");
     } finally {
       setLoading(false);
+    }
+
+    // Load AI Status asynchronously in the background so it doesn't block loading of core data
+    setAiStatusLoading(true);
+    try {
+      const aiStatusResponse = await apiClient.get("/ai/status");
+      setAiStatus(aiStatusResponse.data.data || null);
+    } catch {
+      setAiStatus(null);
+    } finally {
+      setAiStatusLoading(false);
     }
   }
 
@@ -672,8 +689,9 @@ export function AdminPanelPage() {
   );
 
   return (
-    <div className="page-stack">
-      <SectionCard
+    <div className="dense-admin">
+      <div className="page-stack">
+        <SectionCard
         title="Admin Control Center"
         description="Central oversight for requests, users, notices, resources, and audit visibility."
       >
@@ -689,6 +707,40 @@ export function AdminPanelPage() {
             </article>
           ))}
         </div>
+      </SectionCard>
+
+      <SectionCard
+        title="AI Provider Status"
+        description="Checks whether the configured provider is reachable and ready for campus-grounded responses."
+      >
+        {aiStatusLoading ? (
+          <p className="muted">Verifying AI provider integration status in the background...</p>
+        ) : aiStatus ? (
+          <div className="detail-grid">
+            <article className="detail-card">
+              <h3>Provider</h3>
+              <p>{aiStatus.provider || "Not configured"}</p>
+            </article>
+            <article className="detail-card">
+              <h3>Model</h3>
+              <p>{aiStatus.model || "Not configured"}</p>
+            </article>
+            <article className="detail-card">
+              <h3>Configured</h3>
+              <p>{aiStatus.configured ? "Yes" : "No"}</p>
+            </article>
+            <article className="detail-card">
+              <h3>Verified</h3>
+              <p>{aiStatus.verified ? "Verified" : "Not verified"}</p>
+            </article>
+            <article className="detail-card">
+              <h3>Status Message</h3>
+              <p>{aiStatus.message}</p>
+            </article>
+          </div>
+        ) : (
+          <p className="muted">Unable to load AI provider status.</p>
+        )}
       </SectionCard>
 
       <SectionCard title="Recent Audit Activity" description="Search sensitive actions and who performed them.">
@@ -766,44 +818,13 @@ export function AdminPanelPage() {
         title="College & Course Setup"
         description="Admin can add a new college course directly, or edit and delete any approved course record."
       >
-        <form className="panel-form" onSubmit={handleSaveCourse}>
-          <div className="panel-form-grid">
-            <label className="auth-field">
-              <span>College Name</span>
-              <input
-                onChange={(event) =>
-                  setCourseForm((current) => ({ ...current, collegeName: event.target.value }))
-                }
-                placeholder="Motilal Nehru National Institute of Technology, Prayagraj"
-                required
-                type="text"
-                value={courseForm.collegeName}
-              />
-            </label>
-            <label className="auth-field">
-              <span>Course Name</span>
-              <input
-                onChange={(event) =>
-                  setCourseForm((current) => ({ ...current, courseName: event.target.value }))
-                }
-                placeholder="BTech"
-                required
-                type="text"
-                value={courseForm.courseName}
-              />
-            </label>
-          </div>
-          <div className="panel-actions">
-            <button className="auth-submit" type="submit">
-              {editingCourseId ? "Update Course" : "Create College Course"}
-            </button>
-            {editingCourseId ? (
-              <button className="action-button neutral" onClick={resetCourseForm} type="button">
-                Cancel
-              </button>
-            ) : null}
-          </div>
-        </form>
+        <CourseForm
+          formValue={courseForm}
+          onChange={(key, val) => setCourseForm((current) => ({ ...current, [key]: val }))}
+          onSubmit={handleSaveCourse}
+          onCancel={resetCourseForm}
+          isEditing={Boolean(editingCourseId)}
+        />
 
         <div className="toolbar-grid">
           <input
@@ -844,135 +865,26 @@ export function AdminPanelPage() {
         title="Academic Structure Management"
         description="Admin can create branches and semesters for any approved college course."
       >
-        <form className="panel-form" onSubmit={handleSaveStructure}>
-          <div className="panel-form-grid">
-            <label className="auth-field">
-              <span>College Name</span>
-              <select
-                onChange={(event) =>
-                  setStructureForm((current) => ({
-                    ...current,
-                    collegeName: event.target.value,
-                    programId: "",
-                    programName: ""
-                  }))
-                }
-                required
-                value={structureForm.collegeName}
-              >
-                <option value="">Select college</option>
-                {adminCollegeNames.map((collegeName) => (
-                  <option key={collegeName} value={collegeName}>
-                    {collegeName}
-                  </option>
-                ))}
-              </select>
-            </label>
-            <label className="auth-field">
-              <span>Program / Course</span>
-              <select
-                onChange={(event) =>
-                  setStructureForm((current) => ({
-                    ...current,
-                    programId: event.target.value,
-                    programName: event.target.value
-                  }))
-                }
-                required
-                value={structureForm.programId}
-              >
-                <option value="">Select course</option>
-                {structureProgramsForCollege.map((courseName) => (
-                  <option key={courseName} value={courseName}>
-                    {courseName}
-                  </option>
-                ))}
-              </select>
-            </label>
-            <label className="auth-field">
-              <span>Branch ID</span>
-              <input
-                onChange={(event) =>
-                  setStructureForm((current) => ({ ...current, branchId: event.target.value }))
-                }
-                placeholder="computer-science-engineering"
-                required
-                type="text"
-                value={structureForm.branchId}
-              />
-            </label>
-            <label className="auth-field">
-              <span>Branch Name</span>
-              <input
-                onChange={(event) =>
-                  setStructureForm((current) => ({ ...current, branchName: event.target.value }))
-                }
-                placeholder="Computer Science & Engineering"
-                required
-                type="text"
-                value={structureForm.branchName}
-              />
-            </label>
-            <label className="auth-field">
-              <span>Semester ID</span>
-              <input
-                onChange={(event) =>
-                  setStructureForm((current) => ({ ...current, semesterId: event.target.value }))
-                }
-                placeholder="semester-1"
-                required
-                type="text"
-                value={structureForm.semesterId}
-              />
-            </label>
-            <label className="auth-field">
-              <span>Semester Name</span>
-              <input
-                onChange={(event) =>
-                  setStructureForm((current) => ({ ...current, semesterName: event.target.value }))
-                }
-                placeholder="Semester 1"
-                required
-                type="text"
-                value={structureForm.semesterName}
-              />
-            </label>
-            <label className="auth-field">
-              <span>Semester Order</span>
-              <input
-                max="20"
-                min="1"
-                onChange={(event) =>
-                  setStructureForm((current) => ({ ...current, semesterOrder: event.target.value }))
-                }
-                required
-                type="number"
-                value={structureForm.semesterOrder}
-              />
-            </label>
-            <label className="auth-field">
-              <span>Branch Description</span>
-              <input
-                onChange={(event) =>
-                  setStructureForm((current) => ({ ...current, branchDescription: event.target.value }))
-                }
-                placeholder="Core branch structure for this college course"
-                type="text"
-                value={structureForm.branchDescription}
-              />
-            </label>
-          </div>
-          <div className="panel-actions">
-            <button className="auth-submit" type="submit">
-              {editingStructureId ? "Update Structure" : "Create Structure"}
-            </button>
-            {editingStructureId ? (
-              <button className="action-button neutral" onClick={resetStructureForm} type="button">
-                Cancel
-              </button>
-            ) : null}
-          </div>
-        </form>
+        <StructureForm
+          formValue={structureForm}
+          onChange={(key, val) =>
+            setStructureForm((current) => {
+              const next = { ...current, [key]: val };
+              if (key === "collegeName") {
+                next.programId = "";
+                next.programName = "";
+              } else if (key === "programId") {
+                next.programName = val;
+              }
+              return next;
+            })
+          }
+          onSubmit={handleSaveStructure}
+          onCancel={resetStructureForm}
+          isEditing={Boolean(editingStructureId)}
+          collegesList={adminCollegeNames}
+          programsList={structureProgramsForCollege}
+        />
 
         <div className="toolbar-grid">
           <input
@@ -1012,105 +924,23 @@ export function AdminPanelPage() {
         title="Subject Management"
         description="Admin can create semester-wise subjects for any approved college course."
       >
-        <form className="panel-form" onSubmit={handleSaveSubject}>
-          <div className="panel-form-grid">
-            <label className="auth-field">
-              <span>College Name</span>
-              <select
-                onChange={(event) =>
-                  setSubjectForm((current) => ({
-                    ...current,
-                    collegeName: event.target.value,
-                    programId: ""
-                  }))
-                }
-                required
-                value={subjectForm.collegeName}
-              >
-                <option value="">Select college</option>
-                {adminCollegeNames.map((collegeName) => (
-                  <option key={collegeName} value={collegeName}>
-                    {collegeName}
-                  </option>
-                ))}
-              </select>
-            </label>
-            <label className="auth-field">
-              <span>Program / Course</span>
-              <select
-                onChange={(event) =>
-                  setSubjectForm((current) => ({ ...current, programId: event.target.value }))
-                }
-                required
-                value={subjectForm.programId}
-              >
-                <option value="">Select course</option>
-                {subjectProgramsForCollege.map((courseName) => (
-                  <option key={courseName} value={courseName}>
-                    {courseName}
-                  </option>
-                ))}
-              </select>
-            </label>
-            <label className="auth-field">
-              <span>Branch ID</span>
-              <input
-                onChange={(event) =>
-                  setSubjectForm((current) => ({ ...current, branchId: event.target.value }))
-                }
-                placeholder="computer-science-engineering"
-                required
-                type="text"
-                value={subjectForm.branchId}
-              />
-            </label>
-            <label className="auth-field">
-              <span>Semester ID</span>
-              <input
-                onChange={(event) =>
-                  setSubjectForm((current) => ({ ...current, semesterId: event.target.value }))
-                }
-                placeholder="semester-1"
-                required
-                type="text"
-                value={subjectForm.semesterId}
-              />
-            </label>
-            <label className="auth-field">
-              <span>Subject ID</span>
-              <input
-                onChange={(event) =>
-                  setSubjectForm((current) => ({ ...current, subjectId: event.target.value }))
-                }
-                placeholder="mathematics-1"
-                type="text"
-                value={subjectForm.subjectId}
-              />
-            </label>
-            <label className="auth-field">
-              <span>Subject Name</span>
-              <input
-                onChange={(event) =>
-                  setSubjectForm((current) => ({ ...current, name: event.target.value }))
-                }
-                placeholder="Mathematics-I"
-                required
-                type="text"
-                value={subjectForm.name}
-              />
-            </label>
-          </div>
-          <div className="panel-actions">
-            <button className="auth-submit" type="submit">
-              {editingSubjectId ? "Update Subject" : "Create Subject"}
-            </button>
-            {editingSubjectId ? (
-              <button className="action-button neutral" onClick={resetSubjectForm} type="button">
-                Cancel
-              </button>
-            ) : null}
-          </div>
-        </form>
+        <SubjectForm
+          formValue={subjectForm}
+          onChange={(key, val) =>
+            setSubjectForm((current) => {
+              const next = { ...current, [key]: val };
+              if (key === "collegeName") {
+                next.programId = "";
+              }
+              return next;
+            })
+          }
+          onSubmit={handleSaveSubject}
+          onCancel={resetSubjectForm}
+          isEditing={Boolean(editingSubjectId)}
+          collegesList={adminCollegeNames}
+          programsList={subjectProgramsForCollege}
+        />
 
         <div className="toolbar-grid">
           <input
@@ -1244,8 +1074,20 @@ export function AdminPanelPage() {
               <h3>{user.fullName}</h3>
               <p className="muted">{user.email}</p>
               <p className="muted">Role: {user.role} | Status: {user.status}</p>
-              <p className="muted">Assigned college: {user.collegeName || "Not assigned"}</p>
-              <p className="muted">College ID: {user.collegeStudentId || "Not added"}</p>
+              {user.role === "representative" ? (
+                <p className="muted">Represented college: {user.collegeName || "Not assigned"}</p>
+              ) : user.representativeRequestStatus === "pending" ? (
+                <>
+                  <p className="muted">Assigned college: {user.collegeName || "Not assigned"}</p>
+                  <p className="muted">Requested college to represent: {user.collegeName || "Not specified"}</p>
+                  <p className="muted">College ID: {user.collegeStudentId || "Not added"}</p>
+                </>
+              ) : (
+                <>
+                  <p className="muted">Assigned college: {user.collegeName || "Not assigned"}</p>
+                  <p className="muted">College ID: {user.collegeStudentId || "Not added"}</p>
+                </>
+              )}
               <p className="muted">
                 Official college email: {user.officialCollegeEmail || "Not added"} |{" "}
                 {user.officialCollegeEmailVerified ? "Verified" : "Not verified"}
@@ -1377,59 +1219,14 @@ export function AdminPanelPage() {
       </SectionCard>
 
       <SectionCard title="Notice Workflow" description="Publish and manage notices with search support.">
-        <form className="panel-form" onSubmit={handleSaveNotice}>
-          <div className="panel-form-grid">
-            <label className="auth-field">
-              <span>College Name (optional)</span>
-              <input
-                onChange={(event) => setNoticeForm((current) => ({ ...current, collegeName: event.target.value }))}
-                type="text"
-                value={noticeForm.collegeName}
-              />
-            </label>
-            <label className="auth-field">
-              <span>Title</span>
-              <input
-                onChange={(event) => setNoticeForm((current) => ({ ...current, title: event.target.value }))}
-                required
-                type="text"
-                value={noticeForm.title}
-              />
-            </label>
-            <label className="auth-field">
-              <span>Status</span>
-              <select
-                onChange={(event) =>
-                  setNoticeForm((current) => ({ ...current, isPublished: event.target.value === "published" }))
-                }
-                value={noticeForm.isPublished ? "published" : "draft"}
-              >
-                <option value="published">Published</option>
-                <option value="draft">Draft</option>
-              </select>
-            </label>
-          </div>
-          <label className="auth-field">
-            <span>Content</span>
-            <textarea
-              className="panel-textarea"
-              onChange={(event) => setNoticeForm((current) => ({ ...current, content: event.target.value }))}
-              required
-              rows={3}
-              value={noticeForm.content}
-            />
-          </label>
-          <div className="panel-actions">
-            <button className="auth-submit" type="submit">
-              {editingNoticeId ? "Update Notice" : "Create Notice"}
-            </button>
-            {editingNoticeId ? (
-              <button className="action-button neutral" onClick={() => { setEditingNoticeId(""); setNoticeForm(initialNoticeForm); }} type="button">
-                Cancel
-              </button>
-            ) : null}
-          </div>
-        </form>
+        <NoticeForm
+          formValue={noticeForm}
+          onChange={(key, val) => setNoticeForm((current) => ({ ...current, [key]: val }))}
+          onSubmit={handleSaveNotice}
+          onCancel={() => { setEditingNoticeId(""); setNoticeForm(initialNoticeForm); }}
+          isEditing={Boolean(editingNoticeId)}
+          isDropdown={false}
+        />
 
         <div className="toolbar-grid">
           <input
@@ -1583,5 +1380,6 @@ export function AdminPanelPage() {
         </div>
       </SectionCard>
     </div>
+  </div>
   );
 }

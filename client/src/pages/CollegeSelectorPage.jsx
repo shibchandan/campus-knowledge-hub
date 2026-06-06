@@ -2,16 +2,13 @@ import { useEffect, useMemo, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { SectionCard } from "../components/SectionCard";
 import { useCollege } from "../college/CollegeContext";
+import { normalizeSearchValue } from "../lib/stringUtils";
 
 const FILTERS = {
   city: "city",
   collegeType: "collegeType",
   sort: "sort"
 };
-
-function normalizeSearchValue(value = "") {
-  return value.toLowerCase().replace(/[^a-z0-9\s]/g, " ").replace(/\s+/g, " ").trim();
-}
 
 function getCityFromLocation(location = "") {
   return location.split(",")[0]?.trim() || location;

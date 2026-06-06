@@ -457,7 +457,7 @@ cd %USERPROFILE%\Documents
 2. Enter project folder:
 
 ```powershell
-cd "New project"
+cd "campus-knowledge-hub"
 ```
 
 3. Configure backend `.env`
@@ -465,14 +465,14 @@ cd "New project"
 5. Start backend:
 
 ```powershell
-cd "C:\Users\shib chandan mistry\Documents\New project\server"
+cd "C:\Users\shib chandan mistry\Documents\campus-knowledge-hub\server"
 node src/server.js
 ```
 
 6. Start frontend in a new terminal:
 
 ```powershell
-cd "C:\Users\shib chandan mistry\Documents\New project\client"
+cd "C:\Users\shib chandan mistry\Documents\campus-knowledge-hub\client"
 npm run dev
 ```
 

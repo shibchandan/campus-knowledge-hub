@@ -73,6 +73,22 @@ export function DashboardLayout() {
             </NavLink>
           ))}
         </nav>
+
+        <div className="sidebar-footer">
+          <div className="sidebar-user-info">
+            <div className="sidebar-user-avatar">
+              {user?.avatarUrl ? (
+                <img src={user.avatarUrl} alt="" className="sidebar-user-avatar-img" />
+              ) : (
+                <span>{initials}</span>
+              )}
+            </div>
+            <div className="sidebar-user-details">
+              <p className="sidebar-user-name">{user?.fullName || "User"}</p>
+              <p className="sidebar-user-role">{user?.role || "student"}</p>
+            </div>
+          </div>
+        </div>
       </aside>
 
       <main className="content">
