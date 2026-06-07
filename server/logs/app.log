@@ -140,3 +140,4 @@
 {"timestamp":"2026-06-06T19:36:52.290Z","instanceId":"LAPTOP-H635NFR1","level":"warn","message":"deployment_configuration_warning","metadata":{"code":"local_storage_single_instance_only","message":"Resource files are stored on local disk. This is safe only for single-instance deployments."}}
 {"timestamp":"2026-06-06T19:36:52.427Z","instanceId":"LAPTOP-H635NFR1","level":"info","message":"mongodb_connected","metadata":{}}
 {"timestamp":"2026-06-06T19:36:52.446Z","instanceId":"LAPTOP-H635NFR1","level":"info","message":"server_started","metadata":{"port":5000,"instanceId":"LAPTOP-H635NFR1","multiInstanceEnabled":false,"sharedStorageConfigured":false}}
+{"timestamp":"2026-06-07T00:51:42.672Z","instanceId":"LAPTOP-H635NFR1","level":"warn","message":"rate_limit_shared_store_fallback","metadata":{"keyPrefix":"test-shared-fallback","error":"shared store unavailable"}}
