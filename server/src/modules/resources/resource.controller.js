@@ -148,17 +148,30 @@ function readAllowBasicSubscription(value) {
   return String(value || "false").trim().toLowerCase() === "true";
 }
 
-function serializeResourceForClient(resource, req) {
+function serializeResourceForClient(resource, req, user, accessContext = { protectedGrantIds: new Set(), hasBasicSubscription: false }) {
   const payload = typeof resource.toObject === "function" ? resource.toObject() : { ...resource };
 
-  if (payload.storageProvider === "local" && payload.fileStoredName) {
-    const accessPath = `/api/resources/${payload._id}/file`;
-    const absoluteUrl = req
-      ? `${req.protocol}://${req.get("host")}${accessPath}`
-      : accessPath;
+  const hasAccess = canAccessResource(payload, user, accessContext);
 
-    payload.fileUrl = absoluteUrl;
-    payload.previewUrl = absoluteUrl;
+  if (!hasAccess) {
+    payload.isLocked = true;
+    delete payload.fileUrl;
+    delete payload.previewUrl;
+    delete payload.textContent;
+    delete payload.fileOriginalName;
+    delete payload.fileStoredName;
+    delete payload.cloudObjectKey;
+  } else {
+    payload.isLocked = false;
+    if (payload.storageProvider === "local" && payload.fileStoredName) {
+      const accessPath = `/api/resources/${payload._id}/file`;
+      const absoluteUrl = req
+        ? `${req.protocol}://${req.get("host")}${accessPath}`
+        : accessPath;
+
+      payload.fileUrl = absoluteUrl;
+      payload.previewUrl = absoluteUrl;
+    }
   }
 
   return payload;
@@ -287,7 +300,7 @@ export function buildAccessibleResourceFilter(
   }
 
   if (!user?.id) {
-    return { visibility: "public" };
+    return {};
   }
 
   const filters = [{ uploadedBy: user.id }, { visibility: "public" }];
@@ -470,7 +483,8 @@ export async function uploadResource(req, res, next) {
     });
 
     const createdResource = await Resource.findById(resource._id).populate("uploadedBy", "fullName role");
-    res.status(201).json({ success: true, data: serializeResourceForClient(createdResource, req) });
+    const accessContext = await loadCrossCollegeAccessContext(req.user);
+    res.status(201).json({ success: true, data: serializeResourceForClient(createdResource, req, req.user, accessContext) });
   } catch (error) {
     if (req.file?.path) {
       await removeTempFile(req.file.path);
@@ -551,7 +565,7 @@ export async function getResources(req, res, next) {
         .populate("uploadedBy", "fullName role")
     ]);
 
-    const paginatedItems = items.map((resource) => serializeResourceForClient(resource, req));
+    const paginatedItems = items.map((resource) => serializeResourceForClient(resource, req, req.user, accessContext));
 
     res.json({
       success: true,
@@ -751,7 +765,8 @@ export async function updateResource(req, res, next) {
     });
 
     const updated = await Resource.findById(resource._id).populate("uploadedBy", "fullName role");
-    res.json({ success: true, data: serializeResourceForClient(updated, req) });
+    const accessContext = await loadCrossCollegeAccessContext(req.user);
+    res.json({ success: true, data: serializeResourceForClient(updated, req, req.user, accessContext) });
   } catch (error) {
     next(error);
   }

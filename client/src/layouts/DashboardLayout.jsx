@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { NavLink, Outlet } from "react-router-dom";
+import { NavLink, Outlet, useNavigate } from "react-router-dom";
 import { useAuth } from "../auth/AuthContext";
 import { useCollege } from "../college/CollegeContext";
 import { useTheme } from "../theme/ThemeContext";
@@ -23,6 +23,8 @@ export function DashboardLayout() {
   const { user, logout } = useAuth();
   const { selectedCollege } = useCollege();
   const { theme, toggleTheme } = useTheme();
+  const navigate = useNavigate();
+
   const initials = user?.fullName
     ? user.fullName
         .split(" ")
@@ -30,7 +32,7 @@ export function DashboardLayout() {
         .slice(0, 2)
         .map((part) => part[0]?.toUpperCase())
         .join("")
-    : "U";
+    : "G";
 
   return (
     <div className={isSidebarOpen ? "shell sidebar-open" : "shell"}>
@@ -84,8 +86,8 @@ export function DashboardLayout() {
               )}
             </div>
             <div className="sidebar-user-details">
-              <p className="sidebar-user-name">{user?.fullName || "User"}</p>
-              <p className="sidebar-user-role">{user?.role || "student"}</p>
+              <p className="sidebar-user-name">{user?.fullName || "Guest User"}</p>
+              <p className="sidebar-user-role">{user?.role || "Visitor"}</p>
             </div>
           </div>
         </div>
@@ -120,9 +122,9 @@ export function DashboardLayout() {
               </div>
             )}
             <div>
-              <p className="user-name">{user?.fullName || "User"}</p>
-              <p className="muted">{user?.email || "Signed in"}</p>
-              <p className="topbar-meta">{user?.role || "user"} account</p>
+              <p className="user-name">{user?.fullName || "Guest User"}</p>
+              <p className="muted">{user?.email || "Browse Mode"}</p>
+              <p className="topbar-meta">{user?.role || "visitor"} account</p>
             </div>
           </div>
 
@@ -131,9 +133,15 @@ export function DashboardLayout() {
               {theme === "dark" ? "Light Mode" : "Dark Mode"}
             </button>
 
-            <button className="logout-button" onClick={logout} type="button">
-              Logout
-            </button>
+            {user ? (
+              <button className="logout-button" onClick={logout} type="button">
+                Logout
+              </button>
+            ) : (
+              <button className="logout-button" onClick={() => navigate("/login")} type="button">
+                Sign In
+              </button>
+            )}
           </div>
         </div>
         <Outlet />

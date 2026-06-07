@@ -30,14 +30,12 @@ export function AppRoutes() {
       <Route
         path="/"
         element={
-          <ProtectedRoute>
-            <DashboardLayout />
-          </ProtectedRoute>
+          <DashboardLayout />
         }
       >
         <Route index element={<Navigate to="/colleges" replace />} />
         <Route path="colleges" element={<CollegeSelectorPage />} />
-        <Route path="account" element={<AccountSettingsPage />} />
+        <Route path="account" element={<ProtectedRoute><AccountSettingsPage /></ProtectedRoute>} />
         <Route path="dashboard" element={<DashboardPage />} />
         <Route path="dashboard/:programId" element={<ProgramDetailPage />} />
         <Route path="dashboard/:programId/branch/:branchId" element={<BranchSemesterPage />} />
@@ -49,38 +47,44 @@ export function AppRoutes() {
           path="dashboard/:programId/branch/:branchId/:semesterId/:subjectId/:categoryId"
           element={<SubjectCategoryPage />}
         />
-        <Route path="lectures" element={<LecturesPage />} />
-        <Route path="notes" element={<NotesPage />} />
-        <Route path="quizzes" element={<QuizzesPage />} />
-        <Route path="quizzes/:quizId" element={<QuizArrangementPage />} />
-        <Route path="notes/quiz/:quizId" element={<QuizArrangementPage />} />
-        <Route path="ai-studio" element={<AiStudioPage />} />
-        <Route path="integrity" element={<IntegrityPage />} />
-        <Route path="marketplace" element={<MarketplacePage />} />
-        <Route path="community" element={<CommunityPage />} />
-        <Route path="panel" element={<PanelHomePage />} />
+        <Route path="lectures" element={<ProtectedRoute><LecturesPage /></ProtectedRoute>} />
+        <Route path="notes" element={<ProtectedRoute><NotesPage /></ProtectedRoute>} />
+        <Route path="quizzes" element={<ProtectedRoute><QuizzesPage /></ProtectedRoute>} />
+        <Route path="quizzes/:quizId" element={<ProtectedRoute><QuizArrangementPage /></ProtectedRoute>} />
+        <Route path="notes/quiz/:quizId" element={<ProtectedRoute><QuizArrangementPage /></ProtectedRoute>} />
+        <Route path="ai-studio" element={<ProtectedRoute><AiStudioPage /></ProtectedRoute>} />
+        <Route path="integrity" element={<ProtectedRoute><IntegrityPage /></ProtectedRoute>} />
+        <Route path="marketplace" element={<ProtectedRoute><MarketplacePage /></ProtectedRoute>} />
+        <Route path="community" element={<ProtectedRoute><CommunityPage /></ProtectedRoute>} />
+        <Route path="panel" element={<ProtectedRoute><PanelHomePage /></ProtectedRoute>} />
         <Route
           path="panel/admin"
           element={
-            <RoleRoute allowedRoles={["admin"]}>
-              <AdminPanelPage />
-            </RoleRoute>
+            <ProtectedRoute>
+              <RoleRoute allowedRoles={["admin"]}>
+                <AdminPanelPage />
+              </RoleRoute>
+            </ProtectedRoute>
           }
         />
         <Route
           path="panel/representative"
           element={
-            <RoleRoute allowedRoles={["representative"]}>
-              <RepresentativePanelPage />
-            </RoleRoute>
+            <ProtectedRoute>
+              <RoleRoute allowedRoles={["representative"]}>
+                <RepresentativePanelPage />
+              </RoleRoute>
+            </ProtectedRoute>
           }
         />
         <Route
           path="panel/student"
           element={
-            <RoleRoute allowedRoles={["student"]}>
-              <StudentPanelPage />
-            </RoleRoute>
+            <ProtectedRoute>
+              <RoleRoute allowedRoles={["student"]}>
+                <StudentPanelPage />
+              </RoleRoute>
+            </ProtectedRoute>
           }
         />
       </Route>

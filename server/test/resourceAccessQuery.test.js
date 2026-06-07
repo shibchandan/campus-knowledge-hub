@@ -9,7 +9,7 @@ import { Resource } from "../src/modules/resources/resource.model.js";
 test("buildAccessibleResourceFilter returns public-only access for guests", () => {
   const filter = buildAccessibleResourceFilter(null);
 
-  assert.deepEqual(filter, { visibility: "public" });
+  assert.deepEqual(filter, {});
 });
 
 test("buildAccessibleResourceFilter includes owner, same-college, grant, and subscription access", () => {
@@ -111,8 +111,8 @@ test("getResources applies access filters and pagination inside Mongo queries", 
   assert.equal(seen.limit, 3);
   assert.deepEqual(seen.populate, { path: "uploadedBy", select: "fullName role" });
   assert.deepEqual(seen.findFilter, seen.countFilter);
-  assert.equal(Array.isArray(seen.findFilter.$and), true);
-  assert.deepEqual(seen.findFilter.$and[1], { visibility: "public" });
+  assert.equal(seen.findFilter.categoryId, "books");
+  assert.equal(seen.findFilter.collegeName.test("AB college"), true);
   assert.equal(responsePayload.data.items.length, 1);
   assert.equal(responsePayload.data.pagination.total, 7);
   assert.equal(responsePayload.data.pagination.page, 2);

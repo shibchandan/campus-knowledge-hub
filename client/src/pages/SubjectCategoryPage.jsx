@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState } from "react";
-import { Link, Navigate, useParams } from "react-router-dom";
+import { Link, Navigate, useParams, useNavigate } from "react-router-dom";
 import { useAuth } from "../auth/AuthContext";
 import { useCollege } from "../college/CollegeContext";
 import { SectionCard } from "../components/SectionCard";
@@ -129,7 +129,18 @@ function getAccessOptions(role) {
   ];
 }
 
-function ResourcePreview({ resource }) {
+function ResourcePreview({ resource, onAccessAttempt }) {
+  if (resource.isLocked) {
+    return (
+      <div className="locked-preview-card" onClick={onAccessAttempt}>
+        <div className="locked-preview-icon">🔒</div>
+        <h4>Resource Locked</h4>
+        <p className="muted">This resource is private/protected. Sign in or unlock to view the content.</p>
+        <button className="open-college-button compact" type="button">Access Resource</button>
+      </div>
+    );
+  }
+
   const previewSrc = buildAuthorizedApiUrl(resource.previewUrl || resource.fileUrl);
 
   if (resource.fileMimeType?.startsWith("video/")) {
@@ -179,6 +190,7 @@ export function SubjectCategoryPage() {
   const { user } = useAuth();
   const { selectedCollege } = useCollege();
   const { showError, showSuccess, showInfo } = useToast();
+  const navigate = useNavigate();
   const fallbackProgram = getProgramById(programId, selectedCollege?.name || "");
   const fallbackBranch = getBranchById(fallbackProgram, branchId);
   const fallbackSemester = getSemesterById(fallbackBranch, semesterId);
@@ -492,7 +504,24 @@ export function SubjectCategoryPage() {
     }
   }
 
+  function handleAccessAttempt(resource) {
+    if (!user) {
+      navigate("/login", { state: { from: window.location.pathname } });
+      showInfo("Please sign in or register to access resources and features.");
+      return;
+    }
+
+    if (resource.visibility === "protected") {
+      handleUnlockProtectedResource(resource._id);
+    }
+  }
+
   async function handleUnlockProtectedResource(resourceId) {
+    if (!user) {
+      navigate("/login", { state: { from: window.location.pathname } });
+      showInfo("Please sign in or register to access resources and features.");
+      return;
+    }
     setError("");
     setSuccess("");
 
@@ -536,6 +565,11 @@ export function SubjectCategoryPage() {
   }
 
   async function handleFeedbackVote(resourceId, vote, stars) {
+    if (!user) {
+      navigate("/login", { state: { from: window.location.pathname } });
+      showInfo("Please sign in or register to access resources and features.");
+      return;
+    }
     setFeedbackBusyByResource((current) => ({ ...current, [resourceId]: true }));
     setError("");
 
@@ -561,6 +595,11 @@ export function SubjectCategoryPage() {
   }
 
   async function handleAddComment(resourceId) {
+    if (!user) {
+      navigate("/login", { state: { from: window.location.pathname } });
+      showInfo("Please sign in or register to access resources and features.");
+      return;
+    }
     const comment = String(commentInputs[resourceId] || "").trim();
     if (!comment) {
       return;
@@ -932,7 +971,7 @@ export function SubjectCategoryPage() {
                 {resource.description ? <p className="muted">{resource.description}</p> : null}
                 {resource.textContent ? <pre className="resource-text">{resource.textContent}</pre> : null}
 
-                <ResourcePreview resource={resource} />
+                <ResourcePreview resource={resource} onAccessAttempt={() => handleAccessAttempt(resource)} />
 
                 <div className="resource-file-card">
                   <p className="resource-badge">

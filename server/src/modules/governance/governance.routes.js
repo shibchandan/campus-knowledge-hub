@@ -1,5 +1,5 @@
 import { Router } from "express";
-import { authorize, protect } from "../../middleware/authMiddleware.js";
+import { authorize, optionalProtect, protect } from "../../middleware/authMiddleware.js";
 import {
   getAvailableRepresentativeColleges,
   createApprovedCollegeCourse,
@@ -19,7 +19,7 @@ import {
 
 export const governanceRouter = Router();
 
-governanceRouter.get("/approved-courses", protect, getApprovedCollegeCourses);
+governanceRouter.get("/approved-courses", optionalProtect, getApprovedCollegeCourses);
 governanceRouter.get(
   "/requestable-colleges",
   protect,
@@ -56,7 +56,7 @@ governanceRouter.delete(
   authorize("representative", "admin"),
   deleteApprovedCollegeCourse
 );
-governanceRouter.get("/college-profile", protect, getCollegeProfile);
+governanceRouter.get("/college-profile", optionalProtect, getCollegeProfile);
 governanceRouter.put(
   "/college-profile",
   protect,
