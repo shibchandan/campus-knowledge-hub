@@ -141,3 +141,5 @@
 {"timestamp":"2026-06-06T19:36:52.427Z","instanceId":"LAPTOP-H635NFR1","level":"info","message":"mongodb_connected","metadata":{}}
 {"timestamp":"2026-06-06T19:36:52.446Z","instanceId":"LAPTOP-H635NFR1","level":"info","message":"server_started","metadata":{"port":5000,"instanceId":"LAPTOP-H635NFR1","multiInstanceEnabled":false,"sharedStorageConfigured":false}}
 {"timestamp":"2026-06-07T00:51:42.672Z","instanceId":"LAPTOP-H635NFR1","level":"warn","message":"rate_limit_shared_store_fallback","metadata":{"keyPrefix":"test-shared-fallback","error":"shared store unavailable"}}
+{"timestamp":"2026-06-07T09:06:30.476Z","instanceId":"LAPTOP-H635NFR1","level":"warn","message":"rate_limit_shared_store_fallback","metadata":{"keyPrefix":"test-shared-fallback","error":"shared store unavailable"}}
+{"timestamp":"2026-06-07T09:07:03.443Z","instanceId":"LAPTOP-H635NFR1","level":"warn","message":"rate_limit_shared_store_fallback","metadata":{"keyPrefix":"test-shared-fallback","error":"shared store unavailable"}}
