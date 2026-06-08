@@ -138,11 +138,9 @@ async function notifyAdminsAboutStudentVerification(user) {
     <p>Open the Admin Panel to review and verify this student.</p>
   `;
 
-  try {
-    await sendAdminNotification({ subject, text, html });
-  } catch (error) {
+  sendAdminNotification({ subject, text, html }).catch((error) => {
     console.log(`[Admin notification error] ${error.message}`);
-  }
+  });
 }
 
 async function notifyAdminsAboutRepresentativeRequest(user) {
@@ -164,11 +162,9 @@ async function notifyAdminsAboutRepresentativeRequest(user) {
     <p>Open the Admin Panel to approve or reject this representative request.</p>
   `;
 
-  try {
-    await sendAdminNotification({ subject, text, html });
-  } catch (error) {
+  sendAdminNotification({ subject, text, html }).catch((error) => {
     console.log(`[Admin notification error] ${error.message}`);
-  }
+  });
 }
 
 async function issueCollegeEmailOtp(user) {
@@ -195,11 +191,13 @@ async function issueCollegeEmailOtp(user) {
   user.collegeEmailOtpSentAt = new Date();
   await user.save();
 
-  await sendEmail({
+  sendEmail({
     to: user.officialCollegeEmail,
     subject: "Campus Knowledge Hub college email verification OTP",
     text: `Your Campus Knowledge Hub college email verification OTP is ${otp}. It expires in ${COLLEGE_EMAIL_OTP_EXPIRY_MINUTES} minutes.`,
     html: `<p>Your Campus Knowledge Hub college email verification OTP is <strong>${otp}</strong>.</p><p>This code will expire in ${COLLEGE_EMAIL_OTP_EXPIRY_MINUTES} minutes.</p>`
+  }).catch((error) => {
+    console.log(`[College OTP email error] ${error.message}`);
   });
 }
 
@@ -574,11 +572,13 @@ export async function forgotPassword(req, res, next) {
 
     const messageText = `Your Campus Knowledge Hub password reset OTP is ${otp}. It will expire in ${OTP_EXPIRY_MINUTES} minutes. If you did not request this, please ignore this email.`;
 
-    await sendEmail({
+    sendEmail({
       to: user.email,
       subject: "Campus Knowledge Hub password reset OTP",
       text: messageText,
       html: `<p>Your Campus Knowledge Hub password reset OTP is <strong>${otp}</strong>.</p><p>This code will expire in ${OTP_EXPIRY_MINUTES} minutes.</p><p>If you did not request this, please ignore this email.</p>`
+    }).catch((error) => {
+      console.log(`[Forgot password email error] ${error.message}`);
     });
 
     genericForgotPasswordResponse(res);

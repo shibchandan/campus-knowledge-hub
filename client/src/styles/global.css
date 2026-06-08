@@ -2386,3 +2386,45 @@ h3 {
   border: 1px dashed rgba(242, 166, 90, 0.25);
   background: linear-gradient(135deg, rgba(40, 32, 22, 0.4), rgba(24, 33, 47, 0.6));
 }
+
+.password-input-wrapper {
+  position: relative;
+  display: flex;
+  align-items: center;
+  width: 100%;
+}
+
+.password-input-wrapper input {
+  padding-right: 48px !important;
+  width: 100%;
+}
+
+.password-toggle-btn {
+  position: absolute;
+  right: 14px;
+  background: transparent;
+  border: none;
+  color: rgba(24, 33, 47, 0.48);
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 6px;
+  border-radius: 50%;
+  transition: background-color 0.2s, color 0.2s;
+}
+
+.password-toggle-btn:hover {
+  background-color: rgba(24, 33, 47, 0.06);
+  color: rgba(24, 33, 47, 0.8);
+}
+
+[data-theme="dark"] .password-toggle-btn {
+  color: rgba(255, 255, 255, 0.48);
+}
+
+[data-theme="dark"] .password-toggle-btn:hover {
+  background-color: rgba(255, 255, 255, 0.08);
+  color: rgba(255, 255, 255, 0.8);
+}
+
