@@ -113,6 +113,16 @@ export async function createCollegeRequest(req, res, next) {
   try {
     const payload = validateCollegeRequestPayload(req.body);
 
+    if (
+      req.user.collegeName &&
+      normalizeCollegeName(req.user.collegeName) !== normalizeCollegeName(payload.collegeName)
+    ) {
+      throw createHttpError(
+        `Representatives can only request courses for their assigned college: ${req.user.collegeName}.`,
+        403
+      );
+    }
+
     const existingApprovedCourse = await CollegeCourse.findOne({
       collegeNameNormalized: normalizeCollegeName(payload.collegeName),
       courseNameNormalized: normalizeCollegeName(payload.courseName)

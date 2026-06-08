@@ -29,7 +29,7 @@ governanceRouter.get(
 governanceRouter.post(
   "/approved-courses",
   protect,
-  authorize("representative", "admin"),
+  authorize("admin"),
   createApprovedCollegeCourse
 );
 governanceRouter.get(

@@ -296,13 +296,32 @@ export function RepresentativePanelPage() {
     loadRepresentativeData();
   }, []);
 
+  useEffect(() => {
+    if (user?.collegeName) {
+      setForm((current) => ({
+        ...current,
+        collegeName: current.collegeName || user.collegeName
+      }));
+      setProfileForm((current) => ({
+        ...current,
+        collegeName: current.collegeName || user.collegeName
+      }));
+    }
+  }, [user]);
+
   function resetCourseForm() {
-    setForm(initialForm);
+    setForm({
+      collegeName: user?.collegeName || "",
+      courseName: ""
+    });
     setEditingCourseId("");
   }
 
   function resetProfileForm() {
-    setProfileForm(initialProfileForm);
+    setProfileForm({
+      ...initialProfileForm,
+      collegeName: user?.collegeName || ""
+    });
     setEditingProfileId("");
   }
 
@@ -351,9 +370,9 @@ export function RepresentativePanelPage() {
         setSuccess("College course details updated successfully.");
         showSuccess("College course details updated successfully.");
       } else {
-        await apiClient.post("/governance/approved-courses", payload);
-        setSuccess("College course added successfully.");
-        showSuccess("College course added successfully.");
+        await apiClient.post("/governance/requests", payload);
+        setSuccess("College course request submitted to admin for approval.");
+        showSuccess("College course request submitted to admin for approval.");
       }
 
       resetCourseForm();

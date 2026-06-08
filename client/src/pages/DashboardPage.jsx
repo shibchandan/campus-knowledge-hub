@@ -446,8 +446,8 @@ export function DashboardPage() {
         await apiClient.post("/governance/approved-courses", payload);
         showSuccess("Course added directly by admin.");
       } else {
-        await apiClient.post("/governance/approved-courses", payload);
-        showSuccess("Course added successfully.");
+        await apiClient.post("/governance/requests", payload);
+        showSuccess("College course request submitted to admin for approval.");
       }
 
       setCourseForm({ courseName: "" });

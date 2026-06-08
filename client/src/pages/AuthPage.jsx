@@ -315,7 +315,7 @@ export function AuthPage() {
                 <option value="representative">College Representative</option>
               </select>
             </label>
-            {registerForm.role === "student" ? (
+            {registerForm.role === "student" || registerForm.role === "representative" ? (
               <>
                 <label className="auth-field">
                   <span>College Name</span>
@@ -325,23 +325,7 @@ export function AuthPage() {
                     onChange={(event) =>
                       setRegisterForm((current) => ({ ...current, collegeName: event.target.value }))
                     }
-                    placeholder="Enter your college name"
-                    required
-                  />
-                </label>
-
-                <label className="auth-field">
-                  <span>College ID</span>
-                  <input
-                    type="text"
-                    value={registerForm.collegeStudentId}
-                    onChange={(event) =>
-                      setRegisterForm((current) => ({
-                        ...current,
-                        collegeStudentId: event.target.value.toUpperCase()
-                      }))
-                    }
-                    placeholder="Enter your student/college ID"
+                    placeholder="Enter the college name"
                     required
                   />
                 </label>
@@ -357,6 +341,25 @@ export function AuthPage() {
                       }))
                     }
                     placeholder="yourid@college.edu"
+                  />
+                </label>
+              </>
+            ) : null}
+            {registerForm.role === "student" ? (
+              <>
+                <label className="auth-field">
+                  <span>College ID</span>
+                  <input
+                    type="text"
+                    value={registerForm.collegeStudentId}
+                    onChange={(event) =>
+                      setRegisterForm((current) => ({
+                        ...current,
+                        collegeStudentId: event.target.value.toUpperCase()
+                      }))
+                    }
+                    placeholder="Enter your student/college ID"
+                    required
                   />
                 </label>
                 <label className="auth-field">
