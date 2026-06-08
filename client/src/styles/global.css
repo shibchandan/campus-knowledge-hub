@@ -2428,3 +2428,33 @@ h3 {
   color: rgba(255, 255, 255, 0.8);
 }
 
+.audit-scroll-container {
+  max-height: 380px;
+  overflow-y: auto;
+  padding-right: 6px;
+  scrollbar-width: thin;
+  scrollbar-color: rgba(15, 23, 42, 0.15) transparent;
+}
+
+[data-theme="dark"] .audit-scroll-container {
+  scrollbar-color: rgba(255, 255, 255, 0.15) transparent;
+}
+
+.audit-scroll-container::-webkit-scrollbar {
+  width: 6px;
+}
+
+.audit-scroll-container::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.audit-scroll-container::-webkit-scrollbar-thumb {
+  background: rgba(15, 23, 42, 0.15);
+  border-radius: 4px;
+}
+
+[data-theme="dark"] .audit-scroll-container::-webkit-scrollbar-thumb {
+  background: rgba(255, 255, 255, 0.15);
+}
+
+

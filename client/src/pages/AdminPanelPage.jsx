@@ -100,6 +100,7 @@ export function AdminPanelPage() {
   const [courseSearch, setCourseSearch] = useState("");
   const [structureSearch, setStructureSearch] = useState("");
   const [subjectSearch, setSubjectSearch] = useState("");
+  const [visibleAuditCount, setVisibleAuditCount] = useState(5);
 
   async function loadAdminData() {
     setLoading(true);
@@ -747,15 +748,18 @@ export function AdminPanelPage() {
         <div className="toolbar-grid">
           <input
             className="college-search"
-            onChange={(event) => setAuditSearch(event.target.value)}
+            onChange={(event) => {
+              setAuditSearch(event.target.value);
+              setVisibleAuditCount(5); // Reset to 5 when user searches
+            }}
             placeholder="Search action, entity, or actor..."
             type="text"
             value={auditSearch}
           />
           <p className="muted">{filteredAuditLogs.length} records visible</p>
         </div>
-        <div className="panel-list">
-          {filteredAuditLogs.map((log) => (
+        <div className="panel-list audit-scroll-container">
+          {filteredAuditLogs.slice(0, visibleAuditCount).map((log) => (
             <article className="panel-card" key={log._id}>
               <h3>{log.action}</h3>
               <p className="muted">
@@ -765,6 +769,17 @@ export function AdminPanelPage() {
             </article>
           ))}
         </div>
+        {filteredAuditLogs.length > visibleAuditCount ? (
+          <div className="panel-actions" style={{ justifyContent: "center", marginTop: "16px" }}>
+            <button
+              type="button"
+              className="action-button neutral"
+              onClick={() => setVisibleAuditCount((prev) => prev + 10)}
+            >
+              Load More
+            </button>
+          </div>
+        ) : null}
       </SectionCard>
 
       <SectionCard
