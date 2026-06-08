@@ -939,10 +939,21 @@ export function RepresentativePanelPage() {
       }
     });
 
+    if (user?.collegeName) {
+      const normalizedName = normalizeSearchValue(user.collegeName);
+      if (!merged.has(normalizedName)) {
+        merged.set(normalizedName, {
+          collegeName: user.collegeName,
+          collegeNameNormalized: normalizedName,
+          courses: []
+        });
+      }
+    }
+
     return Array.from(merged.values()).sort((left, right) =>
       left.collegeName.localeCompare(right.collegeName)
     );
-  }, [platformColleges, requestableColleges]);
+  }, [platformColleges, requestableColleges, user?.collegeName]);
 
   const matchingCollegeOption = useMemo(
     () =>
@@ -1073,7 +1084,7 @@ export function RepresentativePanelPage() {
           onCancel={resetCourseForm}
           isEditing={Boolean(editingCourseId)}
           isDropdown={true}
-          collegesList={requestableColleges}
+          collegesList={collegeCatalogOptions}
           selectedCourseCatalogEntry={selectedCourseCatalogEntry}
           submitting={submitting}
         />
