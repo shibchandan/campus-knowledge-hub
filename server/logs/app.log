@@ -147,3 +147,7 @@
 {"timestamp":"2026-06-08T19:47:03.629Z","instanceId":"LAPTOP-H635NFR1","level":"warn","message":"rate_limit_shared_store_fallback","metadata":{"keyPrefix":"test-shared-fallback","error":"shared store unavailable"}}
 {"timestamp":"2026-06-08T20:18:51.601Z","instanceId":"LAPTOP-H635NFR1","level":"warn","message":"rate_limit_shared_store_fallback","metadata":{"keyPrefix":"test-shared-fallback","error":"shared store unavailable"}}
 {"timestamp":"2026-06-08T20:40:55.423Z","instanceId":"LAPTOP-H635NFR1","level":"warn","message":"rate_limit_shared_store_fallback","metadata":{"keyPrefix":"test-shared-fallback","error":"shared store unavailable"}}
+{"timestamp":"2026-06-08T20:48:10.492Z","instanceId":"LAPTOP-H635NFR1","level":"warn","message":"rate_limit_shared_store_fallback","metadata":{"keyPrefix":"test-shared-fallback","error":"shared store unavailable"}}
+{"timestamp":"2026-06-08T20:51:22.421Z","instanceId":"LAPTOP-H635NFR1","level":"warn","message":"deployment_configuration_warning","metadata":{"code":"local_storage_single_instance_only","message":"Resource files are stored on local disk. This is safe only for single-instance deployments."}}
+{"timestamp":"2026-06-08T20:51:22.507Z","instanceId":"LAPTOP-H635NFR1","level":"info","message":"mongodb_connected","metadata":{}}
+{"timestamp":"2026-06-08T20:51:22.521Z","instanceId":"LAPTOP-H635NFR1","level":"info","message":"server_started","metadata":{"port":5000,"instanceId":"LAPTOP-H635NFR1","multiInstanceEnabled":false,"sharedStorageConfigured":false}}

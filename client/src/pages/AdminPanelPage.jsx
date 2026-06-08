@@ -101,6 +101,7 @@ export function AdminPanelPage() {
   const [structureSearch, setStructureSearch] = useState("");
   const [subjectSearch, setSubjectSearch] = useState("");
   const [visibleAuditCount, setVisibleAuditCount] = useState(5);
+  const [visibleStructureCount, setVisibleStructureCount] = useState(5);
 
   async function loadAdminData() {
     setLoading(true);
@@ -904,7 +905,10 @@ export function AdminPanelPage() {
         <div className="toolbar-grid">
           <input
             className="college-search"
-            onChange={(event) => setStructureSearch(event.target.value)}
+            onChange={(event) => {
+              setStructureSearch(event.target.value);
+              setVisibleStructureCount(5); // Reset to 5 on search
+            }}
             placeholder="Search college, program, branch, or semester..."
             type="text"
             value={structureSearch}
@@ -912,8 +916,8 @@ export function AdminPanelPage() {
           <p className="muted">{filteredStructures.length} structures visible</p>
         </div>
 
-        <div className="panel-list">
-          {filteredStructures.map((structure) => (
+        <div className="panel-list structure-scroll-container">
+          {filteredStructures.slice(0, visibleStructureCount).map((structure) => (
             <article className="panel-card" key={structure._id}>
               <h3>{structure.branchName}</h3>
               <p className="muted">
@@ -933,6 +937,17 @@ export function AdminPanelPage() {
             </article>
           ))}
         </div>
+        {filteredStructures.length > visibleStructureCount ? (
+          <div className="panel-actions" style={{ justifyContent: "center", marginTop: "16px" }}>
+            <button
+              type="button"
+              className="action-button neutral"
+              onClick={() => setVisibleStructureCount((prev) => prev + 10)}
+            >
+              Load More
+            </button>
+          </div>
+        ) : null}
       </SectionCard>
 
       <SectionCard

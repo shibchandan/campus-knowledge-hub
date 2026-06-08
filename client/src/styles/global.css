@@ -2429,7 +2429,7 @@ h3 {
 }
 
 .audit-scroll-container {
-  max-height: 380px;
+  max-height: 240px;
   overflow-y: auto;
   padding-right: 6px;
   scrollbar-width: thin;
@@ -2456,5 +2456,35 @@ h3 {
 [data-theme="dark"] .audit-scroll-container::-webkit-scrollbar-thumb {
   background: rgba(255, 255, 255, 0.15);
 }
+
+.structure-scroll-container {
+  max-height: 340px;
+  overflow-y: auto;
+  padding-right: 6px;
+  scrollbar-width: thin;
+  scrollbar-color: rgba(15, 23, 42, 0.15) transparent;
+}
+
+[data-theme="dark"] .structure-scroll-container {
+  scrollbar-color: rgba(255, 255, 255, 0.15) transparent;
+}
+
+.structure-scroll-container::-webkit-scrollbar {
+  width: 6px;
+}
+
+.structure-scroll-container::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.structure-scroll-container::-webkit-scrollbar-thumb {
+  background: rgba(15, 23, 42, 0.15);
+  border-radius: 4px;
+}
+
+[data-theme="dark"] .structure-scroll-container::-webkit-scrollbar-thumb {
+  background: rgba(255, 255, 255, 0.15);
+}
+
 
 
