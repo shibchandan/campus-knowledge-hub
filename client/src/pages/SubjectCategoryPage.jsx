@@ -94,6 +94,10 @@ function getStorageLabel(resource) {
     return "Local Storage";
   }
 
+  if (resource.storageProvider === "cloudinary") {
+    return "Cloudinary Storage";
+  }
+
   if (resource.storageProvider === "external") {
     return "External Link";
   }

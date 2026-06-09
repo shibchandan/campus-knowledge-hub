@@ -2,8 +2,17 @@ import fs from "fs/promises";
 import path from "path";
 import { randomUUID } from "crypto";
 import { DeleteObjectCommand, PutObjectCommand, S3Client } from "@aws-sdk/client-s3";
+import { v2 as cloudinary } from "cloudinary";
 import { env } from "../config/env.js";
 import { uploadDirectory } from "../middleware/uploadMiddleware.js";
+
+export function cloudinaryConfigured() {
+  return Boolean(
+    env.cloudinaryCloudName &&
+      env.cloudinaryApiKey &&
+      env.cloudinaryApiSecret
+  );
+}
 
 export function cloudflareR2Configured() {
   return Boolean(
@@ -44,6 +53,33 @@ export async function storeUploadedFile(file) {
       fileUrl: "",
       previewUrl: "",
       cloudObjectKey: ""
+    };
+  }
+
+  if (cloudinaryConfigured()) {
+    cloudinary.config({
+      cloud_name: env.cloudinaryCloudName,
+      api_key: env.cloudinaryApiKey,
+      api_secret: env.cloudinaryApiSecret
+    });
+
+    const isVideo = file.mimetype?.startsWith("video/");
+    const uploadResult = await cloudinary.uploader.upload(file.path, {
+      resource_type: isVideo ? "video" : "auto",
+      folder: "campus-knowledge-hub"
+    });
+
+    await fs.unlink(file.path).catch(() => {});
+
+    return {
+      storageProvider: "cloudinary",
+      fileOriginalName: file.originalname,
+      fileStoredName: file.filename,
+      fileMimeType: file.mimetype,
+      fileSize: file.size,
+      fileUrl: uploadResult.secure_url || uploadResult.url,
+      previewUrl: uploadResult.secure_url || uploadResult.url,
+      cloudObjectKey: uploadResult.public_id
     };
   }
 
@@ -89,6 +125,25 @@ export async function storeUploadedFile(file) {
 
 export async function removeStoredFile(resource) {
   if (!resource?.fileStoredName && !resource?.cloudObjectKey) {
+    return;
+  }
+
+  if (resource.storageProvider === "cloudinary" && cloudinaryConfigured()) {
+    const publicId = resource.cloudObjectKey;
+    if (!publicId) {
+      return;
+    }
+
+    cloudinary.config({
+      cloud_name: env.cloudinaryCloudName,
+      api_key: env.cloudinaryApiKey,
+      api_secret: env.cloudinaryApiSecret
+    });
+
+    const isVideo = resource.fileMimeType?.startsWith("video/");
+    await cloudinary.uploader.destroy(publicId, {
+      resource_type: isVideo ? "video" : "image"
+    }).catch(() => {});
     return;
   }
 
