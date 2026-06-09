@@ -16,10 +16,11 @@ import {
   updateApprovedCollegeCourse,
   upsertCollegeProfile
 } from "./governance.controller.js";
+import { cacheMiddleware, invalidateCacheMiddleware } from "../../middleware/cacheMiddleware.js";
 
 export const governanceRouter = Router();
 
-governanceRouter.get("/approved-courses", optionalProtect, getApprovedCollegeCourses);
+governanceRouter.get("/approved-courses", optionalProtect, cacheMiddleware(300), getApprovedCollegeCourses);
 governanceRouter.get(
   "/requestable-colleges",
   protect,
@@ -30,6 +31,7 @@ governanceRouter.post(
   "/approved-courses",
   protect,
   authorize("admin"),
+  invalidateCacheMiddleware("/governance/approved-courses"),
   createApprovedCollegeCourse
 );
 governanceRouter.get(
@@ -42,31 +44,36 @@ governanceRouter.patch(
   "/approved-courses/:courseId",
   protect,
   authorize("representative", "admin"),
+  invalidateCacheMiddleware("/governance/approved-courses"),
   updateApprovedCollegeCourse
 );
 governanceRouter.delete(
   "/approved-courses/:courseId/college",
   protect,
   authorize("representative", "admin"),
+  invalidateCacheMiddleware("/governance/approved-courses"),
   deleteRepresentativeCollege
 );
 governanceRouter.delete(
   "/approved-courses/:courseId",
   protect,
   authorize("representative", "admin"),
+  invalidateCacheMiddleware("/governance/approved-courses"),
   deleteApprovedCollegeCourse
 );
-governanceRouter.get("/college-profile", optionalProtect, getCollegeProfile);
+governanceRouter.get("/college-profile", optionalProtect, cacheMiddleware(300), getCollegeProfile);
 governanceRouter.put(
   "/college-profile",
   protect,
   authorize("representative", "admin"),
+  invalidateCacheMiddleware("/governance/college-profile"),
   upsertCollegeProfile
 );
 governanceRouter.delete(
   "/college-profile/:profileId",
   protect,
   authorize("representative", "admin"),
+  invalidateCacheMiddleware("/governance/college-profile"),
   deleteCollegeProfile
 );
 

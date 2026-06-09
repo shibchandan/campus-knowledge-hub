@@ -10,14 +10,51 @@ import {
   updateAcademicStructure,
   updateAcademicSubject
 } from "./academic.controller.js";
+import { cacheMiddleware, invalidateCacheMiddleware } from "../../middleware/cacheMiddleware.js";
 
 export const academicRouter = Router();
 
-academicRouter.get("/structures", optionalProtect, listAcademicStructures);
-academicRouter.post("/structures", protect, authorize("admin", "representative"), createAcademicStructure);
-academicRouter.patch("/structures/:structureId", protect, authorize("admin", "representative"), updateAcademicStructure);
-academicRouter.delete("/structures/:structureId", protect, authorize("admin", "representative"), deleteAcademicStructure);
-academicRouter.get("/subjects", optionalProtect, listAcademicSubjects);
-academicRouter.post("/subjects", protect, authorize("admin", "representative"), createAcademicSubject);
-academicRouter.patch("/subjects/:subjectRecordId", protect, authorize("admin", "representative"), updateAcademicSubject);
-academicRouter.delete("/subjects/:subjectRecordId", protect, authorize("admin", "representative"), deleteAcademicSubject);
+academicRouter.get("/structures", optionalProtect, cacheMiddleware(300), listAcademicStructures);
+academicRouter.post(
+  "/structures",
+  protect,
+  authorize("admin", "representative"),
+  invalidateCacheMiddleware("/academic/structures"),
+  createAcademicStructure
+);
+academicRouter.patch(
+  "/structures/:structureId",
+  protect,
+  authorize("admin", "representative"),
+  invalidateCacheMiddleware("/academic/structures"),
+  updateAcademicStructure
+);
+academicRouter.delete(
+  "/structures/:structureId",
+  protect,
+  authorize("admin", "representative"),
+  invalidateCacheMiddleware("/academic/structures"),
+  deleteAcademicStructure
+);
+academicRouter.get("/subjects", optionalProtect, cacheMiddleware(300), listAcademicSubjects);
+academicRouter.post(
+  "/subjects",
+  protect,
+  authorize("admin", "representative"),
+  invalidateCacheMiddleware("/academic/subjects"),
+  createAcademicSubject
+);
+academicRouter.patch(
+  "/subjects/:subjectRecordId",
+  protect,
+  authorize("admin", "representative"),
+  invalidateCacheMiddleware("/academic/subjects"),
+  updateAcademicSubject
+);
+academicRouter.delete(
+  "/subjects/:subjectRecordId",
+  protect,
+  authorize("admin", "representative"),
+  invalidateCacheMiddleware("/academic/subjects"),
+  deleteAcademicSubject
+);
