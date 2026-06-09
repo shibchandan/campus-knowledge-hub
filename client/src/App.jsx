@@ -1,3 +1,4 @@
+import { SpeedInsights } from "@vercel/speed-insights/react";
 import { AuthProvider } from "./auth/AuthContext";
 import { CollegeProvider } from "./college/CollegeContext";
 import { ThemeProvider } from "./theme/ThemeContext";
@@ -11,6 +12,7 @@ function App() {
         <AuthProvider>
           <CollegeProvider>
             <AppRoutes />
+            <SpeedInsights />
           </CollegeProvider>
         </AuthProvider>
       </ToastProvider>
