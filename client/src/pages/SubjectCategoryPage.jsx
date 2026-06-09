@@ -71,7 +71,8 @@ const initialUploadForm = {
   textContent: "",
   visibility: "private",
   accessPrice: "0",
-  allowBasicSubscription: false
+  allowBasicSubscription: false,
+  externalLink: ""
 };
 
 const initialEditForm = {
@@ -80,7 +81,8 @@ const initialEditForm = {
   textContent: "",
   visibility: "private",
   accessPrice: "0",
-  allowBasicSubscription: false
+  allowBasicSubscription: false,
+  externalLink: ""
 };
 
 function getStorageLabel(resource) {
@@ -90,6 +92,10 @@ function getStorageLabel(resource) {
 
   if (resource.storageProvider === "local") {
     return "Local Storage";
+  }
+
+  if (resource.storageProvider === "external") {
+    return "External Link";
   }
 
   return resource.storageProvider || "Unknown";
@@ -159,6 +165,15 @@ function ResourcePreview({ resource, onAccessAttempt }) {
         className="resource-image"
         src={previewSrc}
       />
+    );
+  }
+
+  if (resource.storageProvider === "external") {
+    return (
+      <div className="resource-file-card">
+        <p className="resource-badge">External Resource Link</p>
+        <p className="muted">{resource.fileUrl}</p>
+      </div>
     );
   }
 
@@ -436,6 +451,7 @@ export function SubjectCategoryPage() {
       formData.append("visibility", uploadForm.visibility);
       formData.append("accessPrice", uploadForm.accessPrice || "0");
       formData.append("allowBasicSubscription", String(uploadForm.allowBasicSubscription));
+      formData.append("externalLink", uploadForm.externalLink || "");
 
       if (selectedFile) {
         formData.append("file", selectedFile);
@@ -773,14 +789,26 @@ export function SubjectCategoryPage() {
               </label>
             ) : null}
             <label className="auth-field">
-              <span>{isLectureCategory ? "Video Upload (required)" : "File Upload (optional)"}</span>
+              <span>External Link (URL)</span>
+              <p className="muted">Provide a link to YouTube, Google Drive, or any external academic resource.</p>
+              <input
+                type="url"
+                placeholder="https://example.com/resource"
+                value={uploadForm.externalLink}
+                onChange={(event) =>
+                  setUploadForm((current) => ({ ...current, externalLink: event.target.value }))
+                }
+              />
+            </label>
+            <label className="auth-field">
+              <span>{isLectureCategory ? "Video Upload" : "File Upload (optional)"}</span>
               <p className="muted">
-                {uploadGuidance.heading}: {uploadGuidance.detail}
+                {uploadGuidance.heading}: {uploadGuidance.detail} {isLectureCategory ? "(Required if no external link provided)" : ""}
               </p>
               <input
                 accept={uploadGuidance.accepts}
                 onChange={(event) => setSelectedFile(event.target.files?.[0] || null)}
-                required={isLectureCategory}
+                required={isLectureCategory && !uploadForm.externalLink}
                 type="file"
               />
             </label>
@@ -815,6 +843,20 @@ export function SubjectCategoryPage() {
                 value={editForm.description}
               />
             </label>
+            {editForm.externalLink ? (
+              <label className="auth-field">
+                <span>External Link (URL)</span>
+                <input
+                  type="url"
+                  placeholder="https://example.com/resource"
+                  value={editForm.externalLink}
+                  onChange={(event) =>
+                    setEditForm((current) => ({ ...current, externalLink: event.target.value }))
+                  }
+                  required
+                />
+              </label>
+            ) : null}
             <div className="auth-field">
               <span>Access Type</span>
               <div className="access-option-grid">
@@ -1084,7 +1126,7 @@ export function SubjectCategoryPage() {
                       rel="noreferrer"
                       target="_blank"
                     >
-                      Download
+                      {resource.storageProvider === "external" ? "Open Link" : "Download"}
                     </a>
                   ) : null}
                   {resource.visibility === "protected" &&
@@ -1109,7 +1151,8 @@ export function SubjectCategoryPage() {
                           textContent: resource.textContent || "",
                           visibility: resource.visibility || "private",
                           accessPrice: String(resource.accessPrice || 0),
-                          allowBasicSubscription: Boolean(resource.allowBasicSubscription)
+                          allowBasicSubscription: Boolean(resource.allowBasicSubscription),
+                          externalLink: resource.storageProvider === "external" ? resource.fileUrl : ""
                         });
                       }}
                       type="button"

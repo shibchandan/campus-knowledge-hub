@@ -365,7 +365,8 @@ export async function uploadResource(req, res, next) {
       textContent,
       visibility,
       accessPrice,
-      allowBasicSubscription
+      allowBasicSubscription,
+      externalLink
     } = req.body;
 
     const cleanedCollegeName = readString(collegeName, { field: "collegeName", min: 3, max: 120 });
@@ -418,8 +419,13 @@ export async function uploadResource(req, res, next) {
       throw createHttpError("Basic subscription access applies only to protected resources.");
     }
 
-    if (policy.requireFile && !req.file) {
-      throw createHttpError(`${categoryKey} category requires file upload.`);
+    const cleanExternalLink = externalLink ? String(externalLink).trim() : "";
+    if (cleanExternalLink && !/^https?:\/\/\S+$/i.test(cleanExternalLink)) {
+      throw createHttpError("Invalid external link URL format.");
+    }
+
+    if (policy.requireFile && !req.file && !cleanExternalLink) {
+      throw createHttpError(`${categoryKey} category requires a file upload or an external link.`);
     }
 
     if (!policy.allowTextOnly && cleanedText) {
@@ -434,8 +440,8 @@ export async function uploadResource(req, res, next) {
       throw createHttpError(`File is too large for ${categoryKey} category.`, 413);
     }
 
-    if (!req.file && !cleanedText) {
-      throw createHttpError("Upload a file or provide text content.");
+    if (!req.file && !cleanedText && !cleanExternalLink) {
+      throw createHttpError("Upload a file, provide text content, or share an external link.");
     }
 
     if (req.file) {
@@ -443,8 +449,11 @@ export async function uploadResource(req, res, next) {
     }
 
     const storedFile = await storeUploadedFile(req.file);
-    const fileUrl = storedFile.fileUrl || "";
-    const previewUrl = storedFile.previewUrl || fileUrl;
+    const fileUrl = cleanExternalLink || storedFile.fileUrl || "";
+    const previewUrl = cleanExternalLink || storedFile.previewUrl || fileUrl;
+    const fileOriginalName = cleanExternalLink ? "External Link" : storedFile.fileOriginalName;
+    const fileMimeType = cleanExternalLink ? "text/html" : storedFile.fileMimeType;
+    const storageProvider = cleanExternalLink ? "external" : storedFile.storageProvider;
 
     const resource = await Resource.create({
       collegeName: cleanedCollegeName,
@@ -456,11 +465,11 @@ export async function uploadResource(req, res, next) {
       title: cleanedTitle,
       description: cleanedDescription,
       textContent: cleanedText,
-      fileOriginalName: storedFile.fileOriginalName,
+      fileOriginalName,
       fileStoredName: storedFile.fileStoredName,
-      fileMimeType: storedFile.fileMimeType,
+      fileMimeType,
       fileSize: storedFile.fileSize,
-      storageProvider: storedFile.storageProvider,
+      storageProvider,
       fileUrl,
       previewUrl,
       cloudObjectKey: storedFile.cloudObjectKey,
@@ -744,12 +753,23 @@ export async function updateResource(req, res, next) {
       throw createHttpError("Students cannot convert personal resources into shared access resources.", 403);
     }
 
+    const cleanExternalLink = req.body.externalLink ? String(req.body.externalLink).trim() : "";
+    if (cleanExternalLink && !/^https?:\/\/\S+$/i.test(cleanExternalLink)) {
+      throw createHttpError("Invalid external link URL format.");
+    }
+
     resource.title = title;
     resource.description = description;
     resource.textContent = textContent;
     resource.visibility = visibility;
     resource.accessPrice = visibility === "protected" ? accessPrice : 0;
     resource.allowBasicSubscription = visibility === "protected" ? allowBasicSubscription : false;
+
+    if (cleanExternalLink && resource.storageProvider === "external") {
+      resource.fileUrl = cleanExternalLink;
+      resource.previewUrl = cleanExternalLink;
+    }
+
     await resource.save();
     await createAuditLog({
       req,
