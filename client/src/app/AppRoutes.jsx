@@ -1,9 +1,11 @@
+import { useEffect } from "react";
 import { Navigate, Route, Routes } from "react-router-dom";
 import { ProtectedRoute } from "../components/ProtectedRoute";
 import { RoleRoute } from "../components/RoleRoute";
 import { DashboardLayout } from "../layouts/DashboardLayout";
 import { AuthPage } from "../pages/AuthPage";
 import { CollegeSelectorPage } from "../pages/CollegeSelectorPage";
+import { useToast } from "../ui/ToastContext";
 import { DashboardPage } from "../pages/DashboardPage";
 import { ProgramDetailPage } from "../pages/ProgramDetailPage";
 import { BranchSemesterPage } from "../pages/BranchSemesterPage";
@@ -24,6 +26,26 @@ import { StudentPanelPage } from "../pages/StudentPanelPage";
 import { AccountSettingsPage } from "../pages/AccountSettingsPage";
 
 export function AppRoutes() {
+  const { showError } = useToast();
+
+  useEffect(() => {
+    const handleNetworkError = () => {
+      showError("Network Error: Cannot connect to the server. Please check your internet connection.");
+    };
+
+    const handleSessionExpired = () => {
+      showError("Your session has expired. Please log in again.");
+    };
+
+    window.addEventListener("api-network-error", handleNetworkError);
+    window.addEventListener("api-session-expired", handleSessionExpired);
+
+    return () => {
+      window.removeEventListener("api-network-error", handleNetworkError);
+      window.removeEventListener("api-session-expired", handleSessionExpired);
+    };
+  }, [showError]);
+
   return (
     <Routes>
       <Route path="/login" element={<AuthPage />} />

@@ -78,6 +78,13 @@ export function AuthPage() {
   const [error, setError] = useState("");
   const [success, setSuccess] = useState("");
 
+  useEffect(() => {
+    const params = new URLSearchParams(location.search);
+    if (params.get("expired") === "true") {
+      setError("Your session has expired. Please log in again.");
+    }
+  }, [location.search]);
+
   if (isAuthenticated) {
     return <Navigate to="/colleges" replace />;
   }

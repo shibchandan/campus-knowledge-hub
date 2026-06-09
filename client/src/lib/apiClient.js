@@ -46,3 +46,22 @@ export function setAuthToken(token) {
 
   delete apiClient.defaults.headers.common.Authorization;
 }
+
+apiClient.interceptors.response.use(
+  (response) => response,
+  (error) => {
+    if (!error.response) {
+      window.dispatchEvent(new CustomEvent("api-network-error"));
+    } else if (error.response.status === 401) {
+      if (!window.location.pathname.includes("/login")) {
+        localStorage.removeItem("campus-knowledge-hub-auth");
+        window.dispatchEvent(new CustomEvent("api-session-expired"));
+        setTimeout(() => {
+          window.location.href = "/login?expired=true";
+        }, 1500);
+      }
+    }
+    return Promise.reject(error);
+  }
+);
+
