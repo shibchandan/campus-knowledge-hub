@@ -60,17 +60,17 @@ export function CollegeProvider({ children }) {
         );
 
         setAvailableColleges((current) =>
-          mergeColleges(current, colleges, approvedColleges, selectedCollege ? [selectedCollege] : [])
+          mergeColleges(current, colleges, approvedColleges)
         );
       } catch {
         setAvailableColleges((current) =>
-          mergeColleges(current, colleges, selectedCollege ? [selectedCollege] : [])
+          mergeColleges(current, colleges)
         );
       }
     }
 
     loadApprovedColleges();
-  }, [selectedCollege]);
+  }, []);
 
   useEffect(() => {
     if (selectedCollege) {
@@ -82,18 +82,19 @@ export function CollegeProvider({ children }) {
   }, [selectedCollege]);
 
   useEffect(() => {
-    if (selectedCollege) {
-      setAvailableColleges((current) => mergeColleges(current, [selectedCollege]));
-    }
-  }, [selectedCollege]);
-
-  useEffect(() => {
     if (!lockedCollegeName) {
       return;
     }
 
+    if (
+      selectedCollege &&
+      selectedCollege.name.trim().toLowerCase() === lockedCollegeName.toLowerCase()
+    ) {
+      return;
+    }
+
     const existingCollege =
-      availableColleges.find(
+      colleges.find(
         (item) => item.name.trim().toLowerCase() === lockedCollegeName.toLowerCase()
       ) || {
         id: lockedCollegeName.toLowerCase().replace(/[^a-z0-9]+/g, "-"),
@@ -102,19 +103,18 @@ export function CollegeProvider({ children }) {
         location: "Assigned college"
       };
 
+    setSelectedCollege(existingCollege);
+
     setAvailableColleges((current) => {
-      const hasCollege = current.some(
+      const exists = current.some(
         (item) => item.name.trim().toLowerCase() === existingCollege.name.trim().toLowerCase()
       );
-      if (hasCollege) {
+      if (exists) {
         return current;
       }
-
       return [...current, existingCollege].sort((left, right) => left.name.localeCompare(right.name));
     });
-
-    setSelectedCollege(existingCollege);
-  }, [availableColleges, lockedCollegeName]);
+  }, [lockedCollegeName, selectedCollege]);
 
   function selectCollegeById(collegeId) {
     const college = availableColleges.find((item) => item.id === collegeId) || null;
