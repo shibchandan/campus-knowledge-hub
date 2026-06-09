@@ -2486,5 +2486,105 @@ h3 {
   background: rgba(255, 255, 255, 0.15);
 }
 
+/* Premium Loading States & Keyframes */
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+.spinner {
+  display: inline-block;
+  width: 20px;
+  height: 20px;
+  border: 2.5px solid rgba(99, 102, 241, 0.2);
+  border-top-color: #6366f1;
+  border-radius: 50%;
+  animation: spin 0.8s linear infinite;
+  vertical-align: middle;
+}
+
+.spinner.sm {
+  width: 14px;
+  height: 14px;
+  border-width: 2px;
+}
+
+.spinner.lg {
+  width: 32px;
+  height: 32px;
+  border-width: 3px;
+}
+
+/* Spinner helper for buttons */
+.btn-spinner-container {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  justify-content: center;
+  vertical-align: middle;
+}
+
+/* Skeleton Screens */
+@keyframes shimmer {
+  0% {
+    background-position: -200% 0;
+  }
+  100% {
+    background-position: 200% 0;
+  }
+}
+
+.skeleton-card {
+  width: 100%;
+  padding: 18px;
+  border-radius: 18px;
+  border: 1px solid rgba(24, 33, 47, 0.05);
+  background: linear-gradient(90deg, 
+    rgba(24, 33, 47, 0.03) 25%, 
+    rgba(24, 33, 47, 0.08) 37%, 
+    rgba(24, 33, 47, 0.03) 63%
+  );
+  background-size: 400% 100%;
+  animation: shimmer 1.6s ease-in-out infinite;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+[data-theme="dark"] .skeleton-card {
+  border-color: rgba(255, 255, 255, 0.05);
+  background: linear-gradient(90deg, 
+    rgba(255, 255, 255, 0.03) 25%, 
+    rgba(255, 255, 255, 0.08) 37%, 
+    rgba(255, 255, 255, 0.03) 63%
+  );
+  background-size: 400% 100%;
+}
+
+.skeleton-line {
+  height: 16px;
+  background: rgba(24, 33, 47, 0.04);
+  border-radius: 4px;
+}
+
+[data-theme="dark"] .skeleton-line {
+  background: rgba(255, 255, 255, 0.04);
+}
+
+.skeleton-line.title {
+  width: 40%;
+  height: 20px;
+}
+
+.skeleton-line.body-short {
+  width: 70%;
+}
+
+.skeleton-line.body-long {
+  width: 85%;
+}
+
+
 
 

@@ -8,6 +8,7 @@ import { CourseForm } from "../components/forms/CourseForm";
 import { StructureForm } from "../components/forms/StructureForm";
 import { SubjectForm } from "../components/forms/SubjectForm";
 import { NoticeForm } from "../components/forms/NoticeForm";
+import { SkeletonCard, Spinner } from "../components/LoadingStates";
 
 const initialUserForm = {
   fullName: "",
@@ -760,15 +761,19 @@ export function AdminPanelPage() {
           <p className="muted">{filteredAuditLogs.length} records visible</p>
         </div>
         <div className="panel-list audit-scroll-container">
-          {filteredAuditLogs.slice(0, visibleAuditCount).map((log) => (
-            <article className="panel-card" key={log._id}>
-              <h3>{log.action}</h3>
-              <p className="muted">
-                {log.entityType} | {log.actorUserId?.fullName || log.actorUserId?.email || "System"}
-              </p>
-              <p className="muted">{new Date(log.createdAt).toLocaleString()}</p>
-            </article>
-          ))}
+          {loading ? (
+            <SkeletonCard count={3} />
+          ) : (
+            filteredAuditLogs.slice(0, visibleAuditCount).map((log) => (
+              <article className="panel-card" key={log._id}>
+                <h3>{log.action}</h3>
+                <p className="muted">
+                  {log.entityType} | {log.actorUserId?.fullName || log.actorUserId?.email || "System"}
+                </p>
+                <p className="muted">{new Date(log.createdAt).toLocaleString()}</p>
+              </article>
+            ))
+          )}
         </div>
         {filteredAuditLogs.length > visibleAuditCount ? (
           <div className="panel-actions" style={{ justifyContent: "center", marginTop: "16px" }}>
@@ -917,25 +922,29 @@ export function AdminPanelPage() {
         </div>
 
         <div className="panel-list structure-scroll-container">
-          {filteredStructures.slice(0, visibleStructureCount).map((structure) => (
-            <article className="panel-card" key={structure._id}>
-              <h3>{structure.branchName}</h3>
-              <p className="muted">
-                {structure.collegeName} | {structure.programName} | {structure.semesterName}
-              </p>
-              <p className="muted">
-                Branch ID: {structure.branchId} | Semester ID: {structure.semesterId} | Order: {structure.semesterOrder}
-              </p>
-              <div className="panel-actions">
-                <button className="action-button approve" onClick={() => handleEditStructure(structure)} type="button">
-                  Edit Structure
-                </button>
-                <button className="action-button reject" onClick={() => handleDeleteStructure(structure._id)} type="button">
-                  Delete Structure
-                </button>
-              </div>
-            </article>
-          ))}
+          {loading ? (
+            <SkeletonCard count={3} />
+          ) : (
+            filteredStructures.slice(0, visibleStructureCount).map((structure) => (
+              <article className="panel-card" key={structure._id}>
+                <h3>{structure.branchName}</h3>
+                <p className="muted">
+                  {structure.collegeName} | {structure.programName} | {structure.semesterName}
+                </p>
+                <p className="muted">
+                  Branch ID: {structure.branchId} | Semester ID: {structure.semesterId} | Order: {structure.semesterOrder}
+                </p>
+                <div className="panel-actions">
+                  <button className="action-button approve" onClick={() => handleEditStructure(structure)} type="button">
+                    Edit Structure
+                  </button>
+                  <button className="action-button reject" onClick={() => handleDeleteStructure(structure._id)} type="button">
+                    Delete Structure
+                  </button>
+                </div>
+              </article>
+            ))
+          )}
         </div>
         {filteredStructures.length > visibleStructureCount ? (
           <div className="panel-actions" style={{ justifyContent: "center", marginTop: "16px" }}>

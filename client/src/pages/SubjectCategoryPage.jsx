@@ -15,6 +15,7 @@ import { apiClient, buildAuthorizedApiUrl } from "../lib/apiClient";
 import { requestDeletePassword } from "../lib/deleteWithPassword";
 import { openRazorpayCheckout } from "../lib/paymentClient";
 import { useToast } from "../ui/ToastContext";
+import { SkeletonCard, Spinner } from "../components/LoadingStates";
 
 const CATEGORY_UPLOAD_GUIDANCE = {
   lecture: {
@@ -936,12 +937,14 @@ export function SubjectCategoryPage() {
           </article>
         </div>
 
-        {loading ? <p className="muted">Loading resources...</p> : null}
         {!loading && resources.length === 0 ? (
           <p className="muted">No resources uploaded in this category yet.</p>
         ) : null}
         <div className="panel-list">
-          {sortedResources.map((resource) => {
+          {loading ? (
+            <SkeletonCard count={3} />
+          ) : (
+            sortedResources.map((resource) => {
             const canManage = user?.role === "admin" || resource.uploadedBy?._id === user?.id;
             const feedback = feedbackByResource[resource._id];
             const feedbackMetrics = feedback?.metrics || {
@@ -1126,8 +1129,9 @@ export function SubjectCategoryPage() {
                 </div>
               </article>
             );
-          })}
-        </div>
+          })
+        )}
+      </div>
 
         <div className="pagination-bar">
           <button

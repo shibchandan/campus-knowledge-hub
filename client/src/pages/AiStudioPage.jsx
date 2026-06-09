@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import { SectionCard } from "../components/SectionCard";
 import { useCollege } from "../college/CollegeContext";
 import { apiClient } from "../lib/apiClient";
+import { Spinner, SkeletonCard } from "../components/LoadingStates";
 
 export function AiStudioPage() {
   const { selectedCollege } = useCollege();
@@ -12,13 +13,17 @@ export function AiStudioPage() {
   const [answer, setAnswer] = useState(null);
   const [history, setHistory] = useState([]);
   const [historyBusyId, setHistoryBusyId] = useState("");
+  const [historyLoading, setHistoryLoading] = useState(true);
 
   async function loadMeta() {
+    setHistoryLoading(true);
     try {
       const historyResponse = await apiClient.get("/ai/history");
       setHistory(historyResponse.data.data);
     } catch {
       setHistory([]);
+    } finally {
+      setHistoryLoading(false);
     }
   }
 
@@ -124,7 +129,13 @@ export function AiStudioPage() {
             />
           </label>
           <button className="auth-submit" disabled={loading} type="submit">
-            {loading ? "Generating..." : "Ask AI"}
+            {loading ? (
+              <span className="btn-spinner-container">
+                <Spinner size="sm" /> Generating...
+              </span>
+            ) : (
+              "Ask AI"
+            )}
           </button>
         </form>
         {error ? <p className="auth-error">{error}</p> : null}
@@ -191,32 +202,36 @@ export function AiStudioPage() {
             </button>
           </div>
         ) : null}
-        {!history.length ? <p className="muted">No AI history yet. Ask your first question.</p> : null}
+        {!historyLoading && !history.length ? <p className="muted">No AI history yet. Ask your first question.</p> : null}
         <div className="panel-list">
-          {history.map((item) => (
-            <article className="panel-card" key={item._id}>
-              <h3>{item.question}</h3>
-              <p className="muted">
-                Intent: {item.intent} | Provider: {item.provider || "fallback"} | {new Date(item.createdAt).toLocaleString()}
-              </p>
-              <p>{item.answer?.summary}</p>
-              {item.sourceResources?.length ? (
+          {historyLoading ? (
+            <SkeletonCard count={2} />
+          ) : (
+            history.map((item) => (
+              <article className="panel-card" key={item._id}>
+                <h3>{item.question}</h3>
                 <p className="muted">
-                  Sources: {item.sourceResources.map((resource) => resource.title).join(" | ")}
+                  Intent: {item.intent} | Provider: {item.provider || "fallback"} | {new Date(item.createdAt).toLocaleString()}
                 </p>
-              ) : null}
-              <div className="panel-actions">
-                <button
-                  className="action-button reject"
-                  disabled={historyBusyId === item._id}
-                  onClick={() => handleDeleteHistoryItem(item._id)}
-                  type="button"
-                >
-                  {historyBusyId === item._id ? "Deleting..." : "Delete"}
-                </button>
-              </div>
-            </article>
-          ))}
+                <p>{item.answer?.summary}</p>
+                {item.sourceResources?.length ? (
+                  <p className="muted">
+                    Sources: {item.sourceResources.map((resource) => resource.title).join(" | ")}
+                  </p>
+                ) : null}
+                <div className="panel-actions">
+                  <button
+                    className="action-button reject"
+                    disabled={historyBusyId === item._id}
+                    onClick={() => handleDeleteHistoryItem(item._id)}
+                    type="button"
+                  >
+                    {historyBusyId === item._id ? "Deleting..." : "Delete"}
+                  </button>
+                </div>
+              </article>
+            ))
+          )}
         </div>
       </SectionCard>
     </div>
