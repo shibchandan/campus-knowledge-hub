@@ -17,7 +17,24 @@ export function createApp() {
 
   app.use(
     cors({
-      origin: env.clientUrl,
+      origin: (origin, callback) => {
+        if (!origin) {
+          return callback(null, true);
+        }
+
+        const cleanOrigin = origin.replace(/\/$/, "").toLowerCase();
+        const cleanClient = env.clientUrl.replace(/\/$/, "").toLowerCase();
+
+        const matchDirect = cleanOrigin === cleanClient;
+        const matchNoProtocol =
+          cleanOrigin.replace(/^https?:\/\//, "") === cleanClient.replace(/^https?:\/\//, "");
+
+        if (matchDirect || matchNoProtocol) {
+          callback(null, true);
+        } else {
+          callback(null, false); // Reject unauthorized origins safely
+        }
+      },
       credentials: true
     })
   );
