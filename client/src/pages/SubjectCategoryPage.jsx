@@ -709,6 +709,30 @@ export function SubjectCategoryPage() {
           {error ? <p className="auth-error">{error}</p> : null}
           {success ? <p className="success-note">{success}</p> : null}
           <form className="panel-form" onSubmit={handleUpload}>
+            <div
+              style={{
+                background: "rgba(239, 68, 68, 0.08)",
+                border: "1px solid rgba(239, 68, 68, 0.25)",
+                borderRadius: "12px",
+                padding: "14px 16px",
+                marginBottom: "20px",
+                display: "flex",
+                gap: "10px",
+                alignItems: "flex-start",
+                color: "#ef4444"
+              }}
+            >
+              <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor" width="20" height="20" style={{ flexShrink: 0, marginTop: "2px" }}>
+                <path strokeLinecap="round" strokeLinejoin="round" d="M12 9v3.75m-9.303 3.376c-.866 1.5.217 3.374 1.948 3.374h14.71c1.73 0 2.813-1.874 1.948-3.374L13.949 3.378c-.866-1.5-3.032-1.5-3.898 0L2.697 16.126ZM12 15.75h.007v.008H12v-.008Z" />
+              </svg>
+              <div>
+                <strong style={{ display: "block", marginBottom: "4px", fontWeight: "600" }}>Copyright & Intellectual Property Warning</strong>
+                <span style={{ fontSize: "0.85rem", opacity: 0.9, lineHeight: "1.4", display: "block" }}>
+                  Please do NOT upload copyrighted textbooks, published papers, or third-party paid course materials. You are only permitted to upload student-created lecture notes, lab records, slides, or previous year questions (PYQs). Uploading copyrighted materials violates our platform policy and will result in instant account suspension.
+                </span>
+              </div>
+            </div>
+
             <label className="auth-field">
               <span>Title</span>
               <input
