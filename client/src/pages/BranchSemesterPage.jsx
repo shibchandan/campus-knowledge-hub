@@ -7,6 +7,7 @@ import { getBranchById, getProgramById } from "../features/dashboard/data";
 import { getDynamicBranchById, getDynamicProgramById, groupStructuresIntoPrograms } from "../lib/academicHelpers";
 import { apiClient } from "../lib/apiClient";
 import { useToast } from "../ui/ToastContext";
+import { requestDeletePassword } from "../lib/deleteWithPassword";
 
 function slugify(value = "") {
   return String(value)
@@ -32,6 +33,8 @@ export function BranchSemesterPage() {
     subjectId: ""
   });
   const [subjectBusy, setSubjectBusy] = useState(false);
+  const [editingSubject, setEditingSubject] = useState(null);
+  const [editForm, setEditForm] = useState({ name: "", subjectId: "" });
 
   useEffect(() => {
     async function loadStructure() {
@@ -107,8 +110,10 @@ export function BranchSemesterPage() {
       subjects: dynamicSubjects
         .filter((subject) => subject.semesterId === semester.id)
         .map((subject) => ({
+          _id: subject._id,
           id: subject.subjectId,
-          name: subject.name
+          name: subject.name,
+          semesterId: subject.semesterId
         }))
     }));
   }, [branch, dynamicBranch, dynamicSubjects]);
@@ -125,6 +130,92 @@ export function BranchSemesterPage() {
       subjectId: current.subjectId
     }));
   }, [semesters]);
+
+  function startEditSubject(subject) {
+    setEditingSubject(subject);
+    setEditForm({
+      name: subject.name,
+      subjectId: subject.id
+    });
+  }
+
+  function cancelEditSubject() {
+    setEditingSubject(null);
+    setEditForm({ name: "", subjectId: "" });
+  }
+
+  async function handleUpdateSubject(event) {
+    event.preventDefault();
+
+    if (!selectedCollege?.name || !program || !branch || !editingSubject) {
+      showError("Choose a valid college branch first.");
+      return;
+    }
+
+    setSubjectBusy(true);
+
+    try {
+      await apiClient.patch(`/academic/subjects/${editingSubject._id}`, {
+        collegeName: selectedCollege.name,
+        programId: program.id,
+        branchId: branch.id,
+        semesterId: editingSubject.semesterId,
+        subjectId: editForm.subjectId || slugify(editForm.name),
+        name: editForm.name
+      });
+
+      showSuccess("Subject updated successfully.");
+      cancelEditSubject();
+
+      const response = await apiClient.get("/academic/subjects", {
+        params: {
+          collegeName: selectedCollege.name,
+          programId,
+          branchId
+        }
+      });
+      setDynamicSubjects(response.data.data);
+    } catch (requestError) {
+      showError(requestError.response?.data?.message || "Failed to update subject.");
+    } finally {
+      setSubjectBusy(false);
+    }
+  }
+
+  async function handleDeleteSubject() {
+    if (!editingSubject) {
+      return;
+    }
+
+    const currentPassword = requestDeletePassword("this subject");
+    if (!currentPassword) {
+      return;
+    }
+
+    setSubjectBusy(true);
+
+    try {
+      await apiClient.delete(`/academic/subjects/${editingSubject._id}`, {
+        data: { currentPassword }
+      });
+
+      showSuccess("Subject deleted successfully.");
+      cancelEditSubject();
+
+      const response = await apiClient.get("/academic/subjects", {
+        params: {
+          collegeName: selectedCollege.name,
+          programId,
+          branchId
+        }
+      });
+      setDynamicSubjects(response.data.data);
+    } catch (requestError) {
+      showError(requestError.response?.data?.message || "Failed to delete subject.");
+    } finally {
+      setSubjectBusy(false);
+    }
+  }
 
   async function handleCreateSubject(event) {
     event.preventDefault();
@@ -224,13 +315,27 @@ export function BranchSemesterPage() {
               </div>
               <div className="subject-list">
                 {item.subjects.map((subject) => (
-                  <Link
-                    className="subject-pill subject-link"
-                    key={subject.id}
-                    to={`/dashboard/${programId}/branch/${branchId}/${item.id}/${subject.id}`}
-                  >
-                    {subject.name}
-                  </Link>
+                  <div key={subject.id} className="subject-item-wrapper">
+                    <Link
+                      className="subject-pill subject-link"
+                      to={`/dashboard/${programId}/branch/${branchId}/${item.id}/${subject.id}`}
+                      style={{ flexGrow: 1 }}
+                    >
+                      {subject.name}
+                    </Link>
+                    {canManageBranch && (
+                      <button
+                        onClick={() => startEditSubject(subject)}
+                        className="subject-action-btn"
+                        title="Edit Subject"
+                        type="button"
+                      >
+                        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" width="16" height="16">
+                          <path strokeLinecap="round" strokeLinejoin="round" d="m16.862 4.487 1.687-1.688a1.875 1.875 0 1 1 2.652 2.652L6.832 19.82a4.5 4.5 0 0 1-1.897 1.13l-2.685.8.8-2.685a4.5 4.5 0 0 1 1.13-1.897L16.863 4.487Zm0 0L19.5 7.125" />
+                        </svg>
+                      </button>
+                    )}
+                  </div>
                 ))}
               </div>
             </article>
@@ -296,6 +401,67 @@ export function BranchSemesterPage() {
           </form>
         </SectionCard>
       ) : null}
+
+      {editingSubject && (
+        <div className="filter-modal-overlay" onClick={cancelEditSubject} role="presentation">
+          <div className="filter-modal-card" onClick={(e) => e.stopPropagation()} role="dialog" aria-modal="true">
+            <div className="filter-modal-header">
+              <h3>Edit Subject</h3>
+              <button className="filter-modal-close" onClick={cancelEditSubject} type="button">
+                &times;
+              </button>
+            </div>
+
+            <form className="panel-form" onSubmit={handleUpdateSubject} style={{ marginTop: 0, border: 'none', background: 'transparent', padding: 0 }}>
+              <div className="panel-form-grid" style={{ gridTemplateColumns: '1fr' }}>
+                <label className="auth-field">
+                  <span>Subject Name</span>
+                  <input
+                    onChange={(event) =>
+                      setEditForm((current) => ({ ...current, name: event.target.value }))
+                    }
+                    placeholder="Enter new subject name"
+                    required
+                    type="text"
+                    value={editForm.name}
+                  />
+                </label>
+                <label className="auth-field">
+                  <span>Subject ID</span>
+                  <input
+                    onChange={(event) =>
+                      setEditForm((current) => ({ ...current, subjectId: event.target.value }))
+                    }
+                    placeholder="Enter subject ID (e.g. data-mining)"
+                    required
+                    type="text"
+                    value={editForm.subjectId}
+                  />
+                </label>
+              </div>
+
+              <div className="panel-actions" style={{ justifyContent: 'flex-end', gap: '12px', marginTop: '24px' }}>
+                <button
+                  type="button"
+                  className="open-college-button"
+                  onClick={handleDeleteSubject}
+                  style={{ background: 'rgba(239, 68, 68, 0.1)', color: '#ef4444', border: '1px solid rgba(239, 68, 68, 0.2)' }}
+                  disabled={subjectBusy}
+                >
+                  Delete Subject
+                </button>
+                <button
+                  type="submit"
+                  className="open-college-button"
+                  disabled={subjectBusy}
+                >
+                  {subjectBusy ? "Saving Changes..." : "Save Changes"}
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

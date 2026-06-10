@@ -2585,6 +2585,46 @@ h3 {
   width: 85%;
 }
 
+/* Subject layout and edit action controls */
+.subject-item-wrapper {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  position: relative;
+  width: 100%;
+}
 
+.subject-action-btn {
+  border: none;
+  background: rgba(24, 33, 47, 0.05);
+  border: 1px solid rgba(24, 33, 47, 0.08);
+  color: #4b5563;
+  width: 38px;
+  height: 38px;
+  border-radius: 10px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  flex-shrink: 0;
+}
 
+.subject-action-btn:hover {
+  background: rgba(242, 166, 90, 0.15);
+  border-color: rgba(242, 166, 90, 0.4);
+  color: #b56311;
+  transform: translateY(-1px);
+}
 
+[data-theme="dark"] .subject-action-btn {
+  background: rgba(255, 255, 255, 0.03);
+  border-color: rgba(255, 255, 255, 0.08);
+  color: #9ca3af;
+}
+
+[data-theme="dark"] .subject-action-btn:hover {
+  background: rgba(255, 207, 124, 0.1);
+  border-color: rgba(255, 207, 124, 0.3);
+  color: #ffcf7c;
+}
