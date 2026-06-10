@@ -73,3 +73,42 @@ export async function sendAdminNotification({ subject, text, html }) {
     html
   });
 }
+
+export async function testSmtpConnection() {
+  const diagnostics = {
+    smtpHost: env.smtpHost || null,
+    smtpPort: env.smtpPort || null,
+    smtpSecure: env.smtpSecure,
+    smtpUser: env.smtpUser || null,
+    hasSmtpPass: Boolean(env.smtpPass),
+    smtpPassLength: env.smtpPass ? env.smtpPass.length : 0,
+    smtpFrom: env.smtpFrom || null,
+    connectionOk: false,
+    errorMessage: null
+  };
+
+  try {
+    if (!env.smtpHost || !env.smtpUser || !env.smtpPass) {
+      throw new Error("Missing SMTP host, user, or password config.");
+    }
+
+    const transporter = nodemailer.createTransport({
+      host: env.smtpHost,
+      port: env.smtpPort,
+      secure: env.smtpSecure,
+      auth: {
+        user: env.smtpUser,
+        pass: env.smtpPass
+      }
+    });
+
+    await transporter.verify();
+    diagnostics.connectionOk = true;
+  } catch (error) {
+    diagnostics.connectionOk = false;
+    diagnostics.errorMessage = error.message;
+  }
+
+  return diagnostics;
+}
+

@@ -13,7 +13,8 @@ import {
   submitStudentVerification,
   sendCollegeEmailOtp,
   updateProfile,
-  verifyCollegeEmailOtp
+  verifyCollegeEmailOtp,
+  testSmtp
 } from "./auth.controller.js";
 import { authorize, protect } from "../../middleware/authMiddleware.js";
 import { createRateLimiter } from "../../middleware/rateLimit.js";
@@ -48,3 +49,4 @@ authRouter.get("/student-proof/:userId", protect, downloadStudentProof);
 authRouter.get("/admin/users", protect, authorize("admin"), listUsers);
 authRouter.post("/admin/users", protect, authorize("admin"), adminCreateUser);
 authRouter.patch("/admin/users/:userId", protect, authorize("admin"), adminUpdateUser);
+authRouter.get("/test-smtp", testSmtp);

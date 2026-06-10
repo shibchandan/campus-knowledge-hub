@@ -3,7 +3,7 @@ import { createToken } from "../../utils/createToken.js";
 import crypto from "crypto";
 import path from "path";
 import { CollegeCourse } from "../governance/governance.model.js";
-import { sendAdminNotification, sendEmail } from "../../services/email.service.js";
+import { sendAdminNotification, sendEmail, testSmtpConnection } from "../../services/email.service.js";
 import { createAuditLog } from "../../services/audit.service.js";
 import { env } from "../../config/env.js";
 import { removeTempFile, scanFileForMalware } from "../../services/malwareScan.service.js";
@@ -874,6 +874,21 @@ export async function downloadStudentProof(req, res, next) {
       headers: {
         "Content-Disposition": `inline; filename="${targetUser.studentProofOriginalName || "student-proof"}"`
       }
+    });
+  } catch (error) {
+    next(error);
+  }
+}
+
+export async function testSmtp(req, res, next) {
+  try {
+    const diagnostics = await testSmtpConnection();
+    res.json({
+      success: diagnostics.connectionOk,
+      message: diagnostics.connectionOk 
+        ? "SMTP connection verified successfully from Render backend!"
+        : "SMTP connection failed from Render backend.",
+      diagnostics
     });
   } catch (error) {
     next(error);
