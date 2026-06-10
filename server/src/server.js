@@ -1,3 +1,6 @@
+import dns from "node:dns";
+dns.setDefaultResultOrder("ipv4first");
+
 import http from "node:http";
 import { fileURLToPath } from "node:url";
 import { createApp } from "./app.js";
