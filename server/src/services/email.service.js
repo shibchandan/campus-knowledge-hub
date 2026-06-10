@@ -18,7 +18,9 @@ async function getTransporter() {
         auth: {
           user: env.smtpUser,
           pass: env.smtpPass
-        }
+        },
+        connectionTimeout: 10000,
+        greetingTimeout: 10000
       })
     );
   }
@@ -99,7 +101,9 @@ export async function testSmtpConnection() {
       auth: {
         user: env.smtpUser,
         pass: env.smtpPass
-      }
+      },
+      connectionTimeout: 10000,
+      greetingTimeout: 10000
     });
 
     await transporter.verify();
