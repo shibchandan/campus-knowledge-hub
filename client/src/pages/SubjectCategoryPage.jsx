@@ -197,6 +197,24 @@ function ResourcePreview({ resource, onAccessAttempt }) {
   }
 
   if (resource.fileMimeType?.includes("pdf")) {
+    if (resource.storageProvider === "cloudflare-r2" || resource.storageProvider === "cloudinary") {
+      return (
+        <div className="resource-file-card">
+          <div style={{ fontSize: "2.5rem", marginBottom: "0.5rem" }}>📄</div>
+          <p className="resource-badge">{resource.fileOriginalName || "PDF Document"}</p>
+          <p className="muted" style={{ marginBottom: "0.75rem" }}>PDF preview is not available for cloud-hosted files.</p>
+          <a
+            href={previewSrc}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="open-college-button compact"
+            style={{ textDecoration: "none", display: "inline-block" }}
+          >
+            Open PDF in New Tab ↗
+          </a>
+        </div>
+      );
+    }
     return <iframe className="resource-pdf" src={previewSrc} title={resource.title} />;
   }
 
