@@ -2628,3 +2628,114 @@ h3 {
   border-color: rgba(255, 207, 124, 0.3);
   color: #ffcf7c;
 }
+
+/* Collapsible Semester Accordion */
+.semester-accordion-list {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  width: 100%;
+}
+
+.semester-accordion-item {
+  border-radius: 16px;
+  background: rgba(255, 255, 255, 0.4);
+  border: 1px solid rgba(24, 33, 47, 0.08);
+  overflow: hidden;
+  transition: all 0.2s ease;
+}
+
+[data-theme="dark"] .semester-accordion-item {
+  background: rgba(18, 28, 43, 0.2);
+  border-color: rgba(255, 255, 255, 0.05);
+}
+
+.semester-accordion-header {
+  width: 100%;
+  padding: 16px 20px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  border: none;
+  background: transparent;
+  cursor: pointer;
+  text-align: left;
+  transition: background 0.2s ease;
+}
+
+.semester-accordion-header:hover {
+  background: rgba(24, 33, 47, 0.03);
+}
+
+[data-theme="dark"] .semester-accordion-header:hover {
+  background: rgba(255, 255, 255, 0.02);
+}
+
+.semester-header-info {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  color: #111827;
+}
+
+[data-theme="dark"] .semester-header-info {
+  color: #f3f4f6;
+}
+
+.semester-header-info h3 {
+  margin: 0;
+  font-size: 1.1rem;
+  font-weight: 600;
+}
+
+.chevron-icon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  color: #6b7280;
+  transition: transform 0.2s ease;
+}
+
+.subject-count-badge {
+  padding: 4px 10px;
+  border-radius: 8px;
+  font-size: 0.8rem;
+  font-weight: 500;
+  background: rgba(24, 33, 47, 0.06);
+  color: #4b5563;
+}
+
+.subject-count-badge.active {
+  background: rgba(242, 166, 90, 0.1);
+  color: #b56311;
+  font-weight: 600;
+}
+
+[data-theme="dark"] .subject-count-badge.active {
+  background: rgba(255, 207, 124, 0.1);
+  color: #ffcf7c;
+}
+
+.semester-accordion-content {
+  padding: 0 20px 20px 20px;
+  border-top: 1px dashed rgba(24, 33, 47, 0.08);
+  padding-top: 16px;
+}
+
+[data-theme="dark"] .semester-accordion-content {
+  border-top-color: rgba(255, 255, 255, 0.05);
+}
+
+.subject-grid-list {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+  gap: 12px;
+}
+
+.no-subjects-note {
+  margin: 0;
+  font-size: 0.9rem;
+  color: #6b7280;
+  font-style: italic;
+}
+

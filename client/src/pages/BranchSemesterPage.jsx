@@ -35,6 +35,7 @@ export function BranchSemesterPage() {
   const [subjectBusy, setSubjectBusy] = useState(false);
   const [editingSubject, setEditingSubject] = useState(null);
   const [editForm, setEditForm] = useState({ name: "", subjectId: "" });
+  const [expandedSemesters, setExpandedSemesters] = useState({});
 
   useEffect(() => {
     async function loadStructure() {
@@ -130,6 +131,29 @@ export function BranchSemesterPage() {
       subjectId: current.subjectId
     }));
   }, [semesters]);
+
+  useEffect(() => {
+    if (!semesters.length) {
+      return;
+    }
+
+    setExpandedSemesters((current) => {
+      const next = { ...current };
+      semesters.forEach((sem) => {
+        if (next[sem.id] === undefined) {
+          next[sem.id] = sem.subjects.length > 0;
+        }
+      });
+      return next;
+    });
+  }, [semesters]);
+
+  function toggleSemester(semesterId) {
+    setExpandedSemesters((current) => ({
+      ...current,
+      [semesterId]: !current[semesterId]
+    }));
+  }
 
   function startEditSubject(subject) {
     setEditingSubject(subject);
@@ -306,40 +330,68 @@ export function BranchSemesterPage() {
             : "Fallback semester-wise subject structure is shown for the selected college. Click any subject to open its resource workspace."
         }
       >
-        <div className="semester-grid">
-          {semesters.map((item) => (
-            <article className="semester-card" key={item.id}>
-              <div className="semester-header">
-                <h3>{item.semester}</h3>
-                <span>{item.subjects.length} Subjects</span>
-              </div>
-              <div className="subject-list">
-                {item.subjects.map((subject) => (
-                  <div key={subject.id} className="subject-item-wrapper">
-                    <Link
-                      className="subject-pill subject-link"
-                      to={`/dashboard/${programId}/branch/${branchId}/${item.id}/${subject.id}`}
-                      style={{ flexGrow: 1 }}
-                    >
-                      {subject.name}
-                    </Link>
-                    {canManageBranch && (
-                      <button
-                        onClick={() => startEditSubject(subject)}
-                        className="subject-action-btn"
-                        title="Edit Subject"
-                        type="button"
-                      >
-                        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" width="16" height="16">
-                          <path strokeLinecap="round" strokeLinejoin="round" d="m16.862 4.487 1.687-1.688a1.875 1.875 0 1 1 2.652 2.652L6.832 19.82a4.5 4.5 0 0 1-1.897 1.13l-2.685.8.8-2.685a4.5 4.5 0 0 1 1.13-1.897L16.863 4.487Zm0 0L19.5 7.125" />
-                        </svg>
-                      </button>
+        <div className="semester-accordion-list">
+          {semesters.map((item) => {
+            const isExpanded = Boolean(expandedSemesters[item.id]);
+            return (
+              <div
+                className={`semester-accordion-item${isExpanded ? " expanded" : ""}`}
+                key={item.id}
+              >
+                <button
+                  className="semester-accordion-header"
+                  onClick={() => toggleSemester(item.id)}
+                  type="button"
+                >
+                  <div className="semester-header-info">
+                    <span className="chevron-icon" style={{ transform: isExpanded ? "rotate(0deg)" : "rotate(-90deg)" }}>
+                      <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={2.5} stroke="currentColor" width="16" height="16">
+                        <path strokeLinecap="round" strokeLinejoin="round" d="m19.5 8.25-7.5 7.5-7.5-7.5" />
+                      </svg>
+                    </span>
+                    <h3>{item.semester}</h3>
+                  </div>
+                  <span className={`subject-count-badge${item.subjects.length > 0 ? " active" : ""}`}>
+                    {item.subjects.length} {item.subjects.length === 1 ? "Subject" : "Subjects"}
+                  </span>
+                </button>
+
+                {isExpanded && (
+                  <div className="semester-accordion-content">
+                    {item.subjects.length > 0 ? (
+                      <div className="subject-grid-list">
+                        {item.subjects.map((subject) => (
+                          <div key={subject.id} className="subject-item-wrapper">
+                            <Link
+                              className="subject-pill subject-link"
+                              to={`/dashboard/${programId}/branch/${branchId}/${item.id}/${subject.id}`}
+                              style={{ flexGrow: 1 }}
+                            >
+                              {subject.name}
+                            </Link>
+                            {canManageBranch && (
+                              <button
+                                onClick={() => startEditSubject(subject)}
+                                className="subject-action-btn"
+                                title="Edit Subject"
+                                type="button"
+                              >
+                                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" width="16" height="16">
+                                  <path strokeLinecap="round" strokeLinejoin="round" d="m16.862 4.487 1.687-1.688a1.875 1.875 0 1 1 2.652 2.652L6.832 19.82a4.5 4.5 0 0 1-1.897 1.13l-2.685.8.8-2.685a4.5 4.5 0 0 1 1.13-1.897L16.863 4.487Zm0 0L19.5 7.125" />
+                                </svg>
+                              </button>
+                            )}
+                          </div>
+                        ))}
+                      </div>
+                    ) : (
+                      <p className="no-subjects-note">No subjects added for this semester yet.</p>
                     )}
                   </div>
-                ))}
+                )}
               </div>
-            </article>
-          ))}
+            );
+          })}
         </div>
       </SectionCard>
 
