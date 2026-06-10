@@ -199,18 +199,40 @@ function ResourcePreview({ resource, onAccessAttempt }) {
   if (resource.fileMimeType?.includes("pdf")) {
     if (resource.storageProvider === "cloudflare-r2" || resource.storageProvider === "cloudinary") {
       return (
-        <div className="resource-file-card">
-          <div style={{ fontSize: "2.5rem", marginBottom: "0.5rem" }}>📄</div>
-          <p className="resource-badge">{resource.fileOriginalName || "PDF Document"}</p>
-          <p className="muted" style={{ marginBottom: "0.75rem" }}>PDF preview is not available for cloud-hosted files.</p>
+        <div style={{
+          display: "flex",
+          alignItems: "center",
+          gap: "12px",
+          padding: "12px 16px",
+          background: "rgba(255,255,255,0.03)",
+          borderRadius: "8px",
+          border: "1px solid rgba(255,255,255,0.08)"
+        }}>
+          <span style={{ fontSize: "1.5rem" }}>📄</span>
+          <div style={{ flex: 1, minWidth: 0 }}>
+            <p style={{ margin: 0, fontSize: "0.85rem", fontWeight: 500, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
+              {resource.fileOriginalName || "PDF Document"}
+            </p>
+            <p className="muted" style={{ margin: 0, fontSize: "0.75rem" }}>Cloud-hosted PDF</p>
+          </div>
           <a
             href={previewSrc}
             target="_blank"
             rel="noopener noreferrer"
-            className="open-college-button compact"
-            style={{ textDecoration: "none", display: "inline-block" }}
+            style={{
+              padding: "6px 14px",
+              fontSize: "0.8rem",
+              fontWeight: 600,
+              borderRadius: "6px",
+              background: "rgba(99, 102, 241, 0.15)",
+              color: "#818cf8",
+              border: "1px solid rgba(99, 102, 241, 0.25)",
+              textDecoration: "none",
+              whiteSpace: "nowrap",
+              transition: "all 0.2s ease"
+            }}
           >
-            Open PDF in New Tab ↗
+            Open PDF ↗
           </a>
         </div>
       );
@@ -266,6 +288,7 @@ export function SubjectCategoryPage() {
   const [savingEdit, setSavingEdit] = useState(false);
   const [feedbackByResource, setFeedbackByResource] = useState({});
   const [commentInputs, setCommentInputs] = useState({});
+  const [expandedComments, setExpandedComments] = useState({});
   const [feedbackBusyByResource, setFeedbackBusyByResource] = useState({});
   const [structureLoaded, setStructureLoaded] = useState(false);
   const [reportingResource, setReportingResource] = useState(null);
@@ -1195,108 +1218,144 @@ export function SubjectCategoryPage() {
                     ? ` | Unlock price: INR ${resource.accessPrice || 0}${resource.allowBasicSubscription ? " | Basic subscription allowed" : ""}`
                     : ""}
                 </p>
-                <p className="muted">Storage: {getStorageLabel(resource)}</p>
+
                 {resource.description ? <p className="muted">{resource.description}</p> : null}
                 {resource.textContent ? <pre className="resource-text">{resource.textContent}</pre> : null}
 
                 <ResourcePreview resource={resource} onAccessAttempt={() => handleAccessAttempt(resource)} />
 
-                <div className="resource-file-card">
-                  <p className="resource-badge">
-                    Rating {feedbackMetrics.averageStars}/5 ({feedbackMetrics.totalRatings})
-                  </p>
-                  <p className="muted">
-                    Upvotes: {feedbackMetrics.upvotes} | Downvotes: {feedbackMetrics.downvotes} | Comments:{" "}
-                    {feedbackMetrics.comments}
-                  </p>
-                  <div className="panel-actions">
+                <div style={{
+                  padding: "10px 14px",
+                  background: "rgba(255,255,255,0.03)",
+                  borderRadius: "8px",
+                  border: "1px solid rgba(255,255,255,0.08)"
+                }}>
+                  <div style={{ display: "flex", alignItems: "center", flexWrap: "wrap", gap: "8px" }}>
+                    <span style={{ fontSize: "0.8rem", fontWeight: 600, color: "#f59e0b" }}>
+                      ⭐ {feedbackMetrics.averageStars}/5
+                    </span>
+                    <span className="muted" style={{ fontSize: "0.75rem" }}>({feedbackMetrics.totalRatings} ratings)</span>
+                    <span style={{ margin: "0 4px", opacity: 0.3 }}>|</span>
                     <button
                       className="action-button approve"
                       disabled={feedbackBusy}
                       onClick={() => handleFeedbackVote(resource._id, "upvote", myFeedback.stars || 0)}
                       type="button"
+                      style={{ padding: "3px 10px", fontSize: "0.75rem", minWidth: "auto" }}
                     >
-                      Upvote
+                      👍 {feedbackMetrics.upvotes}
                     </button>
                     <button
                       className="action-button reject"
                       disabled={feedbackBusy}
                       onClick={() => handleFeedbackVote(resource._id, "downvote", myFeedback.stars || 0)}
                       type="button"
+                      style={{ padding: "3px 10px", fontSize: "0.75rem", minWidth: "auto" }}
                     >
-                      Downvote
+                      👎 {feedbackMetrics.downvotes}
                     </button>
                     <select
-                      className="college-search"
                       disabled={feedbackBusy}
                       onChange={(event) =>
                         handleFeedbackVote(resource._id, myFeedback.vote || "neutral", Number(event.target.value))
                       }
                       value={myFeedback.stars || 0}
+                      style={{
+                        padding: "3px 8px",
+                        fontSize: "0.75rem",
+                        borderRadius: "6px",
+                        background: "rgba(255,255,255,0.05)",
+                        color: "inherit",
+                        border: "1px solid rgba(255,255,255,0.12)",
+                        cursor: "pointer"
+                      }}
                     >
-                      <option value={0}>Rate (0-5)</option>
-                      <option value={1}>1 Star</option>
-                      <option value={2}>2 Stars</option>
-                      <option value={3}>3 Stars</option>
-                      <option value={4}>4 Stars</option>
-                      <option value={5}>5 Stars</option>
+                      <option value={0}>Rate</option>
+                      <option value={1}>⭐</option>
+                      <option value={2}>⭐⭐</option>
+                      <option value={3}>⭐⭐⭐</option>
+                      <option value={4}>⭐⭐⭐⭐</option>
+                      <option value={5}>⭐⭐⭐⭐⭐</option>
                     </select>
+                    <span style={{ margin: "0 4px", opacity: 0.3 }}>|</span>
+                    <button
+                      type="button"
+                      onClick={() => setExpandedComments((c) => ({ ...c, [resource._id]: !c[resource._id] }))}
+                      style={{
+                        background: "none",
+                        border: "none",
+                        color: "#818cf8",
+                        fontSize: "0.75rem",
+                        cursor: "pointer",
+                        padding: "3px 8px",
+                        fontWeight: 500
+                      }}
+                    >
+                      💬 {feedbackMetrics.comments} {expandedComments[resource._id] ? "▲" : "▼"}
+                    </button>
                   </div>
-                  <div className="auth-field">
-                    <span>{resource.categoryId === "lecture" ? "Video comments" : "Comments"}</span>
-                    <textarea
-                      className="panel-textarea"
-                      onChange={(event) =>
-                        setCommentInputs((current) => ({
-                          ...current,
-                          [resource._id]: event.target.value
-                        }))
-                      }
-                      placeholder="Write your comment..."
-                      rows={2}
-                      value={commentInputs[resource._id] || ""}
-                    />
-                  </div>
-                  <button
-                    className="open-college-button"
-                    disabled={feedbackBusy}
-                    onClick={() => handleAddComment(resource._id)}
-                    type="button"
-                  >
-                    {feedbackBusy ? "Submitting..." : "Post Comment"}
-                  </button>
-                  {comments.length ? (
-                    <div className="panel-list">
-                      {comments.map((comment) => {
-                        const canDeleteComment =
-                          user?.role === "admin" || String(comment.user?._id) === String(user?.id);
-                        return (
-                          <article className="panel-card" key={comment._id}>
-                            <p className="muted">
-                              {comment.user?.fullName || "User"} ({comment.user?.role || "student"}) |{" "}
-                              {new Date(comment.createdAt).toLocaleString()}
-                            </p>
-                            <p>{comment.comment}</p>
-                            {canDeleteComment ? (
-                              <button
-                                className="action-button reject"
-                                onClick={() => handleDeleteComment(resource._id, comment._id)}
-                                type="button"
-                              >
-                                Delete Comment
-                              </button>
-                            ) : null}
-                          </article>
-                        );
-                      })}
+
+                  {expandedComments[resource._id] ? (
+                    <div style={{ marginTop: "10px", paddingTop: "10px", borderTop: "1px solid rgba(255,255,255,0.06)" }}>
+                      <div style={{ display: "flex", gap: "8px", alignItems: "flex-end" }}>
+                        <textarea
+                          className="panel-textarea"
+                          onChange={(event) =>
+                            setCommentInputs((current) => ({
+                              ...current,
+                              [resource._id]: event.target.value
+                            }))
+                          }
+                          placeholder="Write a comment..."
+                          rows={1}
+                          value={commentInputs[resource._id] || ""}
+                          style={{ flex: 1, fontSize: "0.8rem", resize: "vertical", minHeight: "36px" }}
+                        />
+                        <button
+                          className="open-college-button"
+                          disabled={feedbackBusy}
+                          onClick={() => handleAddComment(resource._id)}
+                          type="button"
+                          style={{ padding: "6px 14px", fontSize: "0.8rem", whiteSpace: "nowrap" }}
+                        >
+                          {feedbackBusy ? "..." : "Post"}
+                        </button>
+                      </div>
+                      {comments.length ? (
+                        <div style={{ marginTop: "8px", display: "flex", flexDirection: "column", gap: "6px" }}>
+                          {comments.map((comment) => {
+                            const canDeleteComment =
+                              user?.role === "admin" || String(comment.user?._id) === String(user?.id);
+                            return (
+                              <div key={comment._id} style={{
+                                padding: "8px 10px",
+                                background: "rgba(255,255,255,0.02)",
+                                borderRadius: "6px",
+                                border: "1px solid rgba(255,255,255,0.05)"
+                              }}>
+                                <p className="muted" style={{ margin: 0, fontSize: "0.7rem" }}>
+                                  {comment.user?.fullName || "User"} · {new Date(comment.createdAt).toLocaleDateString()}
+                                </p>
+                                <p style={{ margin: "4px 0 0", fontSize: "0.8rem" }}>{comment.comment}</p>
+                                {canDeleteComment ? (
+                                  <button
+                                    className="action-button reject"
+                                    onClick={() => handleDeleteComment(resource._id, comment._id)}
+                                    type="button"
+                                    style={{ padding: "2px 8px", fontSize: "0.7rem", marginTop: "4px" }}
+                                  >
+                                    Delete
+                                  </button>
+                                ) : null}
+                              </div>
+                            );
+                          })}
+                        </div>
+                      ) : (
+                        <p className="muted" style={{ fontSize: "0.75rem", marginTop: "6px" }}>No comments yet.</p>
+                      )}
                     </div>
-                  ) : (
-                    <p className="muted">
-                      {resource.categoryId === "lecture"
-                        ? "No video comments yet."
-                        : "No comments yet for this resource."}
-                    </p>
-                  )}
+                  ) : null}
                 </div>
 
                 <div className="panel-actions">
