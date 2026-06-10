@@ -157,16 +157,16 @@ export function SubjectResourcePage() {
         <div className="resource-grid">
           {subjectCategories.map((category) => (
             <Link
-              className="resource-card resource-link"
+              className="resource-card resource-link category-card-enhanced"
               key={category.id}
               to={`/dashboard/${programId}/branch/${branchId}/${semesterId}/${subjectId}/${category.id}`}
             >
-              <div className="resource-card-top">
-                <p className="resource-badge">{category.label}</p>
-                <span className="resource-count">View</span>
+              <div className="category-card-header">
+                <span className="category-icon">{category.icon}</span>
+                <span className="category-view-btn">View →</span>
               </div>
-              <h3>{category.label}</h3>
-              <p className="muted">{category.description}</p>
+              <h3 className="category-title">{category.label}</h3>
+              <p className="muted category-desc">{category.description}</p>
             </Link>
           ))}
         </div>

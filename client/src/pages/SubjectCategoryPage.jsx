@@ -1178,258 +1178,259 @@ export function SubjectCategoryPage() {
             const feedbackBusy = Boolean(feedbackBusyByResource[resource._id]);
 
             return (
-              <article className="panel-card" key={resource._id}>
-                <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", gap: "12px", marginBottom: "8px" }}>
-                  <h3 style={{ margin: 0 }}>{resource.title}</h3>
-                  {resource.storageProvider === "external" ? (
-                    <span style={{
-                      background: "rgba(16, 185, 129, 0.1)",
-                      color: "#10b981",
-                      border: "1px solid rgba(16, 185, 129, 0.2)",
-                      padding: "4px 8px",
-                      borderRadius: "6px",
-                      fontSize: "0.75rem",
-                      fontWeight: "600",
-                      whiteSpace: "nowrap"
-                    }}>
-                      🔗 Web Link
-                    </span>
-                  ) : (
-                    <span style={{
-                      background: "rgba(59, 130, 246, 0.1)",
-                      color: "#3b82f6",
-                      border: "1px solid rgba(59, 130, 246, 0.2)",
-                      padding: "4px 8px",
-                      borderRadius: "6px",
-                      fontSize: "0.75rem",
-                      fontWeight: "600",
-                      whiteSpace: "nowrap"
-                    }}>
-                      📁 File Upload
-                    </span>
-                  )}
-                </div>
-                <p className="muted">
-                  Uploaded by: {resource.uploadedBy?.fullName || "Unknown"} ({resource.uploadedBy?.role})
-                </p>
-                <p className="muted">
-                  Access: {resource.visibility || "private"}
-                  {resource.visibility === "protected"
-                    ? ` | Unlock price: INR ${resource.accessPrice || 0}${resource.allowBasicSubscription ? " | Basic subscription allowed" : ""}`
-                    : ""}
-                </p>
-
-                {resource.description ? <p className="muted">{resource.description}</p> : null}
-                {resource.textContent ? <pre className="resource-text">{resource.textContent}</pre> : null}
-
-                <ResourcePreview resource={resource} onAccessAttempt={() => handleAccessAttempt(resource)} />
-
-                <div style={{
-                  padding: "10px 14px",
-                  background: "rgba(255,255,255,0.03)",
-                  borderRadius: "8px",
-                  border: "1px solid rgba(255,255,255,0.08)"
-                }}>
-                  <div style={{ display: "flex", alignItems: "center", flexWrap: "wrap", gap: "8px" }}>
-                    <span style={{ fontSize: "0.8rem", fontWeight: 600, color: "#f59e0b" }}>
-                      ⭐ {feedbackMetrics.averageStars}/5
-                    </span>
-                    <span className="muted" style={{ fontSize: "0.75rem" }}>({feedbackMetrics.totalRatings} ratings)</span>
-                    <span style={{ margin: "0 4px", opacity: 0.3 }}>|</span>
-                    <button
-                      className="action-button approve"
-                      disabled={feedbackBusy}
-                      onClick={() => handleFeedbackVote(resource._id, "upvote", myFeedback.stars || 0)}
-                      type="button"
-                      style={{ padding: "3px 10px", fontSize: "0.75rem", minWidth: "auto" }}
-                    >
-                      👍 {feedbackMetrics.upvotes}
-                    </button>
-                    <button
-                      className="action-button reject"
-                      disabled={feedbackBusy}
-                      onClick={() => handleFeedbackVote(resource._id, "downvote", myFeedback.stars || 0)}
-                      type="button"
-                      style={{ padding: "3px 10px", fontSize: "0.75rem", minWidth: "auto" }}
-                    >
-                      👎 {feedbackMetrics.downvotes}
-                    </button>
-                    <select
-                      disabled={feedbackBusy}
-                      onChange={(event) =>
-                        handleFeedbackVote(resource._id, myFeedback.vote || "neutral", Number(event.target.value))
-                      }
-                      value={myFeedback.stars || 0}
-                      style={{
-                        padding: "3px 8px",
-                        fontSize: "0.75rem",
-                        borderRadius: "6px",
-                        background: "rgba(255,255,255,0.05)",
-                        color: "inherit",
-                        border: "1px solid rgba(255,255,255,0.12)",
-                        cursor: "pointer"
-                      }}
-                    >
-                      <option value={0}>Rate</option>
-                      <option value={1}>⭐</option>
-                      <option value={2}>⭐⭐</option>
-                      <option value={3}>⭐⭐⭐</option>
-                      <option value={4}>⭐⭐⭐⭐</option>
-                      <option value={5}>⭐⭐⭐⭐⭐</option>
-                    </select>
-                    <span style={{ margin: "0 4px", opacity: 0.3 }}>|</span>
-                    <button
-                      type="button"
-                      onClick={() => setExpandedComments((c) => ({ ...c, [resource._id]: !c[resource._id] }))}
-                      style={{
-                        background: "none",
-                        border: "none",
-                        color: "#818cf8",
-                        fontSize: "0.75rem",
-                        cursor: "pointer",
-                        padding: "3px 8px",
-                        fontWeight: 500
-                      }}
-                    >
-                      💬 {feedbackMetrics.comments} {expandedComments[resource._id] ? "▲" : "▼"}
-                    </button>
-                  </div>
-
-                  {expandedComments[resource._id] ? (
-                    <div style={{ marginTop: "10px", paddingTop: "10px", borderTop: "1px solid rgba(255,255,255,0.06)" }}>
-                      <div style={{ display: "flex", gap: "8px", alignItems: "flex-end" }}>
-                        <textarea
-                          className="panel-textarea"
-                          onChange={(event) =>
-                            setCommentInputs((current) => ({
-                              ...current,
-                              [resource._id]: event.target.value
-                            }))
-                          }
-                          placeholder="Write a comment..."
-                          rows={1}
-                          value={commentInputs[resource._id] || ""}
-                          style={{ flex: 1, fontSize: "0.8rem", resize: "vertical", minHeight: "36px" }}
-                        />
-                        <button
-                          className="open-college-button"
-                          disabled={feedbackBusy}
-                          onClick={() => handleAddComment(resource._id)}
-                          type="button"
-                          style={{ padding: "6px 14px", fontSize: "0.8rem", whiteSpace: "nowrap" }}
-                        >
-                          {feedbackBusy ? "..." : "Post"}
-                        </button>
-                      </div>
-                      {comments.length ? (
-                        <div style={{ marginTop: "8px", display: "flex", flexDirection: "column", gap: "6px" }}>
-                          {comments.map((comment) => {
-                            const canDeleteComment =
-                              user?.role === "admin" || String(comment.user?._id) === String(user?.id);
-                            return (
-                              <div key={comment._id} style={{
-                                padding: "8px 10px",
-                                background: "rgba(255,255,255,0.02)",
-                                borderRadius: "6px",
-                                border: "1px solid rgba(255,255,255,0.05)"
-                              }}>
-                                <p className="muted" style={{ margin: 0, fontSize: "0.7rem" }}>
-                                  {comment.user?.fullName || "User"} · {new Date(comment.createdAt).toLocaleDateString()}
-                                </p>
-                                <p style={{ margin: "4px 0 0", fontSize: "0.8rem" }}>{comment.comment}</p>
-                                {canDeleteComment ? (
-                                  <button
-                                    className="action-button reject"
-                                    onClick={() => handleDeleteComment(resource._id, comment._id)}
-                                    type="button"
-                                    style={{ padding: "2px 8px", fontSize: "0.7rem", marginTop: "4px" }}
-                                  >
-                                    Delete
-                                  </button>
-                                ) : null}
-                              </div>
-                            );
-                          })}
-                        </div>
+              <article className="panel-card" key={resource._id} style={{ padding: 0, overflow: "hidden" }}>
+                <div className="resource-card-layout">
+                  {/* Left: Content */}
+                  <div className="resource-card-content">
+                    <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", gap: "12px", marginBottom: "8px" }}>
+                      <h3 style={{ margin: 0 }}>{resource.title}</h3>
+                      {resource.storageProvider === "external" ? (
+                        <span style={{
+                          background: "rgba(16, 185, 129, 0.1)",
+                          color: "#10b981",
+                          border: "1px solid rgba(16, 185, 129, 0.2)",
+                          padding: "4px 8px",
+                          borderRadius: "6px",
+                          fontSize: "0.75rem",
+                          fontWeight: "600",
+                          whiteSpace: "nowrap"
+                        }}>
+                          🔗 Web Link
+                        </span>
                       ) : (
-                        <p className="muted" style={{ fontSize: "0.75rem", marginTop: "6px" }}>No comments yet.</p>
+                        <span style={{
+                          background: "rgba(59, 130, 246, 0.1)",
+                          color: "#3b82f6",
+                          border: "1px solid rgba(59, 130, 246, 0.2)",
+                          padding: "4px 8px",
+                          borderRadius: "6px",
+                          fontSize: "0.75rem",
+                          fontWeight: "600",
+                          whiteSpace: "nowrap"
+                        }}>
+                          📁 File Upload
+                        </span>
                       )}
                     </div>
-                  ) : null}
-                </div>
+                    <p className="muted" style={{ fontSize: "0.8rem" }}>
+                      Uploaded by: {resource.uploadedBy?.fullName || "Unknown"} ({resource.uploadedBy?.role})
+                    </p>
+                    <p className="muted" style={{ fontSize: "0.8rem" }}>
+                      Access: {resource.visibility || "private"}
+                      {resource.visibility === "protected"
+                        ? ` | ₹${resource.accessPrice || 0}${resource.allowBasicSubscription ? " | Sub allowed" : ""}`
+                        : ""}
+                    </p>
 
-                <div className="panel-actions">
-                  {resource.fileUrl ? (
-                    <a
-                      className="open-college-button"
-                      href={buildAuthorizedApiUrl(
-                        `${apiClient.defaults.baseURL}/resources/${resource._id}/download`
-                      )}
-                      rel="noreferrer"
-                      target="_blank"
-                      style={resource.storageProvider === "external" ? {
-                        background: "rgba(16, 185, 129, 0.1)",
-                        color: "#10b981",
-                        border: "1px solid rgba(16, 185, 129, 0.2)"
-                      } : undefined}
-                    >
-                      {resource.storageProvider === "external" ? "Open Link ↗" : "Download File ⬇"}
-                    </a>
-                  ) : null}
-                  {resource.visibility === "protected" &&
-                  resource.uploadedBy?._id !== user?.id &&
-                  user?.role !== "admin" ? (
-                    <button
-                      className="action-button neutral"
-                      onClick={() => handleUnlockProtectedResource(resource._id)}
-                      type="button"
-                    >
-                      Unlock Protected
-                    </button>
-                  ) : null}
-                  {canManage ? (
-                    <button
-                      className="action-button approve"
-                      onClick={() => {
-                        setEditingResourceId(resource._id);
-                        setEditForm({
-                          title: resource.title,
-                          description: resource.description || "",
-                          textContent: resource.textContent || "",
-                          visibility: resource.visibility || "private",
-                          accessPrice: String(resource.accessPrice || 0),
-                          allowBasicSubscription: Boolean(resource.allowBasicSubscription),
-                          externalLink: resource.storageProvider === "external" ? resource.fileUrl : ""
-                        });
-                      }}
-                      type="button"
-                    >
-                      Edit
-                    </button>
-                  ) : null}
-                  {canManage ? (
-                    <button
-                      className="action-button reject"
-                      onClick={() => handleDelete(resource._id)}
-                      type="button"
-                    >
-                      Delete
-                    </button>
-                  ) : null}
-                  {user?.id !== resource.uploadedBy?._id ? (
-                    <button
-                      className="action-button reject"
-                      onClick={() => handleReportClick(resource)}
-                      type="button"
-                      style={{
-                        background: "rgba(239, 68, 68, 0.1)",
-                        color: "#ef4444",
-                        border: "1px solid rgba(239, 68, 68, 0.2)"
-                      }}
-                    >
-                      Report
-                    </button>
-                  ) : null}
+                    {resource.description ? <p className="muted" style={{ fontSize: "0.8rem" }}>{resource.description}</p> : null}
+                    {resource.textContent ? <pre className="resource-text">{resource.textContent}</pre> : null}
+
+                    <ResourcePreview resource={resource} onAccessAttempt={() => handleAccessAttempt(resource)} />
+
+                    <div style={{
+                      padding: "8px 12px",
+                      background: "rgba(255,255,255,0.03)",
+                      borderRadius: "8px",
+                      border: "1px solid rgba(255,255,255,0.08)"
+                    }}>
+                      <div style={{ display: "flex", alignItems: "center", flexWrap: "wrap", gap: "6px" }}>
+                        <span style={{ fontSize: "0.8rem", fontWeight: 600, color: "#f59e0b" }}>
+                          ⭐ {feedbackMetrics.averageStars}/5
+                        </span>
+                        <span className="muted" style={{ fontSize: "0.75rem" }}>({feedbackMetrics.totalRatings})</span>
+                        <span style={{ opacity: 0.2 }}>|</span>
+                        <button
+                          className="action-button approve"
+                          disabled={feedbackBusy}
+                          onClick={() => handleFeedbackVote(resource._id, "upvote", myFeedback.stars || 0)}
+                          type="button"
+                          style={{ padding: "3px 10px", fontSize: "0.75rem", minWidth: "auto" }}
+                        >
+                          👍 {feedbackMetrics.upvotes}
+                        </button>
+                        <button
+                          className="action-button reject"
+                          disabled={feedbackBusy}
+                          onClick={() => handleFeedbackVote(resource._id, "downvote", myFeedback.stars || 0)}
+                          type="button"
+                          style={{ padding: "3px 10px", fontSize: "0.75rem", minWidth: "auto" }}
+                        >
+                          👎 {feedbackMetrics.downvotes}
+                        </button>
+                        <select
+                          disabled={feedbackBusy}
+                          onChange={(event) =>
+                            handleFeedbackVote(resource._id, myFeedback.vote || "neutral", Number(event.target.value))
+                          }
+                          value={myFeedback.stars || 0}
+                          style={{
+                            padding: "3px 8px",
+                            fontSize: "0.75rem",
+                            borderRadius: "6px",
+                            background: "rgba(255,255,255,0.05)",
+                            color: "inherit",
+                            border: "1px solid rgba(255,255,255,0.12)",
+                            cursor: "pointer"
+                          }}
+                        >
+                          <option value={0}>Rate</option>
+                          <option value={1}>⭐</option>
+                          <option value={2}>⭐⭐</option>
+                          <option value={3}>⭐⭐⭐</option>
+                          <option value={4}>⭐⭐⭐⭐</option>
+                          <option value={5}>⭐⭐⭐⭐⭐</option>
+                        </select>
+                        <span style={{ opacity: 0.2 }}>|</span>
+                        <button
+                          type="button"
+                          onClick={() => setExpandedComments((c) => ({ ...c, [resource._id]: !c[resource._id] }))}
+                          style={{
+                            background: "none",
+                            border: "none",
+                            color: "#818cf8",
+                            fontSize: "0.75rem",
+                            cursor: "pointer",
+                            padding: "3px 8px",
+                            fontWeight: 500
+                          }}
+                        >
+                          💬 {feedbackMetrics.comments} {expandedComments[resource._id] ? "▲" : "▼"}
+                        </button>
+                      </div>
+
+                      {expandedComments[resource._id] ? (
+                        <div style={{ marginTop: "10px", paddingTop: "10px", borderTop: "1px solid rgba(255,255,255,0.06)" }}>
+                          <div style={{ display: "flex", gap: "8px", alignItems: "flex-end" }}>
+                            <textarea
+                              className="panel-textarea"
+                              onChange={(event) =>
+                                setCommentInputs((current) => ({
+                                  ...current,
+                                  [resource._id]: event.target.value
+                                }))
+                              }
+                              placeholder="Write a comment..."
+                              rows={1}
+                              value={commentInputs[resource._id] || ""}
+                              style={{ flex: 1, fontSize: "0.8rem", resize: "vertical", minHeight: "36px" }}
+                            />
+                            <button
+                              className="open-college-button"
+                              disabled={feedbackBusy}
+                              onClick={() => handleAddComment(resource._id)}
+                              type="button"
+                              style={{ padding: "6px 14px", fontSize: "0.8rem", whiteSpace: "nowrap" }}
+                            >
+                              {feedbackBusy ? "..." : "Post"}
+                            </button>
+                          </div>
+                          {comments.length ? (
+                            <div style={{ marginTop: "8px", display: "flex", flexDirection: "column", gap: "6px" }}>
+                              {comments.map((comment) => {
+                                const canDeleteComment =
+                                  user?.role === "admin" || String(comment.user?._id) === String(user?.id);
+                                return (
+                                  <div key={comment._id} style={{
+                                    padding: "8px 10px",
+                                    background: "rgba(255,255,255,0.02)",
+                                    borderRadius: "6px",
+                                    border: "1px solid rgba(255,255,255,0.05)"
+                                  }}>
+                                    <p className="muted" style={{ margin: 0, fontSize: "0.7rem" }}>
+                                      {comment.user?.fullName || "User"} · {new Date(comment.createdAt).toLocaleDateString()}
+                                    </p>
+                                    <p style={{ margin: "4px 0 0", fontSize: "0.8rem" }}>{comment.comment}</p>
+                                    {canDeleteComment ? (
+                                      <button
+                                        className="action-button reject"
+                                        onClick={() => handleDeleteComment(resource._id, comment._id)}
+                                        type="button"
+                                        style={{ padding: "2px 8px", fontSize: "0.7rem", marginTop: "4px" }}
+                                      >
+                                        Delete
+                                      </button>
+                                    ) : null}
+                                  </div>
+                                );
+                              })}
+                            </div>
+                          ) : (
+                            <p className="muted" style={{ fontSize: "0.75rem", marginTop: "6px" }}>No comments yet.</p>
+                          )}
+                        </div>
+                      ) : null}
+                    </div>
+                  </div>
+
+                  {/* Right: Action buttons */}
+                  <div className="resource-card-actions">
+                    {resource.fileUrl ? (
+                      <a
+                        className="resource-action-btn primary"
+                        href={buildAuthorizedApiUrl(
+                          `${apiClient.defaults.baseURL}/resources/${resource._id}/download`
+                        )}
+                        rel="noreferrer"
+                        target="_blank"
+                        style={resource.storageProvider === "external" ? {
+                          background: "rgba(16, 185, 129, 0.15)",
+                          color: "#10b981",
+                          borderColor: "rgba(16, 185, 129, 0.3)"
+                        } : undefined}
+                      >
+                        {resource.storageProvider === "external" ? "Open Link ↗" : "Download ⬇"}
+                      </a>
+                    ) : null}
+                    {resource.visibility === "protected" &&
+                    resource.uploadedBy?._id !== user?.id &&
+                    user?.role !== "admin" ? (
+                      <button
+                        className="resource-action-btn unlock"
+                        onClick={() => handleUnlockProtectedResource(resource._id)}
+                        type="button"
+                      >
+                        Unlock 🔓
+                      </button>
+                    ) : null}
+                    {canManage ? (
+                      <button
+                        className="resource-action-btn edit"
+                        onClick={() => {
+                          setEditingResourceId(resource._id);
+                          setEditForm({
+                            title: resource.title,
+                            description: resource.description || "",
+                            textContent: resource.textContent || "",
+                            visibility: resource.visibility || "private",
+                            accessPrice: String(resource.accessPrice || 0),
+                            allowBasicSubscription: Boolean(resource.allowBasicSubscription),
+                            externalLink: resource.storageProvider === "external" ? resource.fileUrl : ""
+                          });
+                        }}
+                        type="button"
+                      >
+                        ✏️ Edit
+                      </button>
+                    ) : null}
+                    {canManage ? (
+                      <button
+                        className="resource-action-btn delete"
+                        onClick={() => handleDelete(resource._id)}
+                        type="button"
+                      >
+                        🗑️ Delete
+                      </button>
+                    ) : null}
+                    {user?.id !== resource.uploadedBy?._id ? (
+                      <button
+                        className="resource-action-btn report"
+                        onClick={() => handleReportClick(resource)}
+                        type="button"
+                      >
+                        ⚠️ Report
+                      </button>
+                    ) : null}
+                  </div>
                 </div>
               </article>
             );

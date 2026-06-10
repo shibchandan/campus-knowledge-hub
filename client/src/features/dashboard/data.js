@@ -52,61 +52,73 @@ export const subjectCategories = [
   {
     id: "notice",
     label: "Notice",
+    icon: "📢",
     description: "Department updates, exam notices, and academic announcements."
   },
   {
     id: "syllabus",
     label: "Syllabus",
+    icon: "📋",
     description: "Official syllabus, unit structure, and marking scheme."
   },
   {
     id: "books",
     label: "Books",
+    icon: "📚",
     description: "Reference books, author materials, and recommended reading lists."
   },
   {
     id: "class-notes",
     label: "Class Notes",
+    icon: "📝",
     description: "Daily handwritten and typed notes shared by faculty and students."
   },
   {
     id: "pdf-ppt",
     label: "PDF / PPT",
+    icon: "📄",
     description: "Presentation decks, summary PDFs, and slide-based resources."
   },
   {
     id: "pyq",
     label: "PYQ",
+    icon: "❓",
     description: "Previous year question papers with solutions and answer patterns."
   },
   {
     id: "lecture",
     label: "Lecture",
+    icon: "🎬",
     description: "Recorded and live lecture links with faculty-wise organization."
   },
   {
     id: "lab",
     label: "Lab",
+    icon: "🔬",
     description: "Lab manuals, experiment sheets, and viva preparation material."
   },
   {
     id: "suggestion",
     label: "Suggestion",
+    icon: "💡",
     description: "Important topics, exam suggestions, and topper guidance."
   },
   {
     id: "assignment",
     label: "Assignment",
+    icon: "✍️",
     description: "Class assignments, homework sheets, and project deadlines."
   },
   {
     id: "project",
     label: "Project",
+    icon: "🚀",
     description: "Mini-projects, major projects, source code, and design reports."
   },
   {
     id: "extra-resource",
     label: "Extra Resource",
+    icon: "📦",
     description: "General study materials, external references, and miscellaneous resources."
   }
 ];
