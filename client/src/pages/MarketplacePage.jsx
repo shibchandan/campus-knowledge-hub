@@ -4,6 +4,7 @@ import { useAuth } from "../auth/AuthContext";
 import { apiClient } from "../lib/apiClient";
 import { requestDeletePassword } from "../lib/deleteWithPassword";
 import { openRazorpayCheckout } from "../lib/paymentClient";
+import { useToast } from "../ui/ToastContext";
 
 const initialForm = {
   title: "",
@@ -43,12 +44,12 @@ function getListingLabel(item) {
 
 export function MarketplacePage() {
   const { user } = useAuth();
+  const { showSuccess, showError } = useToast();
   const [items, setItems] = useState([]);
   const [myItems, setMyItems] = useState([]);
   const [purchases, setPurchases] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
-  const [success, setSuccess] = useState("");
   const [search, setSearch] = useState("");
   const [courseTagFilter, setCourseTagFilter] = useState("all");
   const [form, setForm] = useState(initialForm);
@@ -86,8 +87,20 @@ export function MarketplacePage() {
       setItems(listResponse.data.data?.items || []);
       setMyItems(mineResponse.data.data || []);
       setPurchases(purchasesResponse.data.data || []);
+      setError("");
     } catch (requestError) {
-      setError(requestError.response?.data?.message || "Failed to load marketplace.");
+      const msg =
+        requestError.response?.data?.message ||
+        (requestError.message === "Network Error"
+          ? "Network Error: Cannot connect to the server. Please verify the server is running."
+          : requestError.message) ||
+        "Failed to load marketplace.";
+
+      if (items.length > 0) {
+        showError(msg);
+      } else {
+        setError(msg);
+      }
     } finally {
       setLoading(false);
     }
@@ -119,8 +132,6 @@ export function MarketplacePage() {
   async function handleSubmit(event) {
     event.preventDefault();
     setSubmitting(true);
-    setError("");
-    setSuccess("");
 
     try {
       const payload = {
@@ -136,16 +147,16 @@ export function MarketplacePage() {
 
       if (editingId) {
         await apiClient.patch(`/marketplace/${editingId}`, payload);
-        setSuccess("Course updated successfully.");
+        showSuccess("Course updated successfully.");
       } else {
         await apiClient.post("/marketplace", payload);
-        setSuccess("Course listed successfully.");
+        showSuccess("Course listed successfully.");
       }
 
       resetForm();
       await loadMarketplace();
     } catch (requestError) {
-      setError(requestError.response?.data?.message || "Failed to save marketplace course.");
+      showError(requestError.response?.data?.message || "Failed to save marketplace course.");
     } finally {
       setSubmitting(false);
     }
@@ -157,19 +168,17 @@ export function MarketplacePage() {
       return;
     }
     setBusyId(itemId);
-    setError("");
-    setSuccess("");
     try {
       await apiClient.delete(`/marketplace/${itemId}`, {
         data: { currentPassword }
       });
-      setSuccess("Course archived.");
+      showSuccess("Course archived.");
       if (editingId === itemId) {
         resetForm();
       }
       await loadMarketplace();
     } catch (requestError) {
-      setError(requestError.response?.data?.message || "Failed to archive course.");
+      showError(requestError.response?.data?.message || "Failed to archive course.");
     } finally {
       setBusyId("");
     }
@@ -177,8 +186,6 @@ export function MarketplacePage() {
 
   async function handlePurchase(itemId) {
     setBusyId(itemId);
-    setError("");
-    setSuccess("");
     try {
       const response = await apiClient.post(`/marketplace/${itemId}/purchase`);
       if (response.data.paymentRequired && response.data.data?.checkout) {
@@ -191,19 +198,19 @@ export function MarketplacePage() {
               razorpayPaymentId: paymentResponse.razorpay_payment_id,
               razorpaySignature: paymentResponse.razorpay_signature
             });
-            setSuccess(verifyResponse.data.message || "Payment completed successfully.");
+            showSuccess(verifyResponse.data.message || "Payment completed successfully.");
             await loadMarketplace();
           },
           onDismiss: () => {
-            setSuccess("Payment window closed. You can try again anytime.");
+            showSuccess("Payment window closed. You can try again anytime.");
           }
         });
       } else {
-        setSuccess(response.data.message || "Course access granted.");
+        showSuccess(response.data.message || "Course access granted.");
         await loadMarketplace();
       }
     } catch (requestError) {
-      setError(requestError.response?.data?.message || "Unable to complete purchase.");
+      showError(requestError.response?.data?.message || "Unable to complete purchase.");
     } finally {
       setBusyId("");
     }
@@ -226,14 +233,40 @@ export function MarketplacePage() {
   );
   const checkoutPreview = calculateCheckoutPreview(form.price);
 
+  if (loading) {
+    return (
+      <div className="page-stack">
+        <SectionCard title="Marketplace" description="Loading course marketplace...">
+          <p className="muted">Loading marketplace...</p>
+        </SectionCard>
+      </div>
+    );
+  }
+
+  if (error && !items.length) {
+    return (
+      <div className="page-stack">
+        <SectionCard
+          title="Marketplace Error"
+          description="We encountered an issue while loading the marketplace data."
+        >
+          <div className="error-state" style={{ padding: "1rem 0" }}>
+            <p className="auth-error" style={{ marginBottom: "1rem" }}>{error}</p>
+            <button className="auth-submit" onClick={loadMarketplace} type="button">
+              Retry Loading
+            </button>
+          </div>
+        </SectionCard>
+      </div>
+    );
+  }
+
   return (
     <div className="page-stack">
       <SectionCard
         title="Academic Course Marketplace"
         description="Students, representatives, and admins can list courses for free or paid access."
       >
-        {error ? <p className="auth-error">{error}</p> : null}
-        {success ? <p className="success-note">{success}</p> : null}
         <form className="panel-form" onSubmit={handleSubmit}>
           <label className="auth-field">
             <span>Course Title</span>
