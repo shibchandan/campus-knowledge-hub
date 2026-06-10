@@ -93,6 +93,21 @@ export const subjectCategories = [
     id: "suggestion",
     label: "Suggestion",
     description: "Important topics, exam suggestions, and topper guidance."
+  },
+  {
+    id: "assignment",
+    label: "Assignment",
+    description: "Class assignments, homework sheets, and project deadlines."
+  },
+  {
+    id: "project",
+    label: "Project",
+    description: "Mini-projects, major projects, source code, and design reports."
+  },
+  {
+    id: "extra-resource",
+    label: "Extra Resource",
+    description: "General study materials, external references, and miscellaneous resources."
   }
 ];
 

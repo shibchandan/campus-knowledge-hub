@@ -9,7 +9,8 @@ import {
   updateResource,
   verifyProtectedResourcePayment,
   viewResourceFile,
-  uploadResource
+  uploadResource,
+  reportResource
 } from "./resource.controller.js";
 
 export const resourceRouter = Router();
@@ -21,6 +22,7 @@ resourceRouter.post("/:resourceId/unlock", protect, unlockProtectedResource);
 resourceRouter.post("/:resourceId/verify-unlock-payment", protect, verifyProtectedResourcePayment);
 resourceRouter.patch("/:resourceId", protect, updateResource);
 resourceRouter.delete("/:resourceId", protect, deleteResource);
+resourceRouter.post("/:resourceId/report", protect, reportResource);
 resourceRouter.post(
   "/upload",
   protect,

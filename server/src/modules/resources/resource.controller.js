@@ -6,6 +6,7 @@ import path from "path";
 import { uploadDirectory } from "../../middleware/uploadMiddleware.js";
 import { createAuditLog } from "../../services/audit.service.js";
 import { removeStoredFile, storeUploadedFile } from "../../services/resourceStorage.service.js";
+import { sendAdminNotification } from "../../services/email.service.js";
 import { removeTempFile, scanFileForMalware } from "../../services/malwareScan.service.js";
 import {
   buildRazorpayCheckoutPayload,
@@ -101,6 +102,37 @@ const CATEGORY_POLICIES = {
     allowTextOnly: true,
     mimeAllowlist: ["application/pdf", "text/"],
     maxFileSize: 10 * 1024 * 1024
+  },
+  assignment: {
+    requireFile: false,
+    allowTextOnly: true,
+    mimeAllowlist: [
+      "application/pdf",
+      "application/msword",
+      "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
+      "image/",
+      "text/"
+    ],
+    maxFileSize: 25 * 1024 * 1024
+  },
+  project: {
+    requireFile: false,
+    allowTextOnly: true,
+    mimeAllowlist: [
+      "application/pdf",
+      "application/msword",
+      "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
+      "application/zip",
+      "application/x-zip-compressed",
+      "text/"
+    ],
+    maxFileSize: 50 * 1024 * 1024
+  },
+  "extra-resource": {
+    requireFile: false,
+    allowTextOnly: true,
+    mimeAllowlist: [],
+    maxFileSize: 50 * 1024 * 1024
   }
 };
 
@@ -1014,6 +1046,104 @@ export async function verifyProtectedResourcePayment(req, res, next) {
       success: true,
       message: "Protected resource unlocked successfully after payment.",
       data: grant
+    });
+  } catch (error) {
+    next(error);
+  }
+}
+
+export async function reportResource(req, res, next) {
+  try {
+    const resourceId = readMongoId(req.params.resourceId, { field: "resourceId" });
+    const reason = readEnum(req.body.reason, {
+      field: "reason",
+      allowed: ["copyright", "spam", "inappropriate", "other"],
+      defaultValue: "other"
+    });
+    const comments = readString(req.body.comments, {
+      field: "comments",
+      min: 0,
+      max: 1000,
+      required: false
+    });
+
+    const resource = await Resource.findById(resourceId).populate("uploadedBy", "fullName email role");
+
+    if (!resource) {
+      throw createHttpError("Resource not found.", 404);
+    }
+
+    resource.isFlagged = true;
+    await resource.save();
+
+    const reporterName = req.user ? req.user.fullName : "Anonymous Student";
+    const reporterEmail = req.user ? req.user.email : "N/A";
+    const reporterRole = req.user ? req.user.role : "student";
+    const uploaderName = resource.uploadedBy ? resource.uploadedBy.fullName : "Unknown";
+    const uploaderEmail = resource.uploadedBy ? resource.uploadedBy.email : "N/A";
+
+    const emailSubject = `[FLAGGED RESOURCE] "${resource.title}" has been reported`;
+    const emailText = `
+The following resource has been flagged/reported as inappropriate or violating terms.
+
+Resource Details:
+- Title: ${resource.title}
+- ID: ${resource._id}
+- Category: ${resource.categoryId}
+- College: ${resource.collegeName}
+- Uploaded By: ${uploaderName} (${uploaderEmail})
+
+Report Details:
+- Reported By: ${reporterName} (${reporterEmail}, Role: ${reporterRole})
+- Reason: ${reason.toUpperCase()}
+- Comments: ${comments || "None provided"}
+
+Please review the resource on the platform database and take appropriate action.
+`;
+
+    const emailHtml = `
+      <h3>Flagged Resource Report</h3>
+      <p>The following resource has been flagged/reported as inappropriate or violating terms.</p>
+      
+      <h4>Resource Details:</h4>
+      <ul>
+        <li><strong>Title:</strong> ${resource.title}</li>
+        <li><strong>ID:</strong> ${resource._id}</li>
+        <li><strong>Category:</strong> ${resource.categoryId}</li>
+        <li><strong>College:</strong> ${resource.collegeName}</li>
+        <li><strong>Uploaded By:</strong> ${uploaderName} (${uploaderEmail})</li>
+      </ul>
+      
+      <h4>Report Details:</h4>
+      <ul>
+        <li><strong>Reported By:</strong> ${reporterName} (${reporterEmail}, Role: ${reporterRole})</li>
+        <li><strong>Reason:</strong> ${reason.toUpperCase()}</li>
+        <li><strong>Comments:</strong> ${comments || "None provided"}</li>
+      </ul>
+      
+      <p>Please review the resource on the platform database and take appropriate action.</p>
+    `;
+
+    await sendAdminNotification({
+      subject: emailSubject,
+      text: emailText,
+      html: emailHtml
+    });
+
+    await createAuditLog({
+      req,
+      action: "resource.report",
+      entityType: "resource",
+      entityId: resource._id,
+      metadata: {
+        reason,
+        commentsLength: comments.length
+      }
+    });
+
+    res.json({
+      success: true,
+      message: "Resource reported successfully. Administrators have been notified."
     });
   } catch (error) {
     next(error);

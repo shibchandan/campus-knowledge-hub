@@ -62,6 +62,21 @@ const CATEGORY_UPLOAD_GUIDANCE = {
     accepts: ".pdf,.txt,application/pdf,text/*",
     heading: "Allowed formats",
     detail: "PDF and text files. You can also add text directly."
+  },
+  assignment: {
+    accepts: ".pdf,.doc,.docx,.txt,.jpg,.jpeg,.png,application/pdf,application/msword,application/vnd.openxmlformats-officedocument.wordprocessingml.document,image/*,text/*",
+    heading: "Allowed formats",
+    detail: "PDF, Word documents, images, and text notes. You can also add text directly."
+  },
+  project: {
+    accepts: ".pdf,.doc,.docx,.zip,.txt,application/pdf,application/msword,application/vnd.openxmlformats-officedocument.wordprocessingml.document,application/zip,application/x-zip-compressed,text/*",
+    heading: "Allowed formats",
+    detail: "PDF, Word docs, text files, and ZIP archives. You can also add text directly."
+  },
+  "extra-resource": {
+    accepts: undefined,
+    heading: "Allowed formats",
+    detail: "Any standard file type or external link reference. You can also add text directly."
   }
 };
 
@@ -235,6 +250,11 @@ export function SubjectCategoryPage() {
   const [commentInputs, setCommentInputs] = useState({});
   const [feedbackBusyByResource, setFeedbackBusyByResource] = useState({});
   const [structureLoaded, setStructureLoaded] = useState(false);
+  const [reportingResource, setReportingResource] = useState(null);
+  const [reportReason, setReportReason] = useState("copyright");
+  const [reportComments, setReportComments] = useState("");
+  const [reportingBusy, setReportingBusy] = useState(false);
+  const [uploadTab, setUploadTab] = useState("file");
   const isLectureCategory = categoryId === "lecture";
 
   useEffect(() => {
@@ -451,14 +471,19 @@ export function SubjectCategoryPage() {
       formData.append("categoryId", categoryId);
       formData.append("title", uploadForm.title);
       formData.append("description", uploadForm.description);
-      formData.append("textContent", uploadForm.textContent);
       formData.append("visibility", uploadForm.visibility);
       formData.append("accessPrice", uploadForm.accessPrice || "0");
       formData.append("allowBasicSubscription", String(uploadForm.allowBasicSubscription));
-      formData.append("externalLink", uploadForm.externalLink || "");
 
-      if (selectedFile) {
-        formData.append("file", selectedFile);
+      if (uploadTab === "file") {
+        formData.append("textContent", uploadForm.textContent);
+        formData.append("externalLink", "");
+        if (selectedFile) {
+          formData.append("file", selectedFile);
+        }
+      } else {
+        formData.append("textContent", "");
+        formData.append("externalLink", uploadForm.externalLink || "");
       }
 
       await apiClient.post("/resources/upload", formData, {
@@ -467,6 +492,11 @@ export function SubjectCategoryPage() {
 
       setUploadForm(initialUploadForm);
       setSelectedFile(null);
+      const fileInput = document.getElementById("resource-file-picker");
+      if (fileInput) {
+        fileInput.value = "";
+      }
+
       setSuccess("Resource uploaded successfully.");
       showSuccess("Resource uploaded successfully.");
       await loadResources(1);
@@ -676,6 +706,39 @@ export function SubjectCategoryPage() {
     }
   }
 
+  function handleReportClick(resource) {
+    if (!user) {
+      navigate("/login", { state: { from: window.location.pathname } });
+      showInfo("Please sign in or register to report resources.");
+      return;
+    }
+    setReportingResource(resource);
+    setReportReason("copyright");
+    setReportComments("");
+  }
+
+  async function handleSubmittingReport(event) {
+    event.preventDefault();
+    setReportingBusy(true);
+    setError("");
+    setSuccess("");
+
+    try {
+      await apiClient.post(`/resources/${reportingResource._id}/report`, {
+        reason: reportReason,
+        comments: reportComments
+      });
+
+      showSuccess("Resource reported successfully. Administrators have been notified.");
+      setReportingResource(null);
+    } catch (requestError) {
+      const message = requestError.response?.data?.message || "Failed to submit report.";
+      showError(message);
+    } finally {
+      setReportingBusy(false);
+    }
+  }
+
   return (
     <div className="page-stack">
       <SectionCard
@@ -726,11 +789,48 @@ export function SubjectCategoryPage() {
                 <path strokeLinecap="round" strokeLinejoin="round" d="M12 9v3.75m-9.303 3.376c-.866 1.5.217 3.374 1.948 3.374h14.71c1.73 0 2.813-1.874 1.948-3.374L13.949 3.378c-.866-1.5-3.032-1.5-3.898 0L2.697 16.126ZM12 15.75h.007v.008H12v-.008Z" />
               </svg>
               <div>
-                <strong style={{ display: "block", marginBottom: "4px", fontWeight: "600" }}>Copyright & Intellectual Property Warning</strong>
+                <strong style={{ display: "block", marginBottom: "4px", fontWeight: "600" }}>Copyright Warning & Upload Guidelines</strong>
                 <span style={{ fontSize: "0.85rem", opacity: 0.9, lineHeight: "1.4", display: "block" }}>
-                  Please do NOT upload copyrighted textbooks, published papers, or third-party paid course materials. You are only permitted to upload student-created lecture notes, lab records, slides, or previous year questions (PYQs). Uploading copyrighted materials violates our platform policy and will result in instant account suspension.
+                  Please do NOT upload copyrighted textbooks, published papers, or third-party paid course materials. You are only permitted to upload student-created lecture notes, lab records, slides, or previous year questions (PYQs).
+                  <br />
+                  <strong style={{ color: "#ef4444" }}>💡 Tip:</strong> Instead of uploading large files, use the <strong>Share Link</strong> option below to share legal, public web resources like official YouTube video lectures, GitHub repos, or open-access websites!
                 </span>
               </div>
+            </div>
+
+            <div className="tab-switcher" style={{ display: "flex", gap: "10px", marginBottom: "20px", borderBottom: "1px solid var(--border-color, #e2e8f0)", paddingBottom: "10px" }}>
+              <button
+                type="button"
+                className={`tab-btn ${uploadTab === "file" ? "active" : ""}`}
+                onClick={() => setUploadTab("file")}
+                style={{
+                  padding: "8px 16px",
+                  borderRadius: "6px",
+                  background: uploadTab === "file" ? "var(--primary-color, #3b82f6)" : "transparent",
+                  color: uploadTab === "file" ? "#fff" : "var(--text-muted, #64748b)",
+                  border: "none",
+                  cursor: "pointer",
+                  fontWeight: "600"
+                }}
+              >
+                📁 Upload File
+              </button>
+              <button
+                type="button"
+                className={`tab-btn ${uploadTab === "link" ? "active" : ""}`}
+                onClick={() => setUploadTab("link")}
+                style={{
+                  padding: "8px 16px",
+                  borderRadius: "6px",
+                  background: uploadTab === "link" ? "var(--primary-color, #3b82f6)" : "transparent",
+                  color: uploadTab === "link" ? "#fff" : "var(--text-muted, #64748b)",
+                  border: "none",
+                  cursor: "pointer",
+                  fontWeight: "600"
+                }}
+              >
+                🔗 Share Link
+              </button>
             </div>
 
             <label className="auth-field">
@@ -803,43 +903,51 @@ export function SubjectCategoryPage() {
                 value={uploadForm.description}
               />
             </label>
-            {!isLectureCategory ? (
+
+            {uploadTab === "file" ? (
+              <>
+                {!isLectureCategory ? (
+                  <label className="auth-field">
+                    <span>Text Content (optional)</span>
+                    <textarea
+                      className="panel-textarea"
+                      onChange={(event) =>
+                        setUploadForm((current) => ({ ...current, textContent: event.target.value }))
+                      }
+                      rows={4}
+                      value={uploadForm.textContent}
+                    />
+                  </label>
+                ) : null}
+                <label className="auth-field">
+                  <span>{isLectureCategory ? "Video Upload" : "File Upload (optional)"}</span>
+                  <p className="muted">
+                    {uploadGuidance.heading}: {uploadGuidance.detail} {isLectureCategory ? "(Required)" : ""}
+                  </p>
+                  <input
+                    id="resource-file-picker"
+                    accept={uploadGuidance.accepts}
+                    onChange={(event) => setSelectedFile(event.target.files?.[0] || null)}
+                    required={isLectureCategory}
+                    type="file"
+                  />
+                </label>
+              </>
+            ) : (
               <label className="auth-field">
-                <span>Text Content (optional)</span>
-                <textarea
-                  className="panel-textarea"
+                <span>External Link (URL)</span>
+                <p className="muted">Provide a link to YouTube, Google Drive, or any external academic resource.</p>
+                <input
+                  type="url"
+                  placeholder="https://example.com/resource"
+                  value={uploadForm.externalLink}
                   onChange={(event) =>
-                    setUploadForm((current) => ({ ...current, textContent: event.target.value }))
+                    setUploadForm((current) => ({ ...current, externalLink: event.target.value }))
                   }
-                  rows={4}
-                  value={uploadForm.textContent}
+                  required
                 />
               </label>
-            ) : null}
-            <label className="auth-field">
-              <span>External Link (URL)</span>
-              <p className="muted">Provide a link to YouTube, Google Drive, or any external academic resource.</p>
-              <input
-                type="url"
-                placeholder="https://example.com/resource"
-                value={uploadForm.externalLink}
-                onChange={(event) =>
-                  setUploadForm((current) => ({ ...current, externalLink: event.target.value }))
-                }
-              />
-            </label>
-            <label className="auth-field">
-              <span>{isLectureCategory ? "Video Upload" : "File Upload (optional)"}</span>
-              <p className="muted">
-                {uploadGuidance.heading}: {uploadGuidance.detail} {isLectureCategory ? "(Required if no external link provided)" : ""}
-              </p>
-              <input
-                accept={uploadGuidance.accepts}
-                onChange={(event) => setSelectedFile(event.target.files?.[0] || null)}
-                required={isLectureCategory && !uploadForm.externalLink}
-                type="file"
-              />
-            </label>
+            )}
             <button className="auth-submit" disabled={uploading} type="submit">
               {uploading ? "Uploading..." : "Upload Resource"}
             </button>
@@ -1030,7 +1138,36 @@ export function SubjectCategoryPage() {
 
             return (
               <article className="panel-card" key={resource._id}>
-                <h3>{resource.title}</h3>
+                <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", gap: "12px", marginBottom: "8px" }}>
+                  <h3 style={{ margin: 0 }}>{resource.title}</h3>
+                  {resource.storageProvider === "external" ? (
+                    <span style={{
+                      background: "rgba(16, 185, 129, 0.1)",
+                      color: "#10b981",
+                      border: "1px solid rgba(16, 185, 129, 0.2)",
+                      padding: "4px 8px",
+                      borderRadius: "6px",
+                      fontSize: "0.75rem",
+                      fontWeight: "600",
+                      whiteSpace: "nowrap"
+                    }}>
+                      🔗 Web Link
+                    </span>
+                  ) : (
+                    <span style={{
+                      background: "rgba(59, 130, 246, 0.1)",
+                      color: "#3b82f6",
+                      border: "1px solid rgba(59, 130, 246, 0.2)",
+                      padding: "4px 8px",
+                      borderRadius: "6px",
+                      fontSize: "0.75rem",
+                      fontWeight: "600",
+                      whiteSpace: "nowrap"
+                    }}>
+                      📁 File Upload
+                    </span>
+                  )}
+                </div>
                 <p className="muted">
                   Uploaded by: {resource.uploadedBy?.fullName || "Unknown"} ({resource.uploadedBy?.role})
                 </p>
@@ -1153,8 +1290,13 @@ export function SubjectCategoryPage() {
                       )}
                       rel="noreferrer"
                       target="_blank"
+                      style={resource.storageProvider === "external" ? {
+                        background: "rgba(16, 185, 129, 0.1)",
+                        color: "#10b981",
+                        border: "1px solid rgba(16, 185, 129, 0.2)"
+                      } : undefined}
                     >
-                      {resource.storageProvider === "external" ? "Open Link" : "Download"}
+                      {resource.storageProvider === "external" ? "Open Link ↗" : "Download File ⬇"}
                     </a>
                   ) : null}
                   {resource.visibility === "protected" &&
@@ -1197,6 +1339,20 @@ export function SubjectCategoryPage() {
                       Delete
                     </button>
                   ) : null}
+                  {user?.id !== resource.uploadedBy?._id ? (
+                    <button
+                      className="action-button reject"
+                      onClick={() => handleReportClick(resource)}
+                      type="button"
+                      style={{
+                        background: "rgba(239, 68, 68, 0.1)",
+                        color: "#ef4444",
+                        border: "1px solid rgba(239, 68, 68, 0.2)"
+                      }}
+                    >
+                      Report
+                    </button>
+                  ) : null}
                 </div>
               </article>
             );
@@ -1226,6 +1382,70 @@ export function SubjectCategoryPage() {
           </button>
         </div>
       </SectionCard>
+
+      {reportingResource && (
+        <div className="filter-modal-overlay" onClick={() => setReportingResource(null)} role="presentation">
+          <div className="filter-modal-card" onClick={(e) => e.stopPropagation()} role="dialog" aria-modal="true">
+            <div className="filter-modal-header">
+              <h3>Report Resource</h3>
+              <button className="filter-modal-close" onClick={() => setReportingResource(null)} type="button">
+                &times;
+              </button>
+            </div>
+            
+            <p className="muted" style={{ marginBottom: "16px" }}>
+              Reporting resource: <strong>{reportingResource.title}</strong>
+            </p>
+
+            <form className="panel-form" onSubmit={handleSubmittingReport} style={{ marginTop: 0, border: 'none', background: 'transparent', padding: 0 }}>
+              <div className="panel-form-grid" style={{ gridTemplateColumns: '1fr' }}>
+                <label className="auth-field">
+                  <span>Reason for reporting</span>
+                  <select
+                    onChange={(event) => setReportReason(event.target.value)}
+                    value={reportReason}
+                  >
+                    <option value="copyright">Copyright / DMCA Violation</option>
+                    <option value="spam">Spam / Duplicate Content</option>
+                    <option value="inappropriate">Inappropriate / Off-topic Content</option>
+                    <option value="other">Other reason</option>
+                  </select>
+                </label>
+                <label className="auth-field">
+                  <span>Additional Comments</span>
+                  <textarea
+                    className="panel-textarea"
+                    onChange={(event) => setReportComments(event.target.value)}
+                    placeholder="Provide details about why you are reporting this resource..."
+                    rows={4}
+                    value={reportComments}
+                    required={reportReason === "other"}
+                  />
+                </label>
+              </div>
+
+              <div className="panel-actions" style={{ justifyContent: 'flex-end', gap: '12px', marginTop: '24px' }}>
+                <button
+                  type="button"
+                  className="action-button neutral"
+                  onClick={() => setReportingResource(null)}
+                  disabled={reportingBusy}
+                >
+                  Cancel
+                </button>
+                <button
+                  type="submit"
+                  className="open-college-button"
+                  style={{ background: '#ef4444', color: '#fff', border: 'none' }}
+                  disabled={reportingBusy}
+                >
+                  {reportingBusy ? "Submitting Report..." : "Submit Report"}
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

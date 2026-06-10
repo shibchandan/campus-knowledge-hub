@@ -30,7 +30,8 @@ const resourceSchema = new mongoose.Schema(
       type: mongoose.Schema.Types.ObjectId,
       ref: "User",
       required: true
-    }
+    },
+    isFlagged: { type: Boolean, default: false }
   },
   { timestamps: true }
 );

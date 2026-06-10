@@ -34,7 +34,10 @@ const defaultSubjectCategories = [
   { id: "lecture", label: "Lecture" },
   { id: "lab", label: "Lab" },
   { id: "pyq", label: "PYQ" },
-  { id: "suggestion", label: "Suggestion" }
+  { id: "suggestion", label: "Suggestion" },
+  { id: "assignment", label: "Assignment" },
+  { id: "project", label: "Project" },
+  { id: "extra-resource", label: "Extra Resource" }
 ];
 
 export function DashboardPage() {
