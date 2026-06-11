@@ -1010,7 +1010,7 @@ export async function deleteCollegeProfile(req, res, next) {
 export async function getCollegeProfile(req, res, next) {
   try {
     const requestedCollegeName =
-      req.user.role === "student"
+      req.user?.role === "student"
         ? req.query.collegeName
         : readString(req.query.collegeName, {
             field: "collegeName",
