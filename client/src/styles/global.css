@@ -4096,3 +4096,156 @@ h3 {
     grid-template-columns: 1fr;
   }
 }
+
+/* ── Enhanced Community Cards ── */
+.community-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+  gap: 16px;
+}
+
+.community-card-enhanced {
+  display: flex;
+  flex-direction: column;
+  border-radius: 16px;
+  background: rgba(255, 255, 255, 0.6);
+  border: 1px solid rgba(24, 33, 47, 0.08);
+  overflow: hidden;
+  transition: transform 0.25s ease, box-shadow 0.25s ease;
+}
+
+[data-theme="dark"] .community-card-enhanced {
+  background: rgba(18, 28, 43, 0.4);
+  border-color: rgba(255, 255, 255, 0.06);
+}
+
+.community-card-enhanced:hover {
+  transform: translateY(-3px);
+  box-shadow: 0 12px 32px rgba(0, 0, 0, 0.08);
+}
+
+.community-card-accent {
+  height: 4px;
+  width: 100%;
+  flex-shrink: 0;
+}
+
+.community-card-body {
+  padding: 16px 18px 12px;
+  flex: 1;
+}
+
+.community-card-top-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 10px;
+}
+
+.community-card-icon {
+  font-size: 1.15rem;
+  line-height: 1;
+}
+
+.community-channel-tag {
+  font-size: 0.62rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  padding: 3px 10px;
+  border-radius: 10px;
+}
+
+.community-semester-tag {
+  font-size: 0.62rem;
+  font-weight: 600;
+  padding: 3px 8px;
+  border-radius: 8px;
+  background: rgba(99, 102, 241, 0.08);
+  color: #818cf8;
+  margin-left: auto;
+}
+
+.community-card-title {
+  font-size: 0.95rem;
+  font-weight: 700;
+  margin: 0 0 4px;
+  line-height: 1.35;
+  color: #1e293b;
+}
+
+[data-theme="dark"] .community-card-title {
+  color: #e2e8f0;
+}
+
+.community-card-desc {
+  font-size: 0.8rem;
+  margin: 0 0 12px;
+  display: -webkit-box;
+  -webkit-line-clamp: 3;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+.community-card-details {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px 12px;
+}
+
+.community-detail-item {
+  font-size: 0.74rem;
+  color: #64748b;
+}
+
+[data-theme="dark"] .community-detail-item {
+  color: #94a3b8;
+}
+
+.community-card-footer {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 10px 18px;
+  border-top: 1px solid rgba(24, 33, 47, 0.05);
+  margin-top: auto;
+}
+
+[data-theme="dark"] .community-card-footer {
+  border-top-color: rgba(255, 255, 255, 0.04);
+}
+
+.community-replies-badge {
+  font-size: 0.7rem;
+  font-weight: 600;
+  padding: 3px 10px;
+  border-radius: 12px;
+  background: rgba(148, 163, 184, 0.15);
+  color: #475569;
+}
+
+[data-theme="dark"] .community-replies-badge {
+  background: rgba(148, 163, 184, 0.1);
+  color: #94a3b8;
+}
+
+.community-join-btn {
+  font-size: 0.78rem;
+  font-weight: 600;
+  text-decoration: none;
+  background: none;
+  border: none;
+  cursor: pointer;
+  padding: 0;
+  transition: opacity 0.2s ease;
+}
+
+.community-join-btn:hover {
+  opacity: 0.8;
+}
+
+@media (max-width: 640px) {
+  .community-grid {
+    grid-template-columns: 1fr;
+  }
+}

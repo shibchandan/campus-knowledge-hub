@@ -62,7 +62,7 @@ export function NotesPage() {
         const response = await apiClient.get("/resources", {
           params: { collegeName: selectedCollege.name }
         });
-        setResources(response.data.data || []);
+        setResources(response.data.data?.items || []);
       } catch {
         setResources([]);
       } finally {
