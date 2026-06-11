@@ -53,6 +53,7 @@ export function DashboardPage() {
   const [activeRepresentativeKey, setActiveRepresentativeKey] = useState("");
   const [loadingProfile, setLoadingProfile] = useState(false);
   const [profileError, setProfileError] = useState("");
+  const [activeTab, setActiveTab] = useState("workspace");
   const [quickSubjectForm, setQuickSubjectForm] = useState({
     programId: "",
     branchId: "",
@@ -664,92 +665,35 @@ export function DashboardPage() {
         </aside>
       </section>
 
-      {selectedCollege ? (
-        <SectionCard
-          title="College Profile"
-          description="Institution highlights and placement statistics for this college."
+      <div className="dashboard-tabs">
+        <button
+          className={`dashboard-tab ${activeTab === "workspace" ? "active" : ""}`}
+          onClick={() => setActiveTab("workspace")}
+          type="button"
         >
-          {loadingProfile ? <p className="muted">Loading college details...</p> : null}
-          {profileError ? <p className="auth-error">{profileError}</p> : null}
-          {!loadingProfile && !profile ? (
-            <p className="muted">
-              No detail profile is available for this college yet. A representative can add it from the panel.
-            </p>
-          ) : null}
-
-          {!loadingProfile && profile ? (
-            <div className="overview-profile-stack-full">
-              {/* Highlights Grid */}
-              <div className="profile-highlights-grid" style={{
-                display: "grid",
-                gridTemplateColumns: "repeat(auto-fit, minmax(200px, 1fr))",
-                gap: "1rem",
-                marginBottom: "1.5rem"
-              }}>
-                {profileHighlights.map((item) => (
-                  <div key={item.label} className="detail-card" style={{
-                    padding: "1rem",
-                    borderRadius: "12px",
-                    background: "rgba(255, 255, 255, 0.03)",
-                    border: "1px solid rgba(255, 255, 255, 0.05)",
-                    display: "flex",
-                    flexDirection: "column",
-                    gap: "0.25rem"
-                  }}>
-                    <span className="overview-side-label" style={{ fontSize: "0.75rem", textTransform: "uppercase", letterSpacing: "0.5px" }}>{item.label}</span>
-                    <strong style={{ fontSize: "1.25rem", color: "#f8fafc" }}>{item.value}</strong>
-                  </div>
-                ))}
-              </div>
-
-              {/* Notes Grid */}
-              <div className="profile-notes-grid" style={{
-                display: "grid",
-                gridTemplateColumns: "repeat(auto-fit, minmax(280px, 1fr))",
-                gap: "1.5rem"
-              }}>
-                <article className="detail-card" style={{
-                  padding: "1.25rem",
-                  borderRadius: "12px",
-                  background: "rgba(255, 255, 255, 0.02)",
-                  border: "1px solid rgba(255, 255, 255, 0.05)"
-                }}>
-                  <span className="overview-side-label" style={{ fontSize: "0.875rem", fontWeight: "600", display: "block", marginBottom: "0.5rem" }}>Placement Report Summary</span>
-                  <p className="muted" style={{ margin: 0, fontSize: "0.95rem", lineHeight: "1.6" }}>{profile.placementReport || "Not provided"}</p>
-                </article>
-                <article className="detail-card" style={{
-                  padding: "1.25rem",
-                  borderRadius: "12px",
-                  background: "rgba(255, 255, 255, 0.02)",
-                  border: "1px solid rgba(255, 255, 255, 0.05)"
-                }}>
-                  <span className="overview-side-label" style={{ fontSize: "0.875rem", fontWeight: "600", display: "block", marginBottom: "0.5rem" }}>Cut Off Summary</span>
-                  <p className="muted" style={{ margin: 0, fontSize: "0.95rem", lineHeight: "1.6" }}>{profile.cutOffSummary || "Not provided"}</p>
-                </article>
-                <article className="detail-card" style={{
-                  padding: "1.25rem",
-                  borderRadius: "12px",
-                  background: "rgba(255, 255, 255, 0.02)",
-                  border: "1px solid rgba(255, 255, 255, 0.05)"
-                }}>
-                  <span className="overview-side-label" style={{ fontSize: "0.875rem", fontWeight: "600", display: "block", marginBottom: "0.5rem" }}>Other Rankings & Info</span>
-                  <p className="muted" style={{ margin: 0, fontSize: "0.95rem", lineHeight: "1.6" }}>{profile.rankings?.other || "Not provided"}</p>
-                </article>
-              </div>
-            </div>
-          ) : null}
-        </SectionCard>
-      ) : (
-        <SectionCard
-          title="College Profile"
-          description="Institution highlights and placement statistics for this college."
+          <span className="tab-icon">📚</span>
+          <span>Academic Workspace</span>
+        </button>
+        <button
+          className={`dashboard-tab ${activeTab === "profile" ? "active" : ""}`}
+          onClick={() => setActiveTab("profile")}
+          type="button"
         >
-          <p className="muted">Select a college first from Colleges page.</p>
-        </SectionCard>
-      )}
+          <span className="tab-icon">🏛️</span>
+          <span>Institution Profile</span>
+        </button>
+        <button
+          className={`dashboard-tab ${activeTab === "notices" ? "active" : ""}`}
+          onClick={() => setActiveTab("notices")}
+          type="button"
+        >
+          <span className="tab-icon">📢</span>
+          <span>Notice Desk</span>
+        </button>
+      </div>
 
-      <div className="overview-grid-shell">
-        <div className="overview-grid-main">
+      {activeTab === "workspace" && (
+        <>
           <SectionCard
             title="Academic Workspace"
             description="Open a program to continue into branch, semester, subject, and resource management."
@@ -779,7 +723,11 @@ export function DashboardPage() {
               />
               <p className="muted">{filteredPrograms.length} programs visible</p>
             </div>
-            <div className="program-grid">
+            <div className="program-grid" style={{
+              display: "grid",
+              gridTemplateColumns: "repeat(auto-fit, minmax(320px, 1fr))",
+              gap: "1.5rem"
+            }}>
               {filteredPrograms.map((program) => (
                 <Link
                   className="branch-card program-link branch-card-enhanced"
@@ -803,209 +751,159 @@ export function DashboardPage() {
               ))}
             </div>
           </SectionCard>
-        </div>
 
-        <div className="overview-grid-side">
           <SectionCard
-            title="Representative Coverage"
-            description="Current course owners mapped to this college."
+            title="Academic Operations"
+            description="Manage course setup and quick subject creation without leaving the overview workspace."
           >
-            {!selectedCollege ? <p className="muted">Select a college first from Colleges page.</p> : null}
-            {selectedCollege && !representativeDirectory.length ? (
-              <p className="muted">No approved representatives are mapped to this college yet.</p>
-            ) : null}
-            <div className="overview-directory-list">
-              {representativeDirectory.map((representative) => (
-                <article className="overview-directory-item" key={representative.key}>
-                  <div className="overview-directory-copy">
-                    <h3>{representative.fullName}</h3>
-                    <p className="muted">
-                      {representative.courses.length} course entries | {representative.totalSemesters || "Branch-defined"} semester lanes
-                    </p>
-                  </div>
-                  <button
-                    className="action-button neutral"
-                    onClick={() =>
-                      setActiveRepresentativeKey((current) =>
-                        current === representative.key ? "" : representative.key
-                      )
-                    }
-                    type="button"
-                  >
-                    {activeRepresentativeKey === representative.key ? "Hide Courses" : "View Courses"}
-                  </button>
-                  {activeRepresentativeKey === representative.key ? (
-                    <div className="overview-inline-chips">
-                      {representative.courses.map((course) => (
-                        <span
-                          className="notes-focus-chip"
-                          key={`${representative.key}-${course.courseName}-${course.semesterCount || "branch-defined"}`}
-                        >
-                          {course.courseName}
-                          {course.semesterCount ? ` | ${course.semesterCount} semesters` : ""}
-                        </span>
-                      ))}
-                    </div>
-                  ) : null}
-                </article>
-              ))}
-            </div>
-          </SectionCard>
-        </div>
-      </div>
-
-      <SectionCard
-        title="Academic Operations"
-        description="Manage course setup and quick subject creation without leaving the overview workspace."
-      >
-        {!canManageOverviewSubjects ? (
-          <p className="muted">Only admins and representatives can manage courses and subjects from this page.</p>
-        ) : (
-          <div className="overview-operations-grid">
-            <div className="overview-operation-pane">
-              <div className="overview-pane-header">
-                <div>
-                  <p className="overview-side-label">Course manager</p>
-                  <h3>Add or open a course</h3>
-                </div>
-                <p className="muted">Create the course first, then continue into branch and semester setup.</p>
-              </div>
-              {!selectedCollege ? <p className="muted">Choose a college first from Colleges page.</p> : null}
-              {selectedCollege ? (
-                <form className="panel-form" onSubmit={handleCreateCourse}>
-                  <div className="panel-form-grid">
-                    <label className="auth-field">
-                      <span>College Name</span>
-                      <input readOnly type="text" value={selectedCollege.name} />
-                    </label>
-                    <label className="auth-field">
-                      <span>Course Name</span>
-                      <input
-                        onChange={(event) =>
-                          setCourseForm((current) => ({ ...current, courseName: event.target.value }))
-                        }
-                        placeholder="BTech"
-                        required
-                        type="text"
-                        value={courseForm.courseName}
-                      />
-                    </label>
-                  </div>
-                  <div className="panel-actions">
-                    <button className="open-college-button" disabled={courseBusy} type="submit">
-                      {courseBusy
-                        ? "Saving Course..."
-                        : user?.role === "admin"
-                          ? "Add Course Directly"
-                          : "Add Course"}
-                    </button>
-                  </div>
-                </form>
-              ) : null}
-              <div className="overview-course-list">
-                {approvedCourses.map((course) => (
-                  <article className="overview-course-item" key={course._id}>
+            {!canManageOverviewSubjects ? (
+              <p className="muted">Only admins and representatives can manage courses and subjects from this page.</p>
+            ) : (
+              <div className="overview-operations-grid">
+                <div className="overview-operation-pane">
+                  <div className="overview-pane-header">
                     <div>
-                      <h4>{course.courseName}</h4>
-                      <p className="muted">
-                        {course.semesterCount
-                          ? `${course.semesterCount} legacy semesters`
-                          : "Semester count will be created branch-wise"}
-                      </p>
+                      <p className="overview-side-label">Course manager</p>
+                      <h3>Add or open a course</h3>
                     </div>
-                    <div className="panel-actions">
-                      <Link
-                        className="notes-focus-chip"
-                        to={`/dashboard/${normalizeProgramKey(course.courseName)}`}
-                      >
-                        Open Course Page
-                      </Link>
-                      <button
-                        className="action-button reject"
-                        onClick={() => handleDeleteCourse(course)}
-                        type="button"
-                      >
-                        Delete Course
-                      </button>
-                    </div>
-                  </article>
-                ))}
-              </div>
-            </div>
-
-            <div className="overview-operation-pane">
-              <div className="overview-pane-header">
-                <div>
-                  <p className="overview-side-label">Quick subject creator</p>
-                  <h3>Add subjects to an existing semester</h3>
+                    <p className="muted">Create the course first, then continue into branch and semester setup.</p>
+                  </div>
+                  {!selectedCollege ? <p className="muted">Choose a college first from Colleges page.</p> : null}
+                  {selectedCollege ? (
+                    <form className="panel-form" onSubmit={handleCreateCourse}>
+                      <div className="panel-form-grid">
+                        <label className="auth-field">
+                          <span>College Name</span>
+                          <input readOnly type="text" value={selectedCollege.name} />
+                        </label>
+                        <label className="auth-field">
+                          <span>Course Name</span>
+                          <input
+                            onChange={(event) =>
+                              setCourseForm((current) => ({ ...current, courseName: event.target.value }))
+                            }
+                            placeholder="BTech"
+                            required
+                            type="text"
+                            value={courseForm.courseName}
+                          />
+                        </label>
+                      </div>
+                      <div className="panel-actions">
+                        <button className="open-college-button" disabled={courseBusy} type="submit">
+                          {courseBusy
+                            ? "Saving Course..."
+                            : user?.role === "admin"
+                              ? "Add Course Directly"
+                              : "Add Course"}
+                        </button>
+                      </div>
+                    </form>
+                  ) : null}
+                  <div className="overview-course-list">
+                    {approvedCourses.map((course) => (
+                      <article className="overview-course-item" key={course._id}>
+                        <div>
+                          <h4>{course.courseName}</h4>
+                          <p className="muted">
+                            {course.semesterCount
+                              ? `${course.semesterCount} legacy semesters`
+                              : "Semester count will be created branch-wise"}
+                          </p>
+                        </div>
+                        <div className="panel-actions">
+                          <Link
+                            className="notes-focus-chip"
+                            to={`/dashboard/${normalizeProgramKey(course.courseName)}`}
+                          >
+                            Open Course Page
+                          </Link>
+                          <button
+                            className="action-button reject"
+                            onClick={() => handleDeleteCourse(course)}
+                            type="button"
+                          >
+                            Delete Course
+                          </button>
+                        </div>
+                      </article>
+                    ))}
+                  </div>
                 </div>
-                <p className="muted">Use this once branch and semester structure is already available.</p>
-              </div>
-              {!selectedCollege ? <p className="muted">Choose a college first.</p> : null}
-              {selectedCollege && !structures.length ? (
-                <p className="muted">
-                  No branch-semester structure is available yet for this college. Create the academic structure from panel first.
-                </p>
-              ) : null}
-              {selectedCollege && structures.length ? (
-                <form className="panel-form" onSubmit={handleQuickCreateSubject}>
-                  <div className="panel-form-grid">
-                    <label className="auth-field">
-                      <span>Program</span>
-                      <select
-                        onChange={(event) =>
-                          setQuickSubjectForm({
-                            programId: event.target.value,
-                            branchId:
-                              structures.find((program) => program.id === event.target.value)?.branches?.[0]?.id ||
-                              "",
-                            semesterId:
-                              structures
-                                .find((program) => program.id === event.target.value)
-                                ?.branches?.[0]?.semesters?.[0]?.id || "",
-                            subjectName: quickSubjectForm.subjectName,
-                            subjectId: quickSubjectForm.subjectId
-                          })
-                        }
-                        value={quickSubjectForm.programId}
-                      >
-                        <option value="">Select program</option>
-                        {structures.map((program) => (
-                          <option key={program.id} value={program.id}>
-                            {program.name}
-                          </option>
-                        ))}
-                      </select>
-                    </label>
-                    <label className="auth-field">
-                      <span>Branch</span>
-                      <select
-                        onChange={(event) =>
-                          setQuickSubjectForm((current) => ({
-                            ...current,
-                            branchId: event.target.value,
-                            semesterId:
-                              selectedProgramStructure?.branches?.find((branch) => branch.id === event.target.value)
-                                ?.semesters?.[0]?.id || ""
-                          }))
-                        }
-                        value={quickSubjectForm.branchId}
-                      >
-                        <option value="">Select branch</option>
-                        {selectedProgramStructure?.branches?.map((branch) => (
-                          <option key={branch.id} value={branch.id}>
-                            {branch.name}
-                          </option>
-                        ))}
-                      </select>
-                    </label>
-                    <label className="auth-field">
-                      <span>Semester</span>
-                      <select
-                        onChange={(event) =>
-                          setQuickSubjectForm((current) => ({ ...current, semesterId: event.target.value }))
-                        }
-                        value={quickSubjectForm.semesterId}
+
+                <div className="overview-operation-pane">
+                  <div className="overview-pane-header">
+                    <div>
+                      <p className="overview-side-label">Quick subject creator</p>
+                      <h3>Add subjects to an existing semester</h3>
+                    </div>
+                    <p className="muted">Use this once branch and semester structure is already available.</p>
+                  </div>
+                  {!selectedCollege ? <p className="muted">Choose a college first.</p> : null}
+                  {selectedCollege && !structures.length ? (
+                    <p className="muted">
+                      No branch-semester structure is available yet for this college. Create the academic structure from panel first.
+                    </p>
+                  ) : null}
+                  {selectedCollege && structures.length ? (
+                    <form className="panel-form" onSubmit={handleQuickCreateSubject}>
+                      <div className="panel-form-grid">
+                        <label className="auth-field">
+                          <span>Program</span>
+                          <select
+                            onChange={(event) =>
+                              setQuickSubjectForm({
+                                programId: event.target.value,
+                                branchId:
+                                  structures.find((program) => program.id === event.target.value)?.branches?.[0]?.id ||
+                                  "",
+                                semesterId:
+                                  structures
+                                    .find((program) => program.id === event.target.value)
+                                    ?.branches?.[0]?.semesters?.[0]?.id || "",
+                                subjectName: quickSubjectForm.subjectName,
+                                subjectId: quickSubjectForm.subjectId
+                              })
+                            }
+                            value={quickSubjectForm.programId}
+                          >
+                            <option value="">Select program</option>
+                            {structures.map((program) => (
+                              <option key={program.id} value={program.id}>
+                                {program.name}
+                              </option>
+                            ))}
+                          </select>
+                        </label>
+                        <label className="auth-field">
+                          <span>Branch</span>
+                          <select
+                            onChange={(event) =>
+                              setQuickSubjectForm((current) => ({
+                                ...current,
+                                branchId: event.target.value,
+                                semesterId:
+                                  selectedProgramStructure?.branches?.find((branch) => branch.id === event.target.value)
+                                    ?.semesters?.[0]?.id || ""
+                              }))
+                            }
+                            value={quickSubjectForm.branchId}
+                          >
+                            <option value="">Select branch</option>
+                            {selectedProgramStructure?.branches?.map((branch) => (
+                              <option key={branch.id} value={branch.id}>
+                                {branch.name}
+                              </option>
+                            ))}
+                          </select>
+                        </label>
+                        <label className="auth-field">
+                          <span>Semester</span>
+                          <select
+                            onChange={(event) =>
+                              setQuickSubjectForm((current) => ({ ...current, semesterId: event.target.value }))
+                            }
+                            value={quickSubjectForm.semesterId}
                       >
                         <option value="">Select semester</option>
                         {selectedBranchStructure?.semesters?.map((semester) => (
@@ -1078,39 +976,177 @@ export function DashboardPage() {
           </div>
         )}
       </SectionCard>
+        </>
+      )}
 
-      <SectionCard
-        title="Notice Desk"
-        description="Published notices for the selected college and platform-wide announcements."
-      >
-        {!selectedCollege ? <p className="muted">Select a college to see its notices.</p> : null}
-        <div className="list-toolbar">
-          <input
-            className="college-search"
-            onChange={(event) => setNoticeSearch(event.target.value)}
-            placeholder="Search notice title or content..."
-            type="text"
-            value={noticeSearch}
-          />
-          <p className="muted">{filteredNotices.length} notices visible</p>
-        </div>
-        {selectedCollege && notices.length === 0 ? (
-          <p className="muted">No notices published for this college yet.</p>
-        ) : null}
-        <div className="overview-notice-list">
-          {filteredNotices.map((notice) => (
-            <article className="overview-notice-item" key={notice._id}>
-              <div className="overview-notice-heading">
-                <div>
-                  <h3>{notice.title}</h3>
-                  <p className="muted">{notice.collegeName || "Platform-wide notice"}</p>
+      {activeTab === "profile" && (
+        <>
+          {selectedCollege ? (
+            <SectionCard
+              title="College Profile"
+              description="Institution highlights and placement statistics for this college."
+            >
+              {loadingProfile ? <p className="muted">Loading college details...</p> : null}
+              {profileError ? <p className="auth-error">{profileError}</p> : null}
+              {!loadingProfile && !profile ? (
+                <p className="muted">
+                  No detail profile is available for this college yet. A representative can add it from the panel.
+                </p>
+              ) : null}
+
+              {!loadingProfile && profile ? (
+                <div className="overview-profile-stack-full">
+                  {/* Highlights Grid */}
+                  <div className="profile-highlights-grid" style={{
+                    display: "grid",
+                    gridTemplateColumns: "repeat(auto-fit, minmax(200px, 1fr))",
+                    gap: "1rem",
+                    marginBottom: "1.5rem"
+                  }}>
+                    {profileHighlights.map((item) => (
+                      <div key={item.label} className="detail-card" style={{
+                        padding: "1rem",
+                        borderRadius: "12px",
+                        background: "rgba(255, 255, 255, 0.03)",
+                        border: "1px solid rgba(255, 255, 255, 0.05)",
+                        display: "flex",
+                        flexDirection: "column",
+                        gap: "0.25rem"
+                      }}>
+                        <span className="overview-side-label" style={{ fontSize: "0.75rem", textTransform: "uppercase", letterSpacing: "0.5px" }}>{item.label}</span>
+                        <strong style={{ fontSize: "1.25rem", color: "#f8fafc" }}>{item.value}</strong>
+                      </div>
+                    ))}
+                  </div>
+
+                  {/* Notes Grid */}
+                  <div className="profile-notes-grid" style={{
+                    display: "grid",
+                    gridTemplateColumns: "repeat(auto-fit, minmax(280px, 1fr))",
+                    gap: "1.5rem"
+                  }}>
+                    <article className="detail-card" style={{
+                      padding: "1.25rem",
+                      borderRadius: "12px",
+                      background: "rgba(255, 255, 255, 0.02)",
+                      border: "1px solid rgba(255, 255, 255, 0.05)"
+                    }}>
+                      <span className="overview-side-label" style={{ fontSize: "0.875rem", fontWeight: "600", display: "block", marginBottom: "0.5rem" }}>Placement Report Summary</span>
+                      <p className="muted" style={{ margin: 0, fontSize: "0.95rem", lineHeight: "1.6" }}>{profile.placementReport || "Not provided"}</p>
+                    </article>
+                    <article className="detail-card" style={{
+                      padding: "1.25rem",
+                      borderRadius: "12px",
+                      background: "rgba(255, 255, 255, 0.02)",
+                      border: "1px solid rgba(255, 255, 255, 0.05)"
+                    }}>
+                      <span className="overview-side-label" style={{ fontSize: "0.875rem", fontWeight: "600", display: "block", marginBottom: "0.5rem" }}>Cut Off Summary</span>
+                      <p className="muted" style={{ margin: 0, fontSize: "0.95rem", lineHeight: "1.6" }}>{profile.cutOffSummary || "Not provided"}</p>
+                    </article>
+                    <article className="detail-card" style={{
+                      padding: "1.25rem",
+                      borderRadius: "12px",
+                      background: "rgba(255, 255, 255, 0.02)",
+                      border: "1px solid rgba(255, 255, 255, 0.05)"
+                    }}>
+                      <span className="overview-side-label" style={{ fontSize: "0.875rem", fontWeight: "600", display: "block", marginBottom: "0.5rem" }}>Other Rankings & Info</span>
+                      <p className="muted" style={{ margin: 0, fontSize: "0.95rem", lineHeight: "1.6" }}>{profile.rankings?.other || "Not provided"}</p>
+                    </article>
+                  </div>
                 </div>
-              </div>
-              <p>{notice.content}</p>
-            </article>
-          ))}
-        </div>
-      </SectionCard>
+              ) : null}
+            </SectionCard>
+          ) : (
+            <SectionCard
+              title="College Profile"
+              description="Institution highlights and placement statistics for this college."
+            >
+              <p className="muted">Select a college first from Colleges page.</p>
+            </SectionCard>
+          )}
+
+          <SectionCard
+            title="Representative Coverage"
+            description="Current course owners mapped to this college."
+          >
+            {!selectedCollege ? <p className="muted">Select a college first from Colleges page.</p> : null}
+            {selectedCollege && !representativeDirectory.length ? (
+              <p className="muted">No approved representatives are mapped to this college yet.</p>
+            ) : null}
+            <div className="overview-directory-list">
+              {representativeDirectory.map((representative) => (
+                <article className="overview-directory-item" key={representative.key}>
+                  <div className="overview-directory-copy">
+                    <h3>{representative.fullName}</h3>
+                    <p className="muted">
+                      {representative.courses.length} course entries | {representative.totalSemesters || "Branch-defined"} semester lanes
+                    </p>
+                  </div>
+                  <button
+                    className="action-button neutral"
+                    onClick={() =>
+                      setActiveRepresentativeKey((current) =>
+                        current === representative.key ? "" : representative.key
+                      )
+                    }
+                    type="button"
+                  >
+                    {activeRepresentativeKey === representative.key ? "Hide Courses" : "View Courses"}
+                  </button>
+                  {activeRepresentativeKey === representative.key ? (
+                    <div className="overview-inline-chips">
+                      {representative.courses.map((course) => (
+                        <span
+                          className="notes-focus-chip"
+                          key={`${representative.key}-${course.courseName}-${course.semesterCount || "branch-defined"}`}
+                        >
+                          {course.courseName}
+                          {course.semesterCount ? ` | ${course.semesterCount} semesters` : ""}
+                        </span>
+                      ))}
+                    </div>
+                  ) : null}
+                </article>
+              ))}
+            </div>
+          </SectionCard>
+        </>
+      )}
+
+      {activeTab === "notices" && (
+        <SectionCard
+          title="Notice Desk"
+          description="Published notices for the selected college and platform-wide announcements."
+        >
+          {!selectedCollege ? <p className="muted">Select a college to see its notices.</p> : null}
+          <div className="list-toolbar">
+            <input
+              className="college-search"
+              onChange={(event) => setNoticeSearch(event.target.value)}
+              placeholder="Search notice title or content..."
+              type="text"
+              value={noticeSearch}
+            />
+            <p className="muted">{filteredNotices.length} notices visible</p>
+          </div>
+          {selectedCollege && notices.length === 0 ? (
+            <p className="muted">No notices published for this college yet.</p>
+          ) : null}
+          <div className="overview-notice-list">
+            {filteredNotices.map((notice) => (
+              <article className="overview-notice-item" key={notice._id}>
+                <div className="overview-notice-heading">
+                  <div>
+                    <h3>{notice.title}</h3>
+                    <p className="muted">{notice.collegeName || "Platform-wide notice"}</p>
+                  </div>
+                </div>
+                <p>{notice.content}</p>
+              </article>
+            ))}
+          </div>
+        </SectionCard>
+      )}
     </div>
   );
 }
