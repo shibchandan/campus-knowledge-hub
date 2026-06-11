@@ -664,6 +664,90 @@ export function DashboardPage() {
         </aside>
       </section>
 
+      {selectedCollege ? (
+        <SectionCard
+          title="College Profile"
+          description="Institution highlights and placement statistics for this college."
+        >
+          {loadingProfile ? <p className="muted">Loading college details...</p> : null}
+          {profileError ? <p className="auth-error">{profileError}</p> : null}
+          {!loadingProfile && !profile ? (
+            <p className="muted">
+              No detail profile is available for this college yet. A representative can add it from the panel.
+            </p>
+          ) : null}
+
+          {!loadingProfile && profile ? (
+            <div className="overview-profile-stack-full">
+              {/* Highlights Grid */}
+              <div className="profile-highlights-grid" style={{
+                display: "grid",
+                gridTemplateColumns: "repeat(auto-fit, minmax(200px, 1fr))",
+                gap: "1rem",
+                marginBottom: "1.5rem"
+              }}>
+                {profileHighlights.map((item) => (
+                  <div key={item.label} className="detail-card" style={{
+                    padding: "1rem",
+                    borderRadius: "12px",
+                    background: "rgba(255, 255, 255, 0.03)",
+                    border: "1px solid rgba(255, 255, 255, 0.05)",
+                    display: "flex",
+                    flexDirection: "column",
+                    gap: "0.25rem"
+                  }}>
+                    <span className="overview-side-label" style={{ fontSize: "0.75rem", textTransform: "uppercase", letterSpacing: "0.5px" }}>{item.label}</span>
+                    <strong style={{ fontSize: "1.25rem", color: "#f8fafc" }}>{item.value}</strong>
+                  </div>
+                ))}
+              </div>
+
+              {/* Notes Grid */}
+              <div className="profile-notes-grid" style={{
+                display: "grid",
+                gridTemplateColumns: "repeat(auto-fit, minmax(280px, 1fr))",
+                gap: "1.5rem"
+              }}>
+                <article className="detail-card" style={{
+                  padding: "1.25rem",
+                  borderRadius: "12px",
+                  background: "rgba(255, 255, 255, 0.02)",
+                  border: "1px solid rgba(255, 255, 255, 0.05)"
+                }}>
+                  <span className="overview-side-label" style={{ fontSize: "0.875rem", fontWeight: "600", display: "block", marginBottom: "0.5rem" }}>Placement Report Summary</span>
+                  <p className="muted" style={{ margin: 0, fontSize: "0.95rem", lineHeight: "1.6" }}>{profile.placementReport || "Not provided"}</p>
+                </article>
+                <article className="detail-card" style={{
+                  padding: "1.25rem",
+                  borderRadius: "12px",
+                  background: "rgba(255, 255, 255, 0.02)",
+                  border: "1px solid rgba(255, 255, 255, 0.05)"
+                }}>
+                  <span className="overview-side-label" style={{ fontSize: "0.875rem", fontWeight: "600", display: "block", marginBottom: "0.5rem" }}>Cut Off Summary</span>
+                  <p className="muted" style={{ margin: 0, fontSize: "0.95rem", lineHeight: "1.6" }}>{profile.cutOffSummary || "Not provided"}</p>
+                </article>
+                <article className="detail-card" style={{
+                  padding: "1.25rem",
+                  borderRadius: "12px",
+                  background: "rgba(255, 255, 255, 0.02)",
+                  border: "1px solid rgba(255, 255, 255, 0.05)"
+                }}>
+                  <span className="overview-side-label" style={{ fontSize: "0.875rem", fontWeight: "600", display: "block", marginBottom: "0.5rem" }}>Other Rankings & Info</span>
+                  <p className="muted" style={{ margin: 0, fontSize: "0.95rem", lineHeight: "1.6" }}>{profile.rankings?.other || "Not provided"}</p>
+                </article>
+              </div>
+            </div>
+          ) : null}
+        </SectionCard>
+      ) : (
+        <SectionCard
+          title="College Profile"
+          description="Institution highlights and placement statistics for this college."
+        >
+          <p className="muted">Select a college first from Colleges page.</p>
+        </SectionCard>
+      )}
+
       <div className="overview-grid-shell">
         <div className="overview-grid-main">
           <SectionCard
@@ -719,7 +803,9 @@ export function DashboardPage() {
               ))}
             </div>
           </SectionCard>
+        </div>
 
+        <div className="overview-grid-side">
           <SectionCard
             title="Representative Coverage"
             description="Current course owners mapped to this college."
@@ -764,62 +850,6 @@ export function DashboardPage() {
                 </article>
               ))}
             </div>
-          </SectionCard>
-        </div>
-
-        <div className="overview-grid-side">
-          <SectionCard
-            title="College Profile"
-            description="Institution highlights surfaced on the academic dashboard."
-          >
-            {!selectedCollege ? <p className="muted">Select a college first from Colleges page.</p> : null}
-            {loadingProfile ? <p className="muted">Loading college details...</p> : null}
-            {profileError ? <p className="auth-error">{profileError}</p> : null}
-            {!loadingProfile && selectedCollege && !profile ? (
-              <p className="muted">
-                No detail profile is available for this college yet. A representative can add it from the panel.
-              </p>
-            ) : null}
-
-            {profile ? (
-              <div className="overview-profile-stack">
-                <div className="overview-profile-summary">
-                  <div>
-                    <p className="overview-side-label">Institution</p>
-                    <h3>{profile.collegeName}</h3>
-                  </div>
-                  {profile.placementReportUrl ? (
-                    <a href={profile.placementReportUrl} rel="noreferrer" target="_blank">
-                      Open placement report
-                    </a>
-                  ) : null}
-                </div>
-
-                <div className="overview-profile-highlights">
-                  {profileHighlights.map((item) => (
-                    <article className="overview-highlight-row" key={item.label}>
-                      <span>{item.label}</span>
-                      <strong>{item.value}</strong>
-                    </article>
-                  ))}
-                </div>
-
-                <div className="overview-profile-notes">
-                  <article>
-                    <span>Placement Report Summary</span>
-                    <p>{profile.placementReport || "Not provided"}</p>
-                  </article>
-                  <article>
-                    <span>Cut Off Summary</span>
-                    <p>{profile.cutOffSummary || "Not provided"}</p>
-                  </article>
-                  <article>
-                    <span>Other Ranking</span>
-                    <p>{profile.rankings?.other || "Not provided"}</p>
-                  </article>
-                </div>
-              </div>
-            ) : null}
           </SectionCard>
         </div>
       </div>
