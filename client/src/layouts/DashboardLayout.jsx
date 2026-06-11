@@ -55,7 +55,8 @@ export function DashboardLayout() {
           Close
         </button>
 
-        <div>
+        <div className="sidebar-header-branding">
+          <img src="/logo.png" alt="Campus Knowledge Hub" className="sidebar-main-logo" />
           <p className="eyebrow">Campus Knowledge Hub</p>
           <h1>Academic Control Center</h1>
           <p className="muted">

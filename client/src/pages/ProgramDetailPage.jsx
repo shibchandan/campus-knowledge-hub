@@ -180,13 +180,23 @@ export function ProgramDetailPage() {
           <div className="branch-grid">
             {program.branches.map((branch) => (
               <Link
-                className="branch-card program-link"
+                className="branch-card program-link branch-card-enhanced"
                 key={branch.id}
                 to={`/dashboard/${programId}/branch/${branch.id}`}
               >
-                <p className="program-badge">{program.name}</p>
-                <h3>{branch.name}</h3>
-                <p className="muted">{branch.description}</p>
+                <div className="branch-card-accent" />
+                <div className="branch-card-body">
+                  <div className="branch-card-top-row">
+                    <span className="branch-icon">🖥️</span>
+                    <span className="branch-program-tag">{program.name}</span>
+                  </div>
+                  <h3 className="branch-card-name">{branch.name}</h3>
+                  <p className="muted branch-card-desc">{branch.description}</p>
+                </div>
+                <div className="branch-card-footer">
+                  <span className="branch-open-label">Open Semesters</span>
+                  <span className="branch-open-arrow">→</span>
+                </div>
               </Link>
             ))}
           </div>

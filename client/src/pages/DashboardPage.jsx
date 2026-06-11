@@ -588,44 +588,72 @@ export function DashboardPage() {
               </p>
             </div>
             <div className="overview-status-row">
-              {heroStatusItems.map((item) => (
-                <span className="overview-status-pill" key={item.label}>
-                  <strong>{item.label}</strong>
-                  <span>{item.value}</span>
-                </span>
-              ))}
+              {heroStatusItems.map((item) => {
+                const statusIcon =
+                  item.label === "Profile" ? "👤" :
+                  item.label === "Representatives" ? "👥" : "📢";
+                const isActive =
+                  (item.label === "Profile" && item.value === "Ready") ||
+                  (item.label === "Representatives" && representativeDirectory.length > 0) ||
+                  (item.label === "Notices" && notices.length > 0);
+                return (
+                  <span className={`overview-status-pill ${isActive ? "status-active" : ""}`} key={item.label}>
+                    <span className="status-pill-icon">{statusIcon}</span>
+                    <strong>{item.label}</strong>
+                    <span>{item.value}</span>
+                  </span>
+                );
+              })}
             </div>
           </div>
 
           <div className="overview-stat-strip">
-            {dashboardStats.map((item) => (
-              <article className="overview-stat-tile" key={item.label}>
-                <p className="overview-stat-label">{item.label}</p>
-                <h2>{item.value}</h2>
-                <p className="muted">{item.note}</p>
-              </article>
-            ))}
+            {dashboardStats.map((item, index) => {
+              const statIcons = ["📚", "🌿", "📅", "📖"];
+              const statColors = ["#f59e0b", "#10b981", "#6366f1", "#ec4899"];
+              return (
+                <article className="overview-stat-tile" key={item.label}>
+                  <div className="stat-tile-header">
+                    <span className="stat-tile-icon" style={{ background: `${statColors[index]}18`, color: statColors[index] }}>
+                      {statIcons[index]}
+                    </span>
+                    <p className="overview-stat-label">{item.label}</p>
+                  </div>
+                  <h2>{item.value}</h2>
+                  <p className="muted">{item.note}</p>
+                </article>
+              );
+            })}
           </div>
         </div>
 
         <aside className="overview-hero-side">
           <div className="overview-side-block">
-            <p className="overview-side-label">Active workspace</p>
+            <div className="side-block-header">
+              <span className="side-block-icon">🖥️</span>
+              <p className="overview-side-label">Active workspace</p>
+            </div>
             <h3>{selectedCollege?.shortName || "Not selected"}</h3>
             <p className="muted">
               {selectedCollege?.name || "Pick a college to unlock the academic dashboard."}
             </p>
           </div>
           <div className="overview-side-block">
-            <p className="overview-side-label">Live snapshot</p>
+            <div className="side-block-header">
+              <span className="side-block-icon">📊</span>
+              <p className="overview-side-label">Live snapshot</p>
+            </div>
             <ul className="overview-bullet-list">
-              <li>{approvedCourses.length || 0} approved course entries</li>
-              <li>{representativeDirectory.length || 0} representative owners</li>
-              <li>{notices.length || 0} recent notices visible</li>
+              <li><span className="bullet-count">{approvedCourses.length || 0}</span> approved course entries</li>
+              <li><span className="bullet-count">{representativeDirectory.length || 0}</span> representative owners</li>
+              <li><span className="bullet-count">{notices.length || 0}</span> recent notices visible</li>
             </ul>
           </div>
           <div className="overview-side-block">
-            <p className="overview-side-label">Latest notice</p>
+            <div className="side-block-header">
+              <span className="side-block-icon">📰</span>
+              <p className="overview-side-label">Latest notice</p>
+            </div>
             {latestNoticePreview ? (
               <>
                 <h3>{latestNoticePreview.title}</h3>

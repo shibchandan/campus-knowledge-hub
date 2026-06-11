@@ -628,17 +628,40 @@ h3 {
 }
 
 .overview-stat-tile {
-  min-height: 144px;
-  padding: 18px;
+  padding: 16px;
   border-radius: 18px;
   background: rgba(255, 255, 255, 0.72);
   border: 1px solid rgba(24, 33, 47, 0.08);
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.overview-stat-tile:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 8px 24px rgba(24, 33, 47, 0.1);
+}
+
+.stat-tile-header {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 10px;
+}
+
+.stat-tile-icon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 34px;
+  height: 34px;
+  border-radius: 10px;
+  font-size: 1rem;
+  flex-shrink: 0;
 }
 
 .overview-stat-label {
-  margin-bottom: 10px;
+  margin: 0;
   color: #64748b;
-  font-size: 0.82rem;
+  font-size: 0.75rem;
   font-weight: 700;
   letter-spacing: 0.08em;
   text-transform: uppercase;
@@ -3119,4 +3142,208 @@ h3 {
   .college-card-footer {
     padding: 8px 14px;
   }
+}
+
+/* ── Enhanced Dashboard Overview ── */
+.status-pill-icon {
+  font-size: 0.85rem;
+  line-height: 1;
+}
+
+.overview-status-pill.status-active {
+  border-color: rgba(16, 185, 129, 0.3);
+  background: rgba(16, 185, 129, 0.08);
+}
+
+[data-theme="dark"] .overview-status-pill.status-active {
+  border-color: rgba(16, 185, 129, 0.25);
+  background: rgba(16, 185, 129, 0.1);
+}
+
+.overview-status-pill.status-active strong {
+  color: #10b981;
+}
+
+[data-theme="dark"] .overview-status-pill.status-active strong {
+  color: #34d399;
+}
+
+.side-block-header {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 10px;
+}
+
+.side-block-icon {
+  font-size: 1rem;
+  line-height: 1;
+}
+
+.side-block-header .overview-side-label {
+  margin-bottom: 0;
+}
+
+.bullet-count {
+  font-weight: 700;
+  color: #818cf8;
+  margin-right: 2px;
+}
+
+[data-theme="dark"] .bullet-count {
+  color: #a5b4fc;
+}
+
+.overview-bullet-list li {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 0.88rem;
+}
+
+@media (max-width: 768px) {
+  .overview-hero-band {
+    grid-template-columns: 1fr;
+  }
+
+  .overview-stat-strip {
+    grid-template-columns: repeat(2, 1fr);
+  }
+
+  .overview-grid-shell {
+    grid-template-columns: 1fr;
+  }
+}
+
+/* ── Enhanced Branch Cards ── */
+.branch-card-enhanced {
+  position: relative;
+  overflow: hidden;
+  padding: 0 !important;
+  display: flex;
+  flex-direction: column;
+  text-decoration: none;
+  transition: transform 0.25s ease, box-shadow 0.25s ease, border-color 0.25s ease;
+}
+
+.branch-card-enhanced:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 14px 36px rgba(6, 182, 212, 0.15);
+  border-color: rgba(6, 182, 212, 0.3);
+}
+
+.branch-card-accent {
+  height: 4px;
+  width: 100%;
+  flex-shrink: 0;
+  background: linear-gradient(90deg, #06b6d4, #0891b2, #22d3ee);
+}
+
+.branch-card-body {
+  padding: 16px 18px 12px;
+  flex: 1;
+}
+
+.branch-card-top-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 10px;
+}
+
+.branch-icon {
+  font-size: 1.3rem;
+  line-height: 1;
+}
+
+.branch-program-tag {
+  font-size: 0.65rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  padding: 3px 10px;
+  border-radius: 10px;
+  background: rgba(6, 182, 212, 0.1);
+  color: #22d3ee;
+}
+
+.branch-card-name {
+  font-size: 1rem !important;
+  font-weight: 700;
+  margin: 0 0 6px !important;
+  line-height: 1.35;
+}
+
+.branch-card-desc {
+  font-size: 0.82rem !important;
+  line-height: 1.45;
+  margin: 0 !important;
+}
+
+.branch-card-footer {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 10px 18px;
+  border-top: 1px solid rgba(255, 255, 255, 0.05);
+  margin-top: auto;
+}
+
+.branch-open-label {
+  font-size: 0.75rem;
+  font-weight: 600;
+  color: rgba(216, 225, 239, 0.5);
+  transition: color 0.2s ease;
+}
+
+.branch-open-arrow {
+  font-size: 1rem;
+  color: rgba(216, 225, 239, 0.35);
+  transition: transform 0.2s ease, color 0.2s ease;
+}
+
+.branch-card-enhanced:hover .branch-open-label {
+  color: #22d3ee;
+}
+
+.branch-card-enhanced:hover .branch-open-arrow {
+  transform: translateX(4px);
+  color: #22d3ee;
+}
+
+@media (max-width: 640px) {
+  .branch-card-name {
+    font-size: 0.92rem !important;
+  }
+
+  .branch-card-body {
+    padding: 14px 14px 10px;
+  }
+
+  .branch-card-footer {
+    padding: 8px 14px;
+  }
+}
+
+/* ── Main Logo ── */
+.sidebar-header-branding {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.sidebar-main-logo {
+  max-height: 48px;
+  width: auto;
+  object-fit: contain;
+  margin-bottom: 8px;
+  border-radius: 8px;
+}
+
+.auth-main-logo {
+  max-height: 56px;
+  width: auto;
+  object-fit: contain;
+  margin-bottom: 16px;
+  border-radius: 8px;
 }
