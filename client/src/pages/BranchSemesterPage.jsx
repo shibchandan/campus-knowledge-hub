@@ -331,11 +331,12 @@ export function BranchSemesterPage() {
         }
       >
         <div className="semester-accordion-list">
-          {semesters.map((item) => {
+          {semesters.map((item, index) => {
             const isExpanded = Boolean(expandedSemesters[item.id]);
+            const semNumber = index + 1;
             return (
               <div
-                className={`semester-accordion-item${isExpanded ? " expanded" : ""}`}
+                className={`semester-accordion-item semester-enhanced${isExpanded ? " expanded" : ""}`}
                 key={item.id}
               >
                 <button
@@ -344,6 +345,7 @@ export function BranchSemesterPage() {
                   type="button"
                 >
                   <div className="semester-header-info">
+                    <span className="semester-number-icon">{semNumber}</span>
                     <span className="chevron-icon" style={{ transform: isExpanded ? "rotate(0deg)" : "rotate(-90deg)" }}>
                       <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={2.5} stroke="currentColor" width="16" height="16">
                         <path strokeLinecap="round" strokeLinejoin="round" d="m19.5 8.25-7.5 7.5-7.5-7.5" />
@@ -352,22 +354,28 @@ export function BranchSemesterPage() {
                     <h3>{item.semester}</h3>
                   </div>
                   <span className={`subject-count-badge${item.subjects.length > 0 ? " active" : ""}`}>
-                    {item.subjects.length} {item.subjects.length === 1 ? "Subject" : "Subjects"}
+                    {item.subjects.length > 0 ? `📖 ${item.subjects.length}` : "0"} {item.subjects.length === 1 ? "Subject" : "Subjects"}
                   </span>
                 </button>
 
                 {isExpanded && (
                   <div className="semester-accordion-content">
                     {item.subjects.length > 0 ? (
-                      <div className="subject-grid-list">
+                      <div className="subject-grid-list subject-grid-enhanced">
                         {item.subjects.map((subject) => (
-                          <div key={subject.id} className="subject-item-wrapper">
+                          <div key={subject.id} className="subject-item-wrapper subject-card-enhanced">
                             <Link
-                              className="subject-pill subject-link"
+                              className="subject-pill subject-link subject-card-link"
                               to={`/dashboard/${programId}/branch/${branchId}/${item.id}/${subject.id}`}
-                              style={{ flexGrow: 1 }}
                             >
-                              {subject.name}
+                              <div className="subject-card-top">
+                                <span className="subject-card-icon">📖</span>
+                                <span className="subject-card-name">{subject.name}</span>
+                              </div>
+                              <div className="subject-card-bottom">
+                                <span className="subject-open-label">Open Resources</span>
+                                <span className="subject-open-arrow">→</span>
+                              </div>
                             </Link>
                             {canManageBranch && (
                               <button
@@ -385,7 +393,7 @@ export function BranchSemesterPage() {
                         ))}
                       </div>
                     ) : (
-                      <p className="no-subjects-note">No subjects added for this semester yet.</p>
+                      <p className="no-subjects-note">📭 No subjects added for this semester yet.</p>
                     )}
                   </div>
                 )}

@@ -4,18 +4,33 @@ import { useAuth } from "../auth/AuthContext";
 import { useCollege } from "../college/CollegeContext";
 import { useTheme } from "../theme/ThemeContext";
 
-const links = [
-  { to: "/colleges", label: "Colleges" },
-  { to: "/panel", label: "Panel" },
-  { to: "/account", label: "Account" },
-  { to: "/dashboard", label: "Overview" },
-  { to: "/lectures", label: "Lectures" },
-  { to: "/notes", label: "Notes & PYQs" },
-  { to: "/quizzes", label: "Quizzes" },
-  { to: "/ai-studio", label: "AI Studio" },
-  { to: "/integrity", label: "Integrity" },
-  { to: "/marketplace", label: "Marketplace" },
-  { to: "/community", label: "Community" }
+const navSections = [
+  {
+    label: "Main",
+    links: [
+      { to: "/colleges", label: "Colleges", icon: "🏛️" },
+      { to: "/panel", label: "Panel", icon: "⚙️" },
+      { to: "/account", label: "Account", icon: "👤" }
+    ]
+  },
+  {
+    label: "Academic",
+    links: [
+      { to: "/dashboard", label: "Overview", icon: "📊" },
+      { to: "/lectures", label: "Lectures", icon: "🎬" },
+      { to: "/notes", label: "Notes & PYQs", icon: "📝" },
+      { to: "/quizzes", label: "Quizzes", icon: "✅" }
+    ]
+  },
+  {
+    label: "Tools",
+    links: [
+      { to: "/ai-studio", label: "AI Studio", icon: "🤖" },
+      { to: "/integrity", label: "Integrity", icon: "🛡️" },
+      { to: "/marketplace", label: "Marketplace", icon: "🛒" },
+      { to: "/community", label: "Community", icon: "💬" }
+    ]
+  }
 ];
 
 export function DashboardLayout() {
@@ -71,15 +86,21 @@ export function DashboardLayout() {
         </div>
 
         <nav className="nav">
-          {links.map((link) => (
-            <NavLink
-              key={link.to}
-              to={link.to}
-              onClick={() => setIsSidebarOpen(false)}
-              className={({ isActive }) => (isActive ? "nav-link active" : "nav-link")}
-            >
-              {link.label}
-            </NavLink>
+          {navSections.map((section) => (
+            <div className="nav-section" key={section.label}>
+              <p className="nav-section-label">{section.label}</p>
+              {section.links.map((link) => (
+                <NavLink
+                  key={link.to}
+                  to={link.to}
+                  onClick={() => setIsSidebarOpen(false)}
+                  className={({ isActive }) => (isActive ? "nav-link active" : "nav-link")}
+                >
+                  <span className="nav-link-icon">{link.icon}</span>
+                  {link.label}
+                </NavLink>
+              ))}
+            </div>
           ))}
         </nav>
 

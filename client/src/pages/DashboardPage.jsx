@@ -680,6 +680,14 @@ export function DashboardPage() {
               <p className="muted">
                 Approved courses are available for this college. Open a course page to continue branch and semester setup.
               </p>
+            ) : selectedCollege ? (
+              <div className="sample-preview-banner">
+                <span className="sample-preview-icon">💡</span>
+                <div>
+                  <strong>Sample Preview</strong>
+                  <p>These are example programs to show how your workspace will look. Add your own courses from the panel to replace them with real data.</p>
+                </div>
+              </div>
             ) : null}
             <div className="list-toolbar">
               <input
