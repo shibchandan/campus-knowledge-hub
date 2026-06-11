@@ -2782,20 +2782,30 @@ h3 {
   line-height: 1;
 }
 
-.category-view-btn {
-  font-size: 0.7rem;
+.category-count-badge {
+  font-size: 0.68rem;
   font-weight: 600;
-  color: #818cf8;
-  background: rgba(99, 102, 241, 0.1);
   padding: 3px 10px;
   border-radius: 12px;
   letter-spacing: 0.02em;
+  background: rgba(255, 255, 255, 0.05);
+  color: rgba(216, 225, 239, 0.4);
   transition: background 0.2s ease, color 0.2s ease;
 }
 
-.category-card-enhanced:hover .category-view-btn {
-  background: rgba(99, 102, 241, 0.2);
+.category-count-badge.has-resources {
+  background: rgba(16, 185, 129, 0.12);
+  color: #34d399;
+}
+
+.category-card-enhanced:hover .category-count-badge {
+  background: rgba(99, 102, 241, 0.15);
   color: #a5b4fc;
+}
+
+.category-card-enhanced:hover .category-count-badge.has-resources {
+  background: rgba(16, 185, 129, 0.2);
+  color: #6ee7b7;
 }
 
 .category-title {

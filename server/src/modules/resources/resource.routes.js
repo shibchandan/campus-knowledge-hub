@@ -4,6 +4,7 @@ import { upload } from "../../middleware/uploadMiddleware.js";
 import {
   deleteResource,
   downloadResource,
+  getCategoryCounts,
   getResources,
   unlockProtectedResource,
   updateResource,
@@ -16,6 +17,7 @@ import {
 export const resourceRouter = Router();
 
 resourceRouter.get("/", optionalProtect, getResources);
+resourceRouter.get("/category-counts", optionalProtect, getCategoryCounts);
 resourceRouter.get("/:resourceId/file", optionalProtect, viewResourceFile);
 resourceRouter.get("/:resourceId/download", optionalProtect, downloadResource);
 resourceRouter.post("/:resourceId/unlock", protect, unlockProtectedResource);

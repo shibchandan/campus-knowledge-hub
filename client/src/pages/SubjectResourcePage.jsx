@@ -30,6 +30,7 @@ export function SubjectResourcePage() {
   const fallbackSubject = getSubjectById(fallbackSemester, subjectId);
   const [dynamicSubjects, setDynamicSubjects] = useState([]);
   const [structureLoaded, setStructureLoaded] = useState(false);
+  const [categoryCounts, setCategoryCounts] = useState({});
 
   useEffect(() => {
     async function loadStructure() {
@@ -79,6 +80,32 @@ export function SubjectResourcePage() {
 
     loadDynamicSubjects();
   }, [branchId, programId, selectedCollege?.name, semesterId]);
+
+  useEffect(() => {
+    async function loadCategoryCounts() {
+      if (!selectedCollege?.name || !programId || !branchId || !semesterId || !subjectId) {
+        setCategoryCounts({});
+        return;
+      }
+
+      try {
+        const response = await apiClient.get("/resources/category-counts", {
+          params: {
+            collegeName: selectedCollege.name,
+            programId,
+            branchId,
+            semesterId,
+            subjectId
+          }
+        });
+        setCategoryCounts(response.data.data || {});
+      } catch {
+        setCategoryCounts({});
+      }
+    }
+
+    loadCategoryCounts();
+  }, [selectedCollege?.name, programId, branchId, semesterId, subjectId]);
 
   const dynamicProgram = useMemo(
     () => getDynamicProgramById(dynamicPrograms, programId),
@@ -155,20 +182,25 @@ export function SubjectResourcePage() {
         description="All important academic resources for this subject are grouped here."
       >
         <div className="resource-grid">
-          {subjectCategories.map((category) => (
-            <Link
-              className="resource-card resource-link category-card-enhanced"
-              key={category.id}
-              to={`/dashboard/${programId}/branch/${branchId}/${semesterId}/${subjectId}/${category.id}`}
-            >
-              <div className="category-card-header">
-                <span className="category-icon">{category.icon}</span>
-                <span className="category-view-btn">View →</span>
-              </div>
-              <h3 className="category-title">{category.label}</h3>
-              <p className="muted category-desc">{category.description}</p>
-            </Link>
-          ))}
+          {subjectCategories.map((category) => {
+            const count = categoryCounts[category.id] || 0;
+            return (
+              <Link
+                className="resource-card resource-link category-card-enhanced"
+                key={category.id}
+                to={`/dashboard/${programId}/branch/${branchId}/${semesterId}/${subjectId}/${category.id}`}
+              >
+                <div className="category-card-header">
+                  <span className="category-icon">{category.icon}</span>
+                  <span className={`category-count-badge ${count > 0 ? "has-resources" : ""}`}>
+                    {count > 0 ? `${count} file${count !== 1 ? "s" : ""}` : "Empty"}
+                  </span>
+                </div>
+                <h3 className="category-title">{category.label}</h3>
+                <p className="muted category-desc">{category.description}</p>
+              </Link>
+            );
+          })}
         </div>
       </SectionCard>
     </div>

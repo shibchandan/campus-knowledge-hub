@@ -534,6 +534,38 @@ export async function uploadResource(req, res, next) {
   }
 }
 
+export async function getCategoryCounts(req, res, next) {
+  try {
+    const collegeName = readString(req.query.collegeName, { field: "collegeName", min: 3, max: 120 });
+    const programId = readString(req.query.programId, { field: "programId", min: 2, max: 60 });
+    const branchId = readString(req.query.branchId, { field: "branchId", min: 2, max: 60 });
+    const semesterId = readString(req.query.semesterId, { field: "semesterId", min: 2, max: 60 });
+    const subjectId = readString(req.query.subjectId, { field: "subjectId", min: 2, max: 120 });
+
+    const matchFilter = {
+      collegeName: buildCollegeNameRegex(collegeName),
+      programId,
+      branchId,
+      semesterId,
+      subjectId
+    };
+
+    const counts = await Resource.aggregate([
+      { $match: matchFilter },
+      { $group: { _id: "$categoryId", count: { $sum: 1 } } }
+    ]);
+
+    const countMap = {};
+    for (const entry of counts) {
+      countMap[entry._id] = entry.count;
+    }
+
+    res.json({ success: true, data: countMap });
+  } catch (error) {
+    next(error);
+  }
+}
+
 export async function getResources(req, res, next) {
   try {
     const filters = {};
