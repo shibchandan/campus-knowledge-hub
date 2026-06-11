@@ -55,11 +55,17 @@ export function DashboardLayout() {
           Close
         </button>
 
-        <div className="sidebar-header-branding">
-          <img src="/logo.png" alt="Campus Knowledge Hub" className="sidebar-main-logo" />
-          <p className="eyebrow">Campus Knowledge Hub</p>
-          <h1>Academic Control Center</h1>
-          <p className="muted">
+        <div className="sidebar-brand-section">
+          <div className="sidebar-brand-row">
+            <div className="sidebar-logo-box">
+              <img src="/logo.png" alt="Campus Knowledge Hub" className="sidebar-main-logo" />
+            </div>
+            <div className="sidebar-brand-text">
+              <p className="eyebrow">Campus Knowledge Hub</p>
+              <h2>Control Center</h2>
+            </div>
+          </div>
+          <p className="muted sidebar-brand-desc">
             College-managed learning operations with lectures, resources, AI study help, and governed academic workflows.
           </p>
         </div>

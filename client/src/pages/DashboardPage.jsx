@@ -694,13 +694,23 @@ export function DashboardPage() {
             <div className="program-grid">
               {filteredPrograms.map((program) => (
                 <Link
-                  className="program-card program-link overview-program-card"
+                  className="branch-card program-link branch-card-enhanced"
                   key={program.id}
                   to={`/dashboard/${program.id}`}
                 >
-                  <p className="program-badge">{program.name}</p>
-                  <h3>{program.branch}</h3>
-                  <p className="muted">{program.description}</p>
+                  <div className="branch-card-accent" />
+                  <div className="branch-card-body">
+                    <div className="branch-card-top-row">
+                      <span className="branch-icon">🏛️</span>
+                      <span className="branch-program-tag">{program.name}</span>
+                    </div>
+                    <h3 className="branch-card-name">{program.branch}</h3>
+                    <p className="muted branch-card-desc">{program.description}</p>
+                  </div>
+                  <div className="branch-card-footer">
+                    <span className="branch-open-label">Open Course Flow</span>
+                    <span className="branch-open-arrow">→</span>
+                  </div>
                 </Link>
               ))}
             </div>
