@@ -1,5 +1,6 @@
 import { User } from "./auth.model.js";
 import { createToken } from "../../utils/createToken.js";
+import { generateSecret, verifyToken } from "../../utils/totp.js";
 import crypto from "crypto";
 import path from "path";
 import { CollegeCourse } from "../governance/governance.model.js";
@@ -319,6 +320,14 @@ export async function login(req, res, next) {
       );
       error.statusCode = 403;
       throw error;
+    }
+
+    if (user.twoFactorEnabled) {
+      return res.json({
+        success: true,
+        twoFactorRequired: true,
+        userId: user._id
+      });
     }
 
     await syncRepresentativeCollegeFromCourses(user);
@@ -890,6 +899,216 @@ export async function testSmtp(req, res, next) {
         : "SMTP connection failed from Render backend.",
       diagnostics
     });
+  } catch (error) {
+    next(error);
+  }
+}
+
+export async function setup2fa(req, res, next) {
+  try {
+    const user = await User.findById(req.user.id);
+    if (!user) {
+      const error = new Error("User not found");
+      error.statusCode = 404;
+      throw error;
+    }
+    const secret = generateSecret();
+    user.twoFactorTempSecret = secret;
+    await user.save();
+    
+    const emailEncoded = encodeURIComponent(user.email);
+    const otpauthUrl = `otpauth://totp/CampusKnowledgeHub:${emailEncoded}?secret=${secret}&issuer=CampusKnowledgeHub`;
+    
+    res.json({
+      success: true,
+      data: {
+        secret,
+        otpauthUrl
+      }
+    });
+  } catch (error) {
+    next(error);
+  }
+}
+
+export async function verifyAndEnable2fa(req, res, next) {
+  try {
+    const { code } = req.body;
+    if (!code) {
+      const error = new Error("Verification code is required.");
+      error.statusCode = 400;
+      throw error;
+    }
+    
+    const user = await User.findById(req.user.id).select("+twoFactorTempSecret");
+    if (!user) {
+      const error = new Error("User not found");
+      error.statusCode = 404;
+      throw error;
+    }
+    
+    if (!user.twoFactorTempSecret) {
+      const error = new Error("Please initiate 2FA setup first.");
+      error.statusCode = 400;
+      throw error;
+    }
+    
+    const isValid = verifyToken(user.twoFactorTempSecret, code);
+    if (!isValid) {
+      const error = new Error("Invalid verification code. Please try again.");
+      error.statusCode = 400;
+      throw error;
+    }
+    
+    user.twoFactorSecret = user.twoFactorTempSecret;
+    user.twoFactorEnabled = true;
+    user.twoFactorTempSecret = "";
+    await user.save();
+    
+    await createAuditLog({
+      req,
+      action: "user.enable_2fa",
+      entityType: "user",
+      entityId: user._id,
+      message: "User enabled 2FA."
+    });
+    
+    res.json({
+      success: true,
+      message: "Two-Factor Authentication has been enabled successfully.",
+      data: serializeUserForClient(user, req)
+    });
+  } catch (error) {
+    next(error);
+  }
+}
+
+export async function disable2fa(req, res, next) {
+  try {
+    const { password } = req.body;
+    if (!password) {
+      const error = new Error("Password is required to disable Two-Factor Authentication.");
+      error.statusCode = 400;
+      throw error;
+    }
+    
+    const user = await User.findById(req.user.id).select("+password");
+    if (!user) {
+      const error = new Error("User not found");
+      error.statusCode = 404;
+      throw error;
+    }
+    
+    const isPasswordValid = await user.comparePassword(password);
+    if (!isPasswordValid) {
+      const error = new Error("Incorrect password.");
+      error.statusCode = 401;
+      throw error;
+    }
+    
+    user.twoFactorEnabled = false;
+    user.twoFactorSecret = "";
+    user.twoFactorTempSecret = "";
+    await user.save();
+    
+    await createAuditLog({
+      req,
+      action: "user.disable_2fa",
+      entityType: "user",
+      entityId: user._id,
+      message: "User disabled 2FA."
+    });
+    
+    res.json({
+      success: true,
+      message: "Two-Factor Authentication has been disabled successfully.",
+      data: serializeUserForClient(user, req)
+    });
+  } catch (error) {
+    next(error);
+  }
+}
+
+export async function login2fa(req, res, next) {
+  try {
+    const { userId, code } = req.body;
+    if (!userId || !code) {
+      const error = new Error("User ID and verification code are required.");
+      error.statusCode = 400;
+      throw error;
+    }
+    
+    const user = await User.findById(userId).select("+twoFactorSecret");
+    if (!user) {
+      const error = new Error("User not found.");
+      error.statusCode = 404;
+      throw error;
+    }
+    
+    if (!user.twoFactorEnabled || !user.twoFactorSecret) {
+      const error = new Error("2FA is not enabled for this user.");
+      error.statusCode = 400;
+      throw error;
+    }
+    
+    const isValid = verifyToken(user.twoFactorSecret, code);
+    if (!isValid) {
+      const error = new Error("Invalid 2FA code.");
+      error.statusCode = 401;
+      throw error;
+    }
+    
+    const status = user.status || "active";
+    if (status !== "active") {
+      const error = new Error(
+        status === "banned"
+          ? "This account has been banned by an administrator."
+          : "This account has been suspended by an administrator."
+      );
+      error.statusCode = 403;
+      throw error;
+    }
+    
+    await syncRepresentativeCollegeFromCourses(user);
+    
+    const token = createToken({ id: user._id, role: user.role, email: user.email });
+    setAuthCookie(res, token);
+    
+    res.json({
+      success: true,
+      data: {
+        token,
+        user: serializeUserForClient(user, req)
+      }
+    });
+  } catch (error) {
+    next(error);
+  }
+}
+
+export async function contactAdmin(req, res, next) {
+  try {
+    const { email, subject, message } = req.body;
+    if (!email || !subject || !message) {
+      const error = new Error("All fields (email, subject, message) are required.");
+      error.statusCode = 400;
+      throw error;
+    }
+    
+    const text = `Contact Admin form submitted:\nFrom: ${email}\nSubject: ${subject}\nMessage:\n${message}`;
+    const html = `<h3>Contact Admin Inquiry</h3>
+                  <p><strong>From:</strong> ${email}</p>
+                  <p><strong>Subject:</strong> ${subject}</p>
+                  <p><strong>Message:</strong></p>
+                  <p>${message.replace(/\\n/g, "<br/>")}</p>`;
+                  
+    await sendAdminNotification({
+      subject: `[Contact Admin] ${subject}`,
+      text,
+      html
+    });
+    
+    res.json({ success: true, message: "Your message has been sent to the administrators." });
   } catch (error) {
     next(error);
   }

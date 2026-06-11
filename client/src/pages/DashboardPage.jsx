@@ -556,15 +556,11 @@ export function DashboardPage() {
             },
             {
               label: "Average Package",
-              value: profile.averagePackageLpa || "Not provided"
+              value: profile.averagePackageLpa ? `${profile.averagePackageLpa} LPA` : "Not provided"
             },
             {
               label: "Highest Package",
-              value: profile.highestPackageLpa || "Not provided"
-            },
-            {
-              label: "Placement Report",
-              value: profile.placementReport || "Not provided"
+              value: profile.highestPackageLpa ? `${profile.highestPackageLpa} LPA` : "Not provided"
             }
           ]
         : [],
@@ -723,58 +719,6 @@ export function DashboardPage() {
               ))}
             </div>
           </SectionCard>
-        </div>
-
-        <div className="overview-grid-side">
-          <SectionCard
-            title="College Profile"
-            description="Institution highlights surfaced on the academic dashboard."
-          >
-            {!selectedCollege ? <p className="muted">Select a college first from Colleges page.</p> : null}
-            {loadingProfile ? <p className="muted">Loading college details...</p> : null}
-            {profileError ? <p className="auth-error">{profileError}</p> : null}
-            {!loadingProfile && selectedCollege && !profile ? (
-              <p className="muted">
-                No detail profile is available for this college yet. A representative can add it from the panel.
-              </p>
-            ) : null}
-
-            {profile ? (
-              <div className="overview-profile-stack">
-                <div className="overview-profile-summary">
-                  <div>
-                    <p className="overview-side-label">Institution</p>
-                    <h3>{profile.collegeName}</h3>
-                  </div>
-                  {profile.placementReportUrl ? (
-                    <a href={profile.placementReportUrl} rel="noreferrer" target="_blank">
-                      Open placement report
-                    </a>
-                  ) : null}
-                </div>
-
-                <div className="overview-profile-highlights">
-                  {profileHighlights.map((item) => (
-                    <article className="overview-highlight-row" key={item.label}>
-                      <span>{item.label}</span>
-                      <strong>{item.value}</strong>
-                    </article>
-                  ))}
-                </div>
-
-                <div className="overview-profile-notes">
-                  <article>
-                    <span>Cut Off Summary</span>
-                    <p>{profile.cutOffSummary || "Not provided"}</p>
-                  </article>
-                  <article>
-                    <span>Other Ranking</span>
-                    <p>{profile.rankings?.other || "Not provided"}</p>
-                  </article>
-                </div>
-              </div>
-            ) : null}
-          </SectionCard>
 
           <SectionCard
             title="Representative Coverage"
@@ -820,6 +764,62 @@ export function DashboardPage() {
                 </article>
               ))}
             </div>
+          </SectionCard>
+        </div>
+
+        <div className="overview-grid-side">
+          <SectionCard
+            title="College Profile"
+            description="Institution highlights surfaced on the academic dashboard."
+          >
+            {!selectedCollege ? <p className="muted">Select a college first from Colleges page.</p> : null}
+            {loadingProfile ? <p className="muted">Loading college details...</p> : null}
+            {profileError ? <p className="auth-error">{profileError}</p> : null}
+            {!loadingProfile && selectedCollege && !profile ? (
+              <p className="muted">
+                No detail profile is available for this college yet. A representative can add it from the panel.
+              </p>
+            ) : null}
+
+            {profile ? (
+              <div className="overview-profile-stack">
+                <div className="overview-profile-summary">
+                  <div>
+                    <p className="overview-side-label">Institution</p>
+                    <h3>{profile.collegeName}</h3>
+                  </div>
+                  {profile.placementReportUrl ? (
+                    <a href={profile.placementReportUrl} rel="noreferrer" target="_blank">
+                      Open placement report
+                    </a>
+                  ) : null}
+                </div>
+
+                <div className="overview-profile-highlights">
+                  {profileHighlights.map((item) => (
+                    <article className="overview-highlight-row" key={item.label}>
+                      <span>{item.label}</span>
+                      <strong>{item.value}</strong>
+                    </article>
+                  ))}
+                </div>
+
+                <div className="overview-profile-notes">
+                  <article>
+                    <span>Placement Report Summary</span>
+                    <p>{profile.placementReport || "Not provided"}</p>
+                  </article>
+                  <article>
+                    <span>Cut Off Summary</span>
+                    <p>{profile.cutOffSummary || "Not provided"}</p>
+                  </article>
+                  <article>
+                    <span>Other Ranking</span>
+                    <p>{profile.rankings?.other || "Not provided"}</p>
+                  </article>
+                </div>
+              </div>
+            ) : null}
           </SectionCard>
         </div>
       </div>

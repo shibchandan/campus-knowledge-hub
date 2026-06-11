@@ -14,7 +14,12 @@ import {
   sendCollegeEmailOtp,
   updateProfile,
   verifyCollegeEmailOtp,
-  testSmtp
+  testSmtp,
+  setup2fa,
+  verifyAndEnable2fa,
+  disable2fa,
+  login2fa,
+  contactAdmin
 } from "./auth.controller.js";
 import { authorize, protect } from "../../middleware/authMiddleware.js";
 import { createRateLimiter } from "../../middleware/rateLimit.js";
@@ -50,3 +55,11 @@ authRouter.get("/admin/users", protect, authorize("admin"), listUsers);
 authRouter.post("/admin/users", protect, authorize("admin"), adminCreateUser);
 authRouter.patch("/admin/users/:userId", protect, authorize("admin"), adminUpdateUser);
 authRouter.get("/test-smtp", testSmtp);
+
+// 2FA & Contact routes
+authRouter.post("/2fa/setup", protect, setup2fa);
+authRouter.post("/2fa/verify", protect, verifyAndEnable2fa);
+authRouter.post("/2fa/disable", protect, disable2fa);
+authRouter.post("/2fa/login-verify", authRateLimiter, login2fa);
+authRouter.post("/contact-admin", contactAdmin);
+

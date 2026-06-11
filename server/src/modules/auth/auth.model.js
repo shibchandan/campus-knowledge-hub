@@ -40,7 +40,10 @@ const userSchema = new mongoose.Schema(
     passwordResetOtpAttempts: { type: Number, default: 0, select: false },
     passwordResetOtpSentAt: { type: Date, default: null, select: false },
     passwordResetLockedUntil: { type: Date, default: null, select: false },
-    passwordResetVerifiedAt: { type: Date, default: null, select: false }
+    passwordResetVerifiedAt: { type: Date, default: null, select: false },
+    twoFactorEnabled: { type: Boolean, default: false },
+    twoFactorSecret: { type: String, default: "", select: false },
+    twoFactorTempSecret: { type: String, default: "", select: false }
   },
   { timestamps: true }
 );
@@ -84,6 +87,7 @@ userSchema.methods.toSafeObject = function toSafeObject() {
     studentProofOriginalName: this.studentProofOriginalName || "",
     representativeRequestStatus: this.representativeRequestStatus || "none",
     status: this.status || "active",
+    twoFactorEnabled: Boolean(this.twoFactorEnabled),
     avatarUrl: this.avatarUrl,
     reputationScore: this.reputationScore,
     createdAt: this.createdAt,

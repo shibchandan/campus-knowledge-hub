@@ -56,6 +56,16 @@ export function AuthProvider({ children }) {
 
   async function login(credentials) {
     const response = await apiClient.post("/auth/login", credentials);
+    if (response.data.twoFactorRequired) {
+      return response.data;
+    }
+    localStorage.removeItem(COLLEGE_STORAGE_KEY);
+    setSession(response.data.data);
+    return response.data.data;
+  }
+
+  async function verify2fa(userId, code) {
+    const response = await apiClient.post("/auth/2fa/login-verify", { userId, code });
     localStorage.removeItem(COLLEGE_STORAGE_KEY);
     setSession(response.data.data);
     return response.data.data;
@@ -118,6 +128,7 @@ export function AuthProvider({ children }) {
       isAuthenticated: Boolean(session?.token),
       isBootstrapping,
       login,
+      verify2fa,
       register,
       updateProfile,
       refreshCurrentUser,

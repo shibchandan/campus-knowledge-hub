@@ -68,7 +68,7 @@ function PasswordInput({ value, onChange, placeholder, required, minLength }) {
 export function AuthPage() {
   const navigate = useNavigate();
   const location = useLocation();
-  const { isAuthenticated, login, register } = useAuth();
+  const { isAuthenticated, login, verify2fa, register } = useAuth();
   const [mode, setMode] = useState("login");
   const [loginForm, setLoginForm] = useState(initialLoginState);
   const [registerForm, setRegisterForm] = useState(initialRegisterState);
@@ -77,6 +77,9 @@ export function AuthPage() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
   const [success, setSuccess] = useState("");
+  const [twoFactorRequired, setTwoFactorRequired] = useState(false);
+  const [twoFactorUserId, setTwoFactorUserId] = useState("");
+  const [twoFactorCode, setTwoFactorCode] = useState("");
 
   useEffect(() => {
     const params = new URLSearchParams(location.search);
@@ -117,10 +120,31 @@ export function AuthPage() {
     setSuccess("");
 
     try {
-      await login(loginForm);
-      navigate(redirectTo, { replace: true });
+      const result = await login(loginForm);
+      if (result && result.twoFactorRequired) {
+        setTwoFactorRequired(true);
+        setTwoFactorUserId(result.userId);
+      } else {
+        navigate(redirectTo, { replace: true });
+      }
     } catch (requestError) {
       setError(getAuthErrorMessage(requestError, "Login failed. Check your email and password."));
+    } finally {
+      setLoading(false);
+    }
+  }
+
+  async function handleTwoFactorSubmit(event) {
+    event.preventDefault();
+    setLoading(true);
+    setError("");
+    setSuccess("");
+
+    try {
+      await verify2fa(twoFactorUserId, twoFactorCode);
+      navigate(redirectTo, { replace: true });
+    } catch (requestError) {
+      setError(getAuthErrorMessage(requestError, "Invalid 2FA verification code."));
     } finally {
       setLoading(false);
     }
@@ -235,7 +259,45 @@ export function AuthPage() {
         {error ? <p className="auth-error">{error}</p> : null}
         {success ? <p className="success-note">{success}</p> : null}
 
-        {mode === "login" ? (
+        {twoFactorRequired ? (
+          <form className="auth-form" onSubmit={handleTwoFactorSubmit}>
+            <div className="auth-hero" style={{ padding: 0, marginBottom: "1.5rem" }}>
+              <h2>Two-Factor Verification</h2>
+              <p className="muted">
+                Your account is protected with Two-Factor Authentication. Enter the 6-digit code from your authenticator app.
+              </p>
+            </div>
+            <label className="auth-field">
+              <span>Authenticator Code</span>
+              <input
+                type="text"
+                inputMode="numeric"
+                maxLength={6}
+                minLength={6}
+                value={twoFactorCode}
+                onChange={(event) => setTwoFactorCode(event.target.value)}
+                placeholder="6-digit code"
+                required
+                autoFocus
+              />
+            </label>
+            <button className="auth-submit" disabled={loading} type="submit">
+              {loading ? "Verifying..." : "Verify Code"}
+            </button>
+            <button
+              className="auth-link-button"
+              onClick={() => {
+                setTwoFactorRequired(false);
+                setTwoFactorUserId("");
+                setTwoFactorCode("");
+                setError("");
+              }}
+              type="button"
+            >
+              Back to login
+            </button>
+          </form>
+        ) : mode === "login" ? (
           <form className="auth-form" onSubmit={handleLoginSubmit}>
             <label className="auth-field">
               <span>Email</span>

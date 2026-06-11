@@ -63,6 +63,12 @@ export function AccountSettingsPage() {
   const [passwordLoading, setPasswordLoading] = useState(false);
   const [error, setError] = useState("");
   const [success, setSuccess] = useState("");
+  const [setupData, setSetupData] = useState(null);
+  const [setupCode, setSetupCode] = useState("");
+  const [setupLoading, setSetupLoading] = useState(false);
+  const [disablePassword, setDisablePassword] = useState("");
+  const [showDisableForm, setShowDisableForm] = useState(false);
+  const [disableLoading, setDisableLoading] = useState(false);
 
   useEffect(() => {
     refreshCurrentUser().catch(() => {});
@@ -197,6 +203,56 @@ export function AccountSettingsPage() {
       setError(requestError.response?.data?.message || "Failed to change password.");
     } finally {
       setPasswordLoading(false);
+    }
+  }
+
+  async function handleEnable2faInit() {
+    setSetupLoading(true);
+    setError("");
+    setSuccess("");
+    try {
+      const response = await apiClient.post("/auth/2fa/setup");
+      setSetupData(response.data.data);
+    } catch (requestError) {
+      setError(requestError.response?.data?.message || "Failed to initialize 2FA setup.");
+    } finally {
+      setSetupLoading(false);
+    }
+  }
+
+  async function handleEnable2faVerify(event) {
+    event.preventDefault();
+    setSetupLoading(true);
+    setError("");
+    setSuccess("");
+    try {
+      const response = await apiClient.post("/auth/2fa/verify", { code: setupCode });
+      setSuccess(response.data.message || "2FA enabled successfully.");
+      setSetupData(null);
+      setSetupCode("");
+      await refreshCurrentUser();
+    } catch (requestError) {
+      setError(requestError.response?.data?.message || "Verification failed. Check the code.");
+    } finally {
+      setSetupLoading(false);
+    }
+  }
+
+  async function handleDisable2faSubmit(event) {
+    event.preventDefault();
+    setDisableLoading(true);
+    setError("");
+    setSuccess("");
+    try {
+      const response = await apiClient.post("/auth/2fa/disable", { password: disablePassword });
+      setSuccess(response.data.message || "2FA disabled successfully.");
+      setDisablePassword("");
+      setShowDisableForm(false);
+      await refreshCurrentUser();
+    } catch (requestError) {
+      setError(requestError.response?.data?.message || "Failed to disable 2FA. Correct password required.");
+    } finally {
+      setDisableLoading(false);
     }
   }
 
@@ -769,10 +825,11 @@ export function AccountSettingsPage() {
       ) : null}
 
       {activeTab === "security" ? (
-        <SectionCard
-          title="Security"
-          description="Change your password and review the account protection reminders for this profile."
-        >
+        <>
+          <SectionCard
+            title="Security"
+            description="Change your password and review the account protection reminders for this profile."
+          >
           <form className="panel-form" onSubmit={handlePasswordSubmit}>
             <label className="auth-field">
               <span>Current Password</span>
@@ -863,6 +920,123 @@ export function AccountSettingsPage() {
             </button>
           </form>
         </SectionCard>
+
+        <SectionCard
+          title="Two-Factor Authentication (2FA)"
+          description="Protect your account with an extra security step. If enabled, you must authenticate using your device."
+        >
+          {user?.twoFactorEnabled ? (
+            <div className="two-factor-settings-enabled">
+              <div className="status-banner success" style={{ marginBottom: "1.5rem", padding: "1rem", borderRadius: "8px", background: "rgba(16, 185, 129, 0.1)", border: "1px solid rgba(16, 185, 129, 0.2)" }}>
+                <p style={{ color: "#10b981", fontWeight: "600" }}>✓ Two-Factor Authentication is currently Active</p>
+                <p className="muted" style={{ fontSize: "0.875rem", marginTop: "0.25rem" }}>
+                  Your account requires a code from your authenticator app when logging in.
+                </p>
+              </div>
+
+              {showDisableForm ? (
+                <form className="panel-form" onSubmit={handleDisable2faSubmit}>
+                  <label className="auth-field">
+                    <span>Enter Current Password</span>
+                    <input
+                      onChange={(event) => setDisablePassword(event.target.value)}
+                      placeholder="Confirm your password to disable 2FA"
+                      required
+                      type="password"
+                      value={disablePassword}
+                    />
+                  </label>
+                  <div className="button-group" style={{ display: "flex", gap: "1rem" }}>
+                    <button className="auth-submit danger" disabled={disableLoading} type="submit" style={{ background: "#ef4444" }}>
+                      {disableLoading ? "Disabling..." : "Confirm Disable"}
+                    </button>
+                    <button
+                      className="action-button neutral"
+                      onClick={() => {
+                        setShowDisableForm(false);
+                        setDisablePassword("");
+                      }}
+                      type="button"
+                    >
+                      Cancel
+                    </button>
+                  </div>
+                </form>
+              ) : (
+                <button
+                  className="auth-submit danger"
+                  onClick={() => setShowDisableForm(true)}
+                  type="button"
+                  style={{ background: "#ef4444" }}
+                >
+                  Disable Two-Factor Authentication
+                </button>
+              )}
+            </div>
+          ) : (
+            <div className="two-factor-settings-disabled">
+              {!setupData ? (
+                <button
+                  className="auth-submit"
+                  disabled={setupLoading}
+                  onClick={handleEnable2faInit}
+                  type="button"
+                >
+                  {setupLoading ? "Initializing..." : "Enable Two-Factor Authentication"}
+                </button>
+              ) : (
+                <div className="two-factor-setup-flow">
+                  <p className="muted" style={{ marginBottom: "1.5rem" }}>
+                    Scan the QR code below using your authenticator app (Google Authenticator, Authy, Microsoft Authenticator, etc.) to set up 2FA.
+                  </p>
+                  
+                  <div className="qr-container" style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: "1rem", padding: "1.5rem", borderRadius: "12px", background: "rgba(255, 255, 255, 0.05)", border: "1px solid rgba(255, 255, 255, 0.1)", maxWidth: "300px", margin: "0 auto 1.5rem auto" }}>
+                    <img
+                      alt="2FA QR Code"
+                      src={`https://api.qrserver.com/v1/create-qr-code/?size=200x200&data=${encodeURIComponent(setupData.otpauthUrl)}`}
+                      style={{ borderRadius: "8px", background: "white", padding: "8px" }}
+                    />
+                    <div style={{ textAlign: "center" }}>
+                      <p className="muted" style={{ fontSize: "0.75rem" }}>Can't scan the code? Enter this key manually:</p>
+                      <code style={{ background: "rgba(0, 0, 0, 0.2)", padding: "0.25rem 0.5rem", borderRadius: "4px", fontSize: "0.875rem", color: "#f59e0b", letterSpacing: "1px", wordBreak: "break-all" }}>{setupData.secret}</code>
+                    </div>
+                  </div>
+
+                  <form className="panel-form" onSubmit={handleEnable2faVerify}>
+                    <label className="auth-field">
+                      <span>Enter 6-Digit Authentication Code</span>
+                      <input
+                        maxLength={6}
+                        minLength={6}
+                        onChange={(event) => setSetupCode(event.target.value)}
+                        placeholder="6-digit code"
+                        required
+                        type="text"
+                        value={setupCode}
+                      />
+                    </label>
+                    <div className="button-group" style={{ display: "flex", gap: "1rem" }}>
+                      <button className="auth-submit" disabled={setupLoading} type="submit">
+                        {setupLoading ? "Enabling..." : "Verify & Enable"}
+                      </button>
+                      <button
+                        className="action-button neutral"
+                        onClick={() => {
+                          setSetupData(null);
+                          setSetupCode("");
+                        }}
+                        type="button"
+                      >
+                        Cancel
+                      </button>
+                    </div>
+                  </form>
+                </div>
+              )}
+            </div>
+          )}
+        </SectionCard>
+        </>
       ) : null}
     </div>
   );
