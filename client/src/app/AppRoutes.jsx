@@ -69,15 +69,15 @@ export function AppRoutes() {
           path="dashboard/:programId/branch/:branchId/:semesterId/:subjectId/:categoryId"
           element={<SubjectCategoryPage />}
         />
-        <Route path="lectures" element={<ProtectedRoute><LecturesPage /></ProtectedRoute>} />
-        <Route path="notes" element={<ProtectedRoute><NotesPage /></ProtectedRoute>} />
-        <Route path="quizzes" element={<ProtectedRoute><QuizzesPage /></ProtectedRoute>} />
-        <Route path="quizzes/:quizId" element={<ProtectedRoute><QuizArrangementPage /></ProtectedRoute>} />
-        <Route path="notes/quiz/:quizId" element={<ProtectedRoute><QuizArrangementPage /></ProtectedRoute>} />
-        <Route path="ai-studio" element={<ProtectedRoute><AiStudioPage /></ProtectedRoute>} />
-        <Route path="integrity" element={<ProtectedRoute><IntegrityPage /></ProtectedRoute>} />
-        <Route path="marketplace" element={<ProtectedRoute><MarketplacePage /></ProtectedRoute>} />
-        <Route path="community" element={<ProtectedRoute><CommunityPage /></ProtectedRoute>} />
+        <Route path="lectures" element={<LecturesPage />} />
+        <Route path="notes" element={<NotesPage />} />
+        <Route path="quizzes" element={<QuizzesPage />} />
+        <Route path="quizzes/:quizId" element={<QuizArrangementPage />} />
+        <Route path="notes/quiz/:quizId" element={<QuizArrangementPage />} />
+        <Route path="ai-studio" element={<AiStudioPage />} />
+        <Route path="integrity" element={<IntegrityPage />} />
+        <Route path="marketplace" element={<MarketplacePage />} />
+        <Route path="community" element={<CommunityPage />} />
         <Route path="panel" element={<ProtectedRoute><PanelHomePage /></ProtectedRoute>} />
         <Route
           path="panel/admin"

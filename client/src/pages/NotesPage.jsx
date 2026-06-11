@@ -2,8 +2,9 @@ import { useEffect, useState, useMemo } from "react";
 import { useCollege } from "../college/CollegeContext";
 import { SectionCard } from "../components/SectionCard";
 import { apiClient } from "../lib/apiClient";
-import { Link } from "react-router-dom";
-
+import { Link, useNavigate } from "react-router-dom";
+import { useAuth } from "../auth/AuthContext";
+import { useToast } from "../ui/ToastContext";
 const CATEGORY_LABELS = {
   notice: { label: "Notice", icon: "📢", color: "#ef4444" },
   syllabus: { label: "Syllabus", icon: "📋", color: "#8b5cf6" },
@@ -44,6 +45,9 @@ function formatFileSize(bytes) {
 }
 
 export function NotesPage() {
+  const { user } = useAuth();
+  const navigate = useNavigate();
+  const { showError } = useToast();
   const { selectedCollege } = useCollege();
   const [resources, setResources] = useState([]);
   const [loading, setLoading] = useState(false);
@@ -231,14 +235,27 @@ export function NotesPage() {
                       {resource.fileOriginalName || "Text content"}
                     </span>
                     {resource.fileUrl ? (
-                      <a
-                        href={`${apiClient.defaults.baseURL}/resources/${resource._id}/file`}
-                        target="_blank"
-                        rel="noreferrer"
-                        className="notes-view-btn"
-                      >
-                        View File →
-                      </a>
+                      user ? (
+                        <a
+                          href={`${apiClient.defaults.baseURL}/resources/${resource._id}/file`}
+                          target="_blank"
+                          rel="noreferrer"
+                          className="notes-view-btn"
+                        >
+                          View File →
+                        </a>
+                      ) : (
+                        <button
+                          className="notes-view-btn"
+                          onClick={() => {
+                            showError("Please log in to view resources.");
+                            navigate("/login");
+                          }}
+                          type="button"
+                        >
+                          View File 🔒
+                        </button>
+                      )
                     ) : (
                       <span className="notes-view-btn">Text Only</span>
                     )}

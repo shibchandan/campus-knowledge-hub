@@ -2,6 +2,9 @@ import { useEffect, useState } from "react";
 import { SectionCard } from "../components/SectionCard";
 import { useCollege } from "../college/CollegeContext";
 import { apiClient } from "../lib/apiClient";
+import { useAuth } from "../auth/AuthContext";
+import { useToast } from "../ui/ToastContext";
+import { useNavigate } from "react-router-dom";
 
 function formatDate(dateString) {
   if (!dateString) return "—";
@@ -28,6 +31,9 @@ function formatDuration(seconds) {
 }
 
 export function LecturesPage() {
+  const { user } = useAuth();
+  const { showError } = useToast();
+  const navigate = useNavigate();
   const { selectedCollege } = useCollege();
   const [lectures, setLectures] = useState([]);
   const [loading, setLoading] = useState(false);
@@ -127,14 +133,27 @@ export function LecturesPage() {
                     )}
                   </div>
                   {lecture.videoUrl ? (
-                    <a
-                      href={lecture.videoUrl}
-                      target="_blank"
-                      rel="noreferrer"
-                      className="lecture-watch-btn"
-                    >
-                      Watch Lecture →
-                    </a>
+                    user ? (
+                      <a
+                        href={lecture.videoUrl}
+                        target="_blank"
+                        rel="noreferrer"
+                        className="lecture-watch-btn"
+                      >
+                        Watch Lecture →
+                      </a>
+                    ) : (
+                      <button
+                        className="lecture-watch-btn"
+                        onClick={() => {
+                          showError("Please log in to watch lectures.");
+                          navigate("/login");
+                        }}
+                        type="button"
+                      >
+                        Watch Lecture 🔒
+                      </button>
+                    )
                   ) : (
                     <span className="lecture-watch-btn disabled">No Video</span>
                   )}

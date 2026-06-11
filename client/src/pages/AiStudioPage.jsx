@@ -3,8 +3,14 @@ import { SectionCard } from "../components/SectionCard";
 import { useCollege } from "../college/CollegeContext";
 import { apiClient } from "../lib/apiClient";
 import { Spinner, SkeletonCard } from "../components/LoadingStates";
+import { useAuth } from "../auth/AuthContext";
+import { useNavigate } from "react-router-dom";
+import { useToast } from "../ui/ToastContext";
 
 export function AiStudioPage() {
+  const { user } = useAuth();
+  const navigate = useNavigate();
+  const { showError } = useToast();
   const { selectedCollege } = useCollege();
   const [question, setQuestion] = useState("");
   const [intent, setIntent] = useState("general");
@@ -14,8 +20,13 @@ export function AiStudioPage() {
   const [history, setHistory] = useState([]);
   const [historyBusyId, setHistoryBusyId] = useState("");
   const [historyLoading, setHistoryLoading] = useState(true);
+  const [historyLimit, setHistoryLimit] = useState(3);
 
   async function loadMeta() {
+    if (!user) {
+      setHistoryLoading(false);
+      return;
+    }
     setHistoryLoading(true);
     try {
       const historyResponse = await apiClient.get("/ai/history");
@@ -33,6 +44,11 @@ export function AiStudioPage() {
 
   async function handleAsk(event) {
     event.preventDefault();
+    if (!user) {
+      showError("Please log in to use AI features.");
+      navigate("/login");
+      return;
+    }
     setLoading(true);
     setError("");
 
@@ -128,13 +144,13 @@ export function AiStudioPage() {
               value={question}
             />
           </label>
-          <button className="auth-submit" disabled={loading} type="submit">
+          <button className="auth-submit" disabled={loading} type={user ? "submit" : "button"} onClick={user ? undefined : handleAsk}>
             {loading ? (
               <span className="btn-spinner-container">
                 <Spinner size="sm" /> Generating...
               </span>
             ) : (
-              "Ask AI"
+              user ? "Ask AI" : "Ask AI 🔒"
             )}
           </button>
         </form>
@@ -186,10 +202,11 @@ export function AiStudioPage() {
         </SectionCard>
       ) : null}
 
-      <SectionCard
-        title="My AI History"
-        description="Recent questions and answers saved for this student account."
-      >
+      {user ? (
+        <SectionCard
+          title="My AI History"
+          description="Recent questions and answers saved for this student account."
+        >
         {history.length ? (
           <div className="panel-actions">
             <button
@@ -207,33 +224,46 @@ export function AiStudioPage() {
           {historyLoading ? (
             <SkeletonCard count={2} />
           ) : (
-            history.map((item) => (
-              <article className="panel-card" key={item._id}>
-                <h3>{item.question}</h3>
-                <p className="muted">
-                  Intent: {item.intent} | Provider: {item.provider || "fallback"} | {new Date(item.createdAt).toLocaleString()}
-                </p>
-                <p>{item.answer?.summary}</p>
-                {item.sourceResources?.length ? (
+            <>
+              {history.slice(0, historyLimit).map((item) => (
+                <article className="panel-card" key={item._id}>
+                  <h3>{item.question}</h3>
                   <p className="muted">
-                    Sources: {item.sourceResources.map((resource) => resource.title).join(" | ")}
+                    Intent: {item.intent} | Provider: {item.provider || "fallback"} | {new Date(item.createdAt).toLocaleString()}
                   </p>
-                ) : null}
-                <div className="panel-actions">
-                  <button
-                    className="action-button reject"
-                    disabled={historyBusyId === item._id}
-                    onClick={() => handleDeleteHistoryItem(item._id)}
-                    type="button"
-                  >
-                    {historyBusyId === item._id ? "Deleting..." : "Delete"}
-                  </button>
+                  <p>{item.answer?.summary}</p>
+                  {item.sourceResources?.length ? (
+                    <p className="muted">
+                      Sources: {item.sourceResources.map((resource) => resource.title).join(" | ")}
+                    </p>
+                  ) : null}
+                  <div className="panel-actions">
+                    <button
+                      className="action-button reject"
+                      disabled={historyBusyId === item._id}
+                      onClick={() => handleDeleteHistoryItem(item._id)}
+                      type="button"
+                    >
+                      {historyBusyId === item._id ? "Deleting..." : "Delete"}
+                    </button>
+                  </div>
+                </article>
+              ))}
+              {history.length > historyLimit ? (
+                <div style={{ display: 'flex', justifyContent: 'center', marginTop: '16px' }}>
+                  <button className="open-college-button" onClick={() => setHistoryLimit(curr => curr + 3)} type="button">Load More</button>
                 </div>
-              </article>
-            ))
+              ) : null}
+              {historyLimit > 3 && history.length <= historyLimit ? (
+                <div style={{ display: 'flex', justifyContent: 'center', marginTop: '16px' }}>
+                  <button className="open-college-button" onClick={() => setHistoryLimit(3)} type="button">Show Less</button>
+                </div>
+              ) : null}
+            </>
           )}
         </div>
       </SectionCard>
+      ) : null}
     </div>
   );
 }

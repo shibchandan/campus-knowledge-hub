@@ -659,6 +659,9 @@ export async function getResources(req, res, next) {
 
 export async function downloadResource(req, res, next) {
   try {
+    if (!req.user) {
+      throw createHttpError("Please log in to download resources.", 401);
+    }
     const resourceId = readMongoId(req.params.resourceId, { field: "resourceId" });
     const resource = await Resource.findById(resourceId);
 
@@ -698,6 +701,9 @@ export async function downloadResource(req, res, next) {
 
 export async function viewResourceFile(req, res, next) {
   try {
+    if (!req.user) {
+      throw createHttpError("Please log in to view resources.", 401);
+    }
     const resourceId = readMongoId(req.params.resourceId, { field: "resourceId" });
     const resource = await Resource.findById(resourceId);
 

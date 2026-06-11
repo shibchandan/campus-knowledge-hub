@@ -1,10 +1,15 @@
 import { useEffect, useState } from "react";
-import { Link, Navigate } from "react-router-dom";
+import { Link, Navigate, useNavigate } from "react-router-dom";
 import { SectionCard } from "../components/SectionCard";
 import { useCollege } from "../college/CollegeContext";
 import { apiClient } from "../lib/apiClient";
+import { useAuth } from "../auth/AuthContext";
+import { useToast } from "../ui/ToastContext";
 
 export function QuizzesPage() {
+  const { user } = useAuth();
+  const { showError } = useToast();
+  const navigate = useNavigate();
   const { selectedCollege } = useCollege();
   const [quizzes, setQuizzes] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -85,12 +90,25 @@ export function QuizzesPage() {
               <p>{quiz.note || "Representative-created college quiz arrangement."}</p>
               {quiz.resourceMatch ? <p className="muted">Based on: {quiz.resourceMatch}</p> : null}
               <div className="panel-actions">
-                <Link
-                  className="open-college-button"
-                  to={`/quizzes/${quiz._id}?collegeName=${encodeURIComponent(selectedCollege.name)}`}
-                >
-                  Start Quiz
-                </Link>
+                {user ? (
+                  <Link
+                    className="open-college-button"
+                    to={`/quizzes/${quiz._id}?collegeName=${encodeURIComponent(selectedCollege.name)}`}
+                  >
+                    Start Quiz
+                  </Link>
+                ) : (
+                  <button
+                    className="open-college-button"
+                    onClick={() => {
+                      showError("Please log in to start quizzes.");
+                      navigate("/login");
+                    }}
+                    type="button"
+                  >
+                    Start Quiz 🔒
+                  </button>
+                )}
               </div>
             </article>
           ))}

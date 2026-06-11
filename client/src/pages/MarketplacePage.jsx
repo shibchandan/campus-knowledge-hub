@@ -79,14 +79,17 @@ export function MarketplacePage() {
     setLoading(true);
     setError("");
     try {
-      const [listResponse, mineResponse, purchasesResponse] = await Promise.all([
-        apiClient.get("/marketplace"),
-        apiClient.get("/marketplace/mine"),
-        apiClient.get("/marketplace/purchases/me")
-      ]);
+      const requests = [apiClient.get("/marketplace")];
+      if (user) {
+        requests.push(
+          apiClient.get("/marketplace/mine"),
+          apiClient.get("/marketplace/purchases/me")
+        );
+      }
+      const [listResponse, mineResponse, purchasesResponse] = await Promise.all(requests);
       setItems(listResponse.data.data?.items || []);
-      setMyItems(mineResponse.data.data || []);
-      setPurchases(purchasesResponse.data.data || []);
+      setMyItems(mineResponse?.data?.data || []);
+      setPurchases(purchasesResponse?.data?.data || []);
       setError("");
     } catch (requestError) {
       const msg =
@@ -185,6 +188,10 @@ export function MarketplacePage() {
   }
 
   async function handlePurchase(itemId) {
+    if (!user) {
+      showError("Please log in or create an account to purchase or enroll in courses.");
+      return;
+    }
     setBusyId(itemId);
     try {
       const response = await apiClient.post(`/marketplace/${itemId}/purchase`);
@@ -263,7 +270,8 @@ export function MarketplacePage() {
 
   return (
     <div className="page-stack">
-      <SectionCard
+      {user ? (
+        <SectionCard
         title="Academic Course Marketplace"
         description="Students, representatives, and admins can list courses for free or paid access."
       >
@@ -365,6 +373,7 @@ export function MarketplacePage() {
           )}
         </form>
       </SectionCard>
+      ) : null}
 
       <SectionCard
         title="Browse Courses"
@@ -391,33 +400,37 @@ export function MarketplacePage() {
 
         {loading ? <p className="muted">Loading marketplace...</p> : null}
         {!loading && !visibleItems.length ? <p className="muted">No courses available.</p> : null}
-        <div className="panel-list">
+        <div className="marketplace-grid">
           {visibleItems.map((item) => {
             const isMine = String(item.seller?._id) === String(user?.id);
             const alreadyBought = purchaseItemIds.has(item._id);
 
             return (
-              <article className="panel-card" key={item._id}>
-                <h3>{item.title}</h3>
-                <p className="muted">
-                  Type: {getListingLabel(item)} | Seller: {item.seller?.fullName || "Unknown"} (
-                  {item.seller?.role || "user"})
-                </p>
-                <p className="muted">
-                  Tag: {item.courseTag} | Total Price: {item.currency} {item.price}
-                </p>
-                {item.resourceType === "subscription" ? (
-                  <p className="muted">Plan: Basic | Duration: {item.subscriptionDurationDays || 30} days</p>
-                ) : null}
-                {Number(item.price || 0) > 0 ? (
-                  <p className="muted">
-                    Base: {item.currency} {item.basePrice || 0} | Platform Fee ({item.platformFeePercent || 0}%):{" "}
-                    {item.currency} {item.platformFeeAmount || 0} | GST ({item.gstPercent || 0}%): {item.currency}{" "}
-                    {item.gstAmount || 0}
-                  </p>
-                ) : null}
-                {item.description ? <p className="muted">{item.description}</p> : null}
-                <div className="panel-actions">
+              <article className="marketplace-card-enhanced" key={item._id}>
+                <div className="marketplace-card-accent" style={{ background: "linear-gradient(90deg, #10b981, #059669)" }} />
+                <div className="marketplace-card-body">
+                  <div className="marketplace-card-top-row">
+                    <span className="marketplace-card-icon">🛒</span>
+                    <span className="marketplace-type-tag" style={{ background: "rgba(59, 130, 246, 0.1)", color: "#2563eb" }}>
+                      {getListingLabel(item)}
+                    </span>
+                    <span className="marketplace-price-tag">
+                      {item.price > 0 ? `${item.currency} ${item.price}` : "Free"}
+                    </span>
+                  </div>
+                  <h3 className="marketplace-card-title">{item.title}</h3>
+                  <p className="muted marketplace-card-desc">{item.description || "No description provided."}</p>
+                  
+                  <div className="marketplace-card-details">
+                    <span className="marketplace-detail-item">🏷️ Tag: {item.courseTag}</span>
+                    <span className="marketplace-detail-item">👤 Seller: {item.seller?.fullName || "Unknown"}</span>
+                    {item.resourceType === "subscription" ? (
+                      <span className="marketplace-detail-item">⏱️ Duration: {item.subscriptionDurationDays || 30} days</span>
+                    ) : null}
+                  </div>
+                </div>
+                
+                <div className="marketplace-card-footer">
                   {!isMine ? (
                     <button
                       className="open-college-button"
@@ -430,7 +443,7 @@ export function MarketplacePage() {
                           ? "Subscription Active"
                           : "Already Enrolled"
                         : item.resourceType === "subscription"
-                          ? "Start Monthly Subscription"
+                          ? "Start Subscription"
                           : item.price > 0
                             ? "Buy Course"
                             : "Enroll Free"}
@@ -462,55 +475,73 @@ export function MarketplacePage() {
         </div>
       </SectionCard>
 
-      <SectionCard title="My Purchases" description="Your free enrollments and paid course purchases.">
+      {user ? (
+        <SectionCard title="My Purchases" description="Your free enrollments and paid course purchases.">
         {!purchases.length ? <p className="muted">No purchases yet.</p> : null}
-        <div className="panel-list">
+        <div className="marketplace-grid">
           {purchases.map((purchase) => (
-            <article className="panel-card" key={purchase._id}>
-              <h3>{purchase.item?.title || "Course"}</h3>
-              <p className="muted">
-                Type: {purchase.purchaseType} | Total Paid: {purchase.currency} {purchase.amount}
-              </p>
-              {purchase.purchaseType === "monthly-subscription" ? (
-                <p className="muted">
-                  Plan: Basic Subscription | Active until:{" "}
-                  {purchase.accessExpiresAt ? new Date(purchase.accessExpiresAt).toLocaleString() : "N/A"}
-                </p>
-              ) : null}
-              <p className="muted">
-                Base: {purchase.currency} {purchase.basePrice || 0} | Platform Fee: {purchase.currency}{" "}
-                {purchase.platformFeeAmount || 0} | GST: {purchase.currency} {purchase.gstAmount || 0}
-              </p>
-              <p className="muted">
-                Seller: {purchase.seller?.fullName || "Unknown"}
-              </p>
-              <p className="muted">{new Date(purchase.createdAt).toLocaleString()}</p>
+            <article className="marketplace-card-enhanced" key={purchase._id}>
+              <div className="marketplace-card-accent" style={{ background: "linear-gradient(90deg, #8b5cf6, #6d28d9)" }} />
+              <div className="marketplace-card-body">
+                <div className="marketplace-card-top-row">
+                  <span className="marketplace-card-icon">🛍️</span>
+                  <span className="marketplace-type-tag" style={{ background: "rgba(139, 92, 246, 0.1)", color: "#7c3aed" }}>
+                    {purchase.purchaseType}
+                  </span>
+                  <span className="marketplace-price-tag">
+                    {purchase.amount > 0 ? `${purchase.currency} ${purchase.amount}` : "Free"}
+                  </span>
+                </div>
+                <h3 className="marketplace-card-title">{purchase.item?.title || "Course"}</h3>
+                
+                <div className="marketplace-card-details">
+                  {purchase.purchaseType === "monthly-subscription" ? (
+                    <span className="marketplace-detail-item">
+                      ⏳ Active until: {purchase.accessExpiresAt ? new Date(purchase.accessExpiresAt).toLocaleDateString() : "N/A"}
+                    </span>
+                  ) : null}
+                  <span className="marketplace-detail-item">👤 Seller: {purchase.seller?.fullName || "Unknown"}</span>
+                  <span className="marketplace-detail-item">🕐 {new Date(purchase.createdAt).toLocaleDateString()}</span>
+                </div>
+              </div>
             </article>
           ))}
         </div>
       </SectionCard>
+      ) : null}
 
-      <SectionCard title="My Listed Courses" description="Courses you are currently selling or sharing.">
+      {user ? (
+        <SectionCard title="My Listed Courses" description="Courses you are currently selling or sharing.">
         {!myItems.length ? <p className="muted">No listed courses yet.</p> : null}
-        <div className="panel-list">
+        <div className="marketplace-grid">
           {myItems.map((item) => (
-            <article className="panel-card" key={item._id}>
-              <h3>{item.title}</h3>
-              <p className="muted">
-                {getListingLabel(item)} | {item.courseTag} | Total: {item.currency} {item.price} |{" "}
-                {item.isPublished ? "Published" : "Draft"}
-              </p>
-              {item.resourceType === "subscription" ? (
-                <p className="muted">Plan: Basic | Duration: {item.subscriptionDurationDays || 30} days</p>
-              ) : null}
-              <p className="muted">
-                Base: {item.currency} {item.basePrice || 0} | Platform Fee: {item.currency}{" "}
-                {item.platformFeeAmount || 0} | GST: {item.currency} {item.gstAmount || 0}
-              </p>
+            <article className="marketplace-card-enhanced" key={item._id}>
+              <div className="marketplace-card-accent" style={{ background: "linear-gradient(90deg, #f59e0b, #d97706)" }} />
+              <div className="marketplace-card-body">
+                <div className="marketplace-card-top-row">
+                  <span className="marketplace-card-icon">📢</span>
+                  <span className="marketplace-type-tag" style={{ background: "rgba(245, 158, 11, 0.1)", color: "#d97706" }}>
+                    {getListingLabel(item)}
+                  </span>
+                  <span className="marketplace-price-tag" style={{ background: item.isPublished ? "" : "rgba(239, 68, 68, 0.1)", color: item.isPublished ? "" : "#dc2626" }}>
+                    {item.isPublished ? "Published" : "Draft"}
+                  </span>
+                </div>
+                <h3 className="marketplace-card-title">{item.title}</h3>
+                
+                <div className="marketplace-card-details">
+                  <span className="marketplace-detail-item">🏷️ Tag: {item.courseTag}</span>
+                  <span className="marketplace-detail-item">💰 Total: {item.currency} {item.price}</span>
+                  {item.resourceType === "subscription" ? (
+                    <span className="marketplace-detail-item">⏱️ Duration: {item.subscriptionDurationDays || 30} days</span>
+                  ) : null}
+                </div>
+              </div>
             </article>
           ))}
         </div>
       </SectionCard>
+      ) : null}
     </div>
   );
 }

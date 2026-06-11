@@ -1,6 +1,9 @@
 import { useEffect, useState } from "react";
 import { SectionCard } from "../components/SectionCard";
 import { apiClient } from "../lib/apiClient";
+import { useAuth } from "../auth/AuthContext";
+import { useToast } from "../ui/ToastContext";
+import { useNavigate } from "react-router-dom";
 
 function formatDate(dateString) {
   if (!dateString) return "";
@@ -43,6 +46,9 @@ function getChannelColor(channelType) {
 }
 
 export function CommunityPage() {
+  const { user } = useAuth();
+  const { showError } = useToast();
+  const navigate = useNavigate();
   const [threads, setThreads] = useState([]);
   const [loading, setLoading] = useState(false);
   const [searchTerm, setSearchTerm] = useState("");
@@ -138,8 +144,19 @@ export function CommunityPage() {
                     <span className="community-replies-badge">
                       {thread.replies?.length || 0} Replies
                     </span>
-                    <button className="community-join-btn" style={{ color }}>
-                      Join Discussion →
+                    <button 
+                      className="community-join-btn" 
+                      style={{ color }}
+                      onClick={() => {
+                        if (!user) {
+                          showError("Please log in to join discussions.");
+                          navigate("/login");
+                        } else {
+                          // Note: actual join discussion logic is missing, just prompt for now if guest
+                        }
+                      }}
+                    >
+                      {user ? "Join Discussion →" : "Join Discussion 🔒"}
                     </button>
                   </div>
                 </article>
