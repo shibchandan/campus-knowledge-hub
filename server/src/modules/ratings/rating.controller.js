@@ -34,7 +34,9 @@ export async function createRating(req, res, next) {
       : 0;
 
     if (!stars && vote === "neutral") {
-      throw createHttpError("Provide at least a star rating or vote.");
+      await Rating.deleteOne({ resourceType, resourceId, user: req.user.id });
+      res.status(200).json({ success: true, message: "Rating removed.", data: null });
+      return;
     }
 
     const rating = await Rating.findOneAndUpdate(

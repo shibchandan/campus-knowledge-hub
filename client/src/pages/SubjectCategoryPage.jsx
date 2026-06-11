@@ -156,6 +156,19 @@ function getAccessOptions(role) {
 }
 
 function ResourcePreview({ resource, onAccessAttempt }) {
+  const { user } = useAuth();
+
+  if (!user) {
+    return (
+      <div className="locked-preview-card" onClick={onAccessAttempt}>
+        <div className="locked-preview-icon">🔒</div>
+        <h4>Log in to view content</h4>
+        <p className="muted">This resource file is restricted. Sign in or register to preview or download.</p>
+        <button className="open-college-button compact" type="button">Sign In to Access</button>
+      </div>
+    );
+  }
+
   if (resource.isLocked) {
     return (
       <div className="locked-preview-card" onClick={onAccessAttempt}>
@@ -285,6 +298,7 @@ export function SubjectCategoryPage() {
   const [editingResourceId, setEditingResourceId] = useState("");
   const [selectedFile, setSelectedFile] = useState(null);
   const [uploading, setUploading] = useState(false);
+  const [downloadingResourceId, setDownloadingResourceId] = useState("");
   const [savingEdit, setSavingEdit] = useState(false);
   const [feedbackByResource, setFeedbackByResource] = useState({});
   const [commentInputs, setCommentInputs] = useState({});
@@ -547,6 +561,71 @@ export function SubjectCategoryPage() {
       showError(message);
     } finally {
       setUploading(false);
+    }
+  }
+
+  async function handleDownload(resource, event) {
+    event.preventDefault();
+    if (!user) {
+      navigate("/login", { state: { from: window.location.pathname } });
+      showInfo("Please sign in or register to download resources.");
+      return;
+    }
+
+    if (resource.storageProvider === "external") {
+      window.open(buildAuthorizedApiUrl(`${apiClient.defaults.baseURL}/resources/${resource._id}/download`), '_blank');
+      return;
+    }
+
+    setDownloadingResourceId(resource._id);
+    try {
+      const downloadUrl = `/resources/${resource._id}/download`;
+      const response = await apiClient.get(downloadUrl, {
+        responseType: "blob"
+      });
+
+      const blob = new Blob([response.data], { type: response.headers["content-type"] || "application/octet-stream" });
+      const url = window.URL.createObjectURL(blob);
+      
+      let filename = resource.fileOriginalName || resource.fileStoredName || "download";
+      const disposition = response.headers["content-disposition"];
+      if (disposition && disposition.includes("filename=")) {
+        const matches = disposition.match(/filename="?([^";]+)"?/);
+        if (matches && matches[1]) {
+          filename = decodeURIComponent(matches[1]);
+        }
+      }
+
+      const link = document.createElement("a");
+      link.href = url;
+      link.setAttribute("download", filename);
+      document.body.appendChild(link);
+      link.click();
+      
+      document.body.removeChild(link);
+      window.URL.revokeObjectURL(url);
+      showSuccess(`Downloaded: ${filename}`);
+    } catch (requestError) {
+      console.error("Download failed:", requestError);
+      
+      let errorMessage = "Failed to download file.";
+      if (requestError.response?.data instanceof Blob) {
+        try {
+          const text = await requestError.response.data.text();
+          const parsed = JSON.parse(text);
+          if (parsed && parsed.message) {
+            errorMessage = parsed.message;
+          }
+        } catch {
+          // ignore
+        }
+      } else if (requestError.response?.data?.message) {
+        errorMessage = requestError.response.data.message;
+      }
+      
+      showError(errorMessage);
+    } finally {
+      setDownloadingResourceId("");
     }
   }
 
@@ -1242,18 +1321,46 @@ export function SubjectCategoryPage() {
                         <button
                           className="action-button approve"
                           disabled={feedbackBusy}
-                          onClick={() => handleFeedbackVote(resource._id, "upvote", myFeedback.stars || 0)}
+                          onClick={() => handleFeedbackVote(
+                            resource._id,
+                            myFeedback.vote === "upvote" ? "neutral" : "upvote",
+                            myFeedback.stars || 0
+                          )}
                           type="button"
-                          style={{ padding: "3px 10px", fontSize: "0.75rem", minWidth: "auto" }}
+                          style={{
+                            padding: "3px 10px",
+                            fontSize: "0.75rem",
+                            minWidth: "auto",
+                            backgroundColor: myFeedback.vote === "upvote" ? "#16a34a" : "rgba(22, 163, 74, 0.15)",
+                            color: myFeedback.vote === "upvote" ? "#ffffff" : "#4ade80",
+                            border: myFeedback.vote === "upvote" ? "1px solid #4ade80" : "1px solid rgba(22, 163, 74, 0.25)",
+                            transform: myFeedback.vote === "upvote" ? "scale(1.05)" : "none",
+                            boxShadow: myFeedback.vote === "upvote" ? "0 0 10px rgba(22, 163, 74, 0.4)" : "none",
+                            transition: "all 0.2s ease"
+                          }}
                         >
                           👍 {feedbackMetrics.upvotes}
                         </button>
                         <button
                           className="action-button reject"
                           disabled={feedbackBusy}
-                          onClick={() => handleFeedbackVote(resource._id, "downvote", myFeedback.stars || 0)}
+                          onClick={() => handleFeedbackVote(
+                            resource._id,
+                            myFeedback.vote === "downvote" ? "neutral" : "downvote",
+                            myFeedback.stars || 0
+                          )}
                           type="button"
-                          style={{ padding: "3px 10px", fontSize: "0.75rem", minWidth: "auto" }}
+                          style={{
+                            padding: "3px 10px",
+                            fontSize: "0.75rem",
+                            minWidth: "auto",
+                            backgroundColor: myFeedback.vote === "downvote" ? "#dc2626" : "rgba(220, 38, 38, 0.15)",
+                            color: myFeedback.vote === "downvote" ? "#ffffff" : "#f87171",
+                            border: myFeedback.vote === "downvote" ? "1px solid #f87171" : "1px solid rgba(220, 38, 38, 0.25)",
+                            transform: myFeedback.vote === "downvote" ? "scale(1.05)" : "none",
+                            boxShadow: myFeedback.vote === "downvote" ? "0 0 10px rgba(220, 38, 38, 0.4)" : "none",
+                            transition: "all 0.2s ease"
+                          }}
                         >
                           👎 {feedbackMetrics.downvotes}
                         </button>
@@ -1365,21 +1472,25 @@ export function SubjectCategoryPage() {
                   {/* Right: Action buttons */}
                   <div className="resource-card-actions">
                     {resource.fileUrl ? (
-                      <a
+                      <button
                         className="resource-action-btn primary"
-                        href={buildAuthorizedApiUrl(
-                          `${apiClient.defaults.baseURL}/resources/${resource._id}/download`
-                        )}
-                        rel="noreferrer"
-                        target="_blank"
+                        disabled={downloadingResourceId === resource._id}
+                        onClick={(e) => handleDownload(resource, e)}
+                        type="button"
                         style={resource.storageProvider === "external" ? {
                           background: "rgba(16, 185, 129, 0.15)",
                           color: "#10b981",
                           borderColor: "rgba(16, 185, 129, 0.3)"
                         } : undefined}
                       >
-                        {resource.storageProvider === "external" ? "Open Link ↗" : "Download ⬇"}
-                      </a>
+                        {downloadingResourceId === resource._id ? (
+                          "Downloading..."
+                        ) : resource.storageProvider === "external" ? (
+                          "Open Link ↗"
+                        ) : (
+                          "Download ⬇"
+                        )}
+                      </button>
                     ) : null}
                     {resource.visibility === "protected" &&
                     resource.uploadedBy?._id !== user?.id &&

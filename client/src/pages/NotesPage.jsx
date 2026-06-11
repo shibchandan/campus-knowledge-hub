@@ -1,7 +1,7 @@
 import { useEffect, useState, useMemo } from "react";
 import { useCollege } from "../college/CollegeContext";
 import { SectionCard } from "../components/SectionCard";
-import { apiClient } from "../lib/apiClient";
+import { apiClient, buildAuthorizedApiUrl } from "../lib/apiClient";
 import { Link, useNavigate } from "react-router-dom";
 import { useAuth } from "../auth/AuthContext";
 import { useToast } from "../ui/ToastContext";
@@ -53,6 +53,58 @@ export function NotesPage() {
   const [loading, setLoading] = useState(false);
   const [searchTerm, setSearchTerm] = useState("");
   const [categoryFilter, setCategoryFilter] = useState("all");
+  const [viewingResourceId, setViewingResourceId] = useState("");
+
+  async function handleViewFile(resource, event) {
+    event.preventDefault();
+    if (!user) {
+      navigate("/login", { state: { from: window.location.pathname } });
+      showError("Please log in to view resources.");
+      return;
+    }
+
+    if (resource.storageProvider === "external") {
+      window.open(buildAuthorizedApiUrl(`${apiClient.defaults.baseURL}/resources/${resource._id}/file`), '_blank');
+      return;
+    }
+
+    setViewingResourceId(resource._id);
+    try {
+      const fileUrl = `/resources/${resource._id}/file`;
+      const response = await apiClient.get(fileUrl, {
+        responseType: "blob"
+      });
+
+      const blob = new Blob([response.data], { type: response.headers["content-type"] || "application/pdf" });
+      const url = window.URL.createObjectURL(blob);
+      window.open(url, "_blank");
+      
+      setTimeout(() => {
+        window.URL.revokeObjectURL(url);
+      }, 5000);
+    } catch (requestError) {
+      console.error("View file failed:", requestError);
+      let errorMessage = "Failed to open file.";
+      
+      if (requestError.response?.data instanceof Blob) {
+        try {
+          const text = await requestError.response.data.text();
+          const parsed = JSON.parse(text);
+          if (parsed && parsed.message) {
+            errorMessage = parsed.message;
+          }
+        } catch {
+          // ignore
+        }
+      } else if (requestError.response?.data?.message) {
+        errorMessage = requestError.response.data.message;
+      }
+      
+      showError(errorMessage);
+    } finally {
+      setViewingResourceId("");
+    }
+  }
 
   useEffect(() => {
     async function loadResources() {
@@ -235,27 +287,20 @@ export function NotesPage() {
                       {resource.fileOriginalName || "Text content"}
                     </span>
                     {resource.fileUrl ? (
-                      user ? (
-                        <a
-                          href={`${apiClient.defaults.baseURL}/resources/${resource._id}/file`}
-                          target="_blank"
-                          rel="noreferrer"
-                          className="notes-view-btn"
-                        >
-                          View File →
-                        </a>
-                      ) : (
-                        <button
-                          className="notes-view-btn"
-                          onClick={() => {
-                            showError("Please log in to view resources.");
-                            navigate("/login");
-                          }}
-                          type="button"
-                        >
-                          View File 🔒
-                        </button>
-                      )
+                      <button
+                        className="notes-view-btn"
+                        disabled={viewingResourceId === resource._id}
+                        onClick={(e) => handleViewFile(resource, e)}
+                        type="button"
+                      >
+                        {viewingResourceId === resource._id ? (
+                          "Opening..."
+                        ) : user ? (
+                          "View File →"
+                        ) : (
+                          "View File 🔒"
+                        )}
+                      </button>
                     ) : (
                       <span className="notes-view-btn">Text Only</span>
                     )}
