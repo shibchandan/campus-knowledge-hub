@@ -305,20 +305,45 @@ export function CollegeSelectorPage() {
         description="Open a college and continue with your existing department/branch/semester flow."
       >
         <div className="college-grid">
-          {filteredColleges.map((college) => (
-            <article className="college-card" key={college.id}>
-              <p className="program-badge">{getCollegeType(college)}</p>
-              <h3>{college.name}</h3>
-              <p className="muted">{college.location}</p>
-              <button
-                className="open-college-button"
+          {filteredColleges.map((college) => {
+            const collegeType = getCollegeType(college);
+            const typeIcon =
+              collegeType === "IIT" ? "🏛️" :
+              collegeType === "NIT" ? "🎓" :
+              collegeType === "University" ? "🏫" : "🏢";
+            const typeClass =
+              collegeType === "IIT" ? "type-iit" :
+              collegeType === "NIT" ? "type-nit" :
+              collegeType === "University" ? "type-uni" : "type-inst";
+
+            return (
+              <article
+                className={`college-card college-card-enhanced ${typeClass}`}
+                key={college.id}
                 onClick={() => handleOpenCollege(college.id)}
-                type="button"
+                role="button"
+                tabIndex={0}
+                onKeyDown={(e) => e.key === "Enter" && handleOpenCollege(college.id)}
               >
-                Open Dashboard
-              </button>
-            </article>
-          ))}
+                <div className="college-card-accent" />
+                <div className="college-card-body">
+                  <div className="college-card-top-row">
+                    <span className="college-type-icon">{typeIcon}</span>
+                    <span className="college-type-badge">{collegeType}</span>
+                  </div>
+                  <h3 className="college-card-name">{college.name}</h3>
+                  <p className="college-card-location">
+                    <span className="location-pin">📍</span>
+                    {college.location || "Campus location not added yet"}
+                  </p>
+                </div>
+                <div className="college-card-footer">
+                  <span className="college-open-label">Open Dashboard</span>
+                  <span className="college-open-arrow">→</span>
+                </div>
+              </article>
+            );
+          })}
           {!filteredColleges.length ? <p className="muted">No colleges matched the current filters.</p> : null}
         </div>
       </SectionCard>

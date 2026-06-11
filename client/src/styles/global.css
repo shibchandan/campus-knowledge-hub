@@ -2927,3 +2927,186 @@ h3 {
   }
 }
 
+/* ── Enhanced College Cards ── */
+.college-card-enhanced {
+  position: relative;
+  overflow: hidden;
+  padding: 0 !important;
+  cursor: pointer;
+  transition: transform 0.25s ease, box-shadow 0.25s ease, border-color 0.25s ease;
+  display: flex;
+  flex-direction: column;
+}
+
+.college-card-enhanced:hover {
+  transform: translateY(-5px);
+}
+
+.college-card-accent {
+  height: 4px;
+  width: 100%;
+  flex-shrink: 0;
+}
+
+/* Type-specific accent colors */
+.type-iit .college-card-accent {
+  background: linear-gradient(90deg, #f59e0b, #d97706, #fbbf24);
+}
+.type-iit:hover {
+  box-shadow: 0 14px 36px rgba(245, 158, 11, 0.18);
+  border-color: rgba(245, 158, 11, 0.35);
+}
+
+.type-nit .college-card-accent {
+  background: linear-gradient(90deg, #818cf8, #6366f1, #a78bfa);
+}
+.type-nit:hover {
+  box-shadow: 0 14px 36px rgba(99, 102, 241, 0.18);
+  border-color: rgba(99, 102, 241, 0.35);
+}
+
+.type-uni .college-card-accent {
+  background: linear-gradient(90deg, #34d399, #10b981, #6ee7b7);
+}
+.type-uni:hover {
+  box-shadow: 0 14px 36px rgba(16, 185, 129, 0.18);
+  border-color: rgba(16, 185, 129, 0.35);
+}
+
+.type-inst .college-card-accent {
+  background: linear-gradient(90deg, #22d3ee, #06b6d4, #67e8f9);
+}
+.type-inst:hover {
+  box-shadow: 0 14px 36px rgba(6, 182, 212, 0.18);
+  border-color: rgba(6, 182, 212, 0.35);
+}
+
+.college-card-body {
+  padding: 16px 18px 12px;
+  flex: 1;
+}
+
+.college-card-top-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 10px;
+}
+
+.college-type-icon {
+  font-size: 1.3rem;
+  line-height: 1;
+}
+
+.college-type-badge {
+  font-size: 0.65rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  padding: 3px 10px;
+  border-radius: 10px;
+  background: rgba(255, 255, 255, 0.08);
+  color: rgba(216, 225, 239, 0.8);
+}
+
+.type-iit .college-type-badge {
+  background: rgba(245, 158, 11, 0.12);
+  color: #fbbf24;
+}
+.type-nit .college-type-badge {
+  background: rgba(99, 102, 241, 0.12);
+  color: #a5b4fc;
+}
+.type-uni .college-type-badge {
+  background: rgba(16, 185, 129, 0.1);
+  color: #6ee7b7;
+}
+.type-inst .college-type-badge {
+  background: rgba(6, 182, 212, 0.1);
+  color: #67e8f9;
+}
+
+.college-card-name {
+  font-size: 0.95rem !important;
+  font-weight: 700;
+  margin: 0 0 6px !important;
+  line-height: 1.35;
+}
+
+.college-card-location {
+  font-size: 0.78rem;
+  color: rgba(216, 225, 239, 0.55);
+  margin: 0 !important;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.location-pin {
+  font-size: 0.75rem;
+  line-height: 1;
+}
+
+.college-card-footer {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 10px 18px;
+  border-top: 1px solid rgba(255, 255, 255, 0.05);
+  margin-top: auto;
+}
+
+.college-open-label {
+  font-size: 0.75rem;
+  font-weight: 600;
+  color: rgba(216, 225, 239, 0.5);
+  transition: color 0.2s ease;
+}
+
+.college-open-arrow {
+  font-size: 1rem;
+  color: rgba(216, 225, 239, 0.35);
+  transition: transform 0.2s ease, color 0.2s ease;
+}
+
+.college-card-enhanced:hover .college-open-label {
+  color: rgba(216, 225, 239, 0.85);
+}
+
+.college-card-enhanced:hover .college-open-arrow {
+  transform: translateX(4px);
+  color: rgba(216, 225, 239, 0.85);
+}
+
+/* Type-specific hover label colors */
+.type-iit:hover .college-open-label { color: #fbbf24; }
+.type-iit:hover .college-open-arrow { color: #fbbf24; }
+.type-nit:hover .college-open-label { color: #a5b4fc; }
+.type-nit:hover .college-open-arrow { color: #a5b4fc; }
+.type-uni:hover .college-open-label { color: #6ee7b7; }
+.type-uni:hover .college-open-arrow { color: #6ee7b7; }
+.type-inst:hover .college-open-label { color: #67e8f9; }
+.type-inst:hover .college-open-arrow { color: #67e8f9; }
+
+/* Light theme overrides */
+.college-card-location {
+  color: rgba(24, 33, 47, 0.5);
+}
+
+[data-theme="dark"] .college-card-location {
+  color: rgba(216, 225, 239, 0.55);
+}
+
+@media (max-width: 640px) {
+  .college-card-name {
+    font-size: 0.88rem !important;
+  }
+
+  .college-card-body {
+    padding: 14px 14px 10px;
+  }
+
+  .college-card-footer {
+    padding: 8px 14px;
+  }
+}
