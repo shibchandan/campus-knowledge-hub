@@ -19,6 +19,7 @@ const initialForm = {
 
 const initialProfileForm = {
   collegeName: "",
+  courseId: "overall",
   entranceExams: "",
   nirf: "",
   qs: "",
@@ -84,6 +85,7 @@ function mapProfileToForm(profile) {
 
   return {
     collegeName: profile.collegeName || "",
+    courseId: profile.courseId || "overall",
     entranceExams: Array.isArray(profile.entranceExams) ? profile.entranceExams.join(", ") : "",
     nirf: profile.rankings?.nirf || "",
     qs: profile.rankings?.qs || "",
@@ -202,6 +204,16 @@ export function RepresentativePanelPage() {
     () => [...new Set(myColleges.map((item) => item.collegeName).filter(Boolean))],
     [myColleges]
   );
+  const profileCollegeCourses = useMemo(() => {
+    if (!profileForm.collegeName) return [];
+    const matched = myColleges.filter(
+      (item) => item.collegeName.toLowerCase() === profileForm.collegeName.toLowerCase()
+    );
+    return matched.map((item) => ({
+      id: normalizeRouteId(item.courseName),
+      name: item.courseName
+    }));
+  }, [myColleges, profileForm.collegeName]);
   const availableQuizPrograms = useMemo(
     () =>
       myColleges
@@ -395,6 +407,7 @@ export function RepresentativePanelPage() {
     try {
       await apiClient.put("/governance/college-profile", {
         collegeName: profileForm.collegeName,
+        courseId: profileForm.courseId,
         entranceExams: profileForm.entranceExams,
         rankings: {
           nirf: profileForm.nirf,
@@ -1114,18 +1127,36 @@ export function RepresentativePanelPage() {
         description="Add exam, ranking, cut-off, and placement details for your own approved colleges."
       >
         <form className="panel-form" onSubmit={handleProfileSubmit}>
-          <label className="auth-field">
-            <span>College Name</span>
-            <input
-              onChange={(event) =>
-                setProfileForm((current) => ({ ...current, collegeName: event.target.value }))
-              }
-              placeholder="Exact approved college name"
-              required
-              type="text"
-              value={profileForm.collegeName}
-            />
-          </label>
+          <div className="panel-form-grid">
+            <label className="auth-field">
+              <span>College Name</span>
+              <input
+                onChange={(event) =>
+                  setProfileForm((current) => ({ ...current, collegeName: event.target.value }))
+                }
+                placeholder="Exact approved college name"
+                required
+                type="text"
+                value={profileForm.collegeName}
+              />
+            </label>
+            <label className="auth-field">
+              <span>Program / Course Scope</span>
+              <select
+                onChange={(event) =>
+                  setProfileForm((current) => ({ ...current, courseId: event.target.value }))
+                }
+                value={profileForm.courseId}
+              >
+                <option value="overall">Overall Profile</option>
+                {profileCollegeCourses.map((prog) => (
+                  <option key={prog.id} value={prog.id}>
+                    {prog.name}
+                  </option>
+                ))}
+              </select>
+            </label>
+          </div>
           <label className="auth-field">
             <span>Entrance Exams (comma separated)</span>
             <input
@@ -1725,6 +1756,9 @@ export function RepresentativePanelPage() {
                   <p className="muted">
                     Rankings: NIRF {item.profile.rankings?.nirf || "-"} | QS {item.profile.rankings?.qs || "-"} | Other {item.profile.rankings?.other || "-"}
                   </p>
+                  <p className="muted" style={{ marginTop: "0.25rem" }}>
+                    Profile Scope: <strong style={{ color: "#ffcf7c", textTransform: "uppercase" }}>{item.profile.courseId || "overall"}</strong>
+                  </p>
                   <div className="panel-actions">
                     <button
                       className="action-button approve"
@@ -1748,7 +1782,11 @@ export function RepresentativePanelPage() {
                   <button
                     className="action-button approve"
                     onClick={() =>
-                      setProfileForm((current) => ({ ...current, collegeName: item.collegeName }))
+                      setProfileForm((current) => ({
+                        ...current,
+                        collegeName: item.collegeName,
+                        courseId: normalizeRouteId(item.courseName)
+                      }))
                     }
                     type="button"
                   >

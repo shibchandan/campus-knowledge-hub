@@ -54,6 +54,7 @@ export function DashboardPage() {
   const [loadingProfile, setLoadingProfile] = useState(false);
   const [profileError, setProfileError] = useState("");
   const [activeTab, setActiveTab] = useState("workspace");
+  const [selectedProfileCourse, setSelectedProfileCourse] = useState("overall");
   const [quickSubjectForm, setQuickSubjectForm] = useState({
     programId: "",
     branchId: "",
@@ -114,7 +115,7 @@ export function DashboardPage() {
 
       try {
         const response = await apiClient.get("/governance/college-profile", {
-          params: { collegeName: selectedCollege.name }
+          params: { collegeName: selectedCollege.name, courseId: selectedProfileCourse }
         });
         setProfile(response.data.data);
       } catch (requestError) {
@@ -127,7 +128,7 @@ export function DashboardPage() {
     }
 
     loadCollegeProfile();
-  }, [selectedCollege?.name]);
+  }, [selectedCollege?.name, selectedProfileCourse]);
 
   useEffect(() => {
     if (!selectedCollege?.name) {
@@ -561,6 +562,25 @@ export function DashboardPage() {
     [profile]
   );
 
+  const availablePrograms = useMemo(() => {
+    const list = [{ id: "overall", name: "Overall Profile" }];
+
+    structures.forEach((p) => {
+      if (p.id && !list.some((item) => item.id === p.id)) {
+        list.push({ id: p.id, name: p.name });
+      }
+    });
+
+    approvedCourses.forEach((c) => {
+      const key = normalizeProgramKey(c.courseName);
+      if (key && !list.some((item) => item.id === key)) {
+        list.push({ id: key, name: c.courseName });
+      }
+    });
+
+    return list;
+  }, [approvedCourses, structures]);
+
   const latestNoticePreview = notices[0] || null;
 
   return (
@@ -980,6 +1000,29 @@ export function DashboardPage() {
               title="College Profile"
               description="Institution highlights and placement statistics for this college."
             >
+              {availablePrograms.length > 1 ? (
+                <div className="overview-inline-chips" style={{ marginBottom: "1.5rem" }}>
+                  {availablePrograms.map((prog) => (
+                    <button
+                      key={prog.id}
+                      className={`notes-focus-chip ${selectedProfileCourse === prog.id ? "active" : ""}`}
+                      onClick={() => setSelectedProfileCourse(prog.id)}
+                      style={{
+                        cursor: "pointer",
+                        background: selectedProfileCourse === prog.id ? "rgba(255, 207, 124, 0.15)" : "rgba(255, 255, 255, 0.02)",
+                        color: selectedProfileCourse === prog.id ? "#ffcf7c" : "#94a3b8",
+                        border: selectedProfileCourse === prog.id ? "1px solid #ffcf7c" : "1px solid rgba(255, 255, 255, 0.05)",
+                        padding: "6px 12px",
+                        borderRadius: "8px",
+                        marginRight: "0.5rem",
+                        transition: "all 0.2s ease"
+                      }}
+                    >
+                      {prog.name}
+                    </button>
+                  ))}
+                </div>
+              ) : null}
               {loadingProfile ? <p className="muted">Loading college details...</p> : null}
               {profileError ? <p className="auth-error">{profileError}</p> : null}
               {!loadingProfile && !profile ? (

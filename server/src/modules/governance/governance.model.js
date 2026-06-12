@@ -88,7 +88,8 @@ const collegeRequestSchema = new mongoose.Schema(
 const collegeProfileSchema = new mongoose.Schema(
   {
     collegeName: { type: String, required: true, trim: true },
-    collegeNameNormalized: { type: String, required: true, unique: true },
+    collegeNameNormalized: { type: String, required: true },
+    courseId: { type: String, default: "overall", trim: true },
     enteredByRepresentative: {
       type: mongoose.Schema.Types.ObjectId,
       ref: "User",
@@ -107,6 +108,10 @@ const collegeProfileSchema = new mongoose.Schema(
     highestPackageLpa: { type: String, default: "" }
   },
   { timestamps: true }
+);
+collegeProfileSchema.index(
+  { collegeNameNormalized: 1, courseId: 1 },
+  { unique: true, name: "uniq_college_profile_course" }
 );
 collegeProfileSchema.index(
   { enteredByRepresentative: 1, createdAt: -1 },

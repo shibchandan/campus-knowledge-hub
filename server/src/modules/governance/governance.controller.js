@@ -378,8 +378,32 @@ export async function getApprovedCollegeCourses(req, res, next) {
       {
         $lookup: {
           from: CollegeProfile.collection.name,
-          localField: "collegeNameNormalized",
-          foreignField: "collegeNameNormalized",
+          let: { collegeNameNorm: "$collegeNameNormalized", courseNameNorm: "$courseNameNormalized" },
+          pipeline: [
+            {
+              $match: {
+                $expr: {
+                  $and: [
+                    { $eq: ["$collegeNameNormalized", "$$collegeNameNorm"] },
+                    { $in: ["$courseId", ["$$courseNameNorm", "overall"]] }
+                  ]
+                }
+              }
+            },
+            {
+              $addFields: {
+                priority: {
+                  $cond: {
+                    if: { $eq: ["$courseId", "$$courseNameNorm"] },
+                    then: 1,
+                    else: 2
+                  }
+                }
+              }
+            },
+            { $sort: { priority: 1 } },
+            { $limit: 1 }
+          ],
           as: "profile"
         }
       },
@@ -509,8 +533,32 @@ export async function getRepresentativeColleges(req, res, next) {
       {
         $lookup: {
           from: CollegeProfile.collection.name,
-          localField: "collegeNameNormalized",
-          foreignField: "collegeNameNormalized",
+          let: { collegeNameNorm: "$collegeNameNormalized", courseNameNorm: "$courseNameNormalized" },
+          pipeline: [
+            {
+              $match: {
+                $expr: {
+                  $and: [
+                    { $eq: ["$collegeNameNormalized", "$$collegeNameNorm"] },
+                    { $in: ["$courseId", ["$$courseNameNorm", "overall"]] }
+                  ]
+                }
+              }
+            },
+            {
+              $addFields: {
+                priority: {
+                  $cond: {
+                    if: { $eq: ["$courseId", "$$courseNameNorm"] },
+                    then: 1,
+                    else: 2
+                  }
+                }
+              }
+            },
+            { $sort: { priority: 1 } },
+            { $limit: 1 }
+          ],
           as: "profile"
         }
       },
@@ -601,15 +649,15 @@ export async function updateApprovedCollegeCourse(req, res, next) {
       const isCollegeRenamed = previousCollegeNameNormalized !== normalizedCollege;
 
       if (isCollegeRenamed) {
-        const profile = await withSession(
-          CollegeProfile.findOne({
+        const profileExists = await withSession(
+          CollegeProfile.exists({
             collegeNameNormalized: previousCollegeNameNormalized,
             enteredByRepresentative: course.addedByRepresentative
           }),
           session
         );
 
-        if (profile) {
+        if (profileExists) {
           const hasOtherCoursesForPreviousCollege = await withSession(
             CollegeCourse.exists({
               _id: { $ne: course._id },
@@ -626,14 +674,14 @@ export async function updateApprovedCollegeCourse(req, res, next) {
             );
           }
 
-          const destinationProfile = await withSession(
-            CollegeProfile.findOne({
+          const destinationProfileExists = await withSession(
+            CollegeProfile.exists({
               collegeNameNormalized: normalizedCollege
             }),
             session
           );
 
-          if (destinationProfile) {
+          if (destinationProfileExists) {
             throw createHttpError(
               `A college profile already exists for ${payload.collegeName}. Delete or rename that profile first.`,
               409
@@ -648,18 +696,21 @@ export async function updateApprovedCollegeCourse(req, res, next) {
       await course.save(session ? { session } : undefined);
 
       if (isCollegeRenamed) {
-        const profile = await withSession(
-          CollegeProfile.findOne({
-            collegeNameNormalized: previousCollegeNameNormalized,
-            enteredByRepresentative: course.addedByRepresentative
-          }),
+        await withSession(
+          CollegeProfile.updateMany(
+            {
+              collegeNameNormalized: previousCollegeNameNormalized,
+              enteredByRepresentative: course.addedByRepresentative
+            },
+            {
+              $set: {
+                collegeName: course.collegeName,
+                collegeNameNormalized: normalizedCollege
+              }
+            }
+          ),
           session
         );
-
-        if (profile) {
-          profile.collegeName = course.collegeName;
-          await profile.save(session ? { session } : undefined);
-        }
       }
 
       await syncRepresentativeCollegeName(course.addedByRepresentative, course.collegeName, session);
@@ -714,9 +765,19 @@ export async function deleteApprovedCollegeCourse(req, res, next) {
 
       let profileDeleted = false;
       if (!hasOtherCourses) {
+        const deleteResult = await withSession(
+          CollegeProfile.deleteMany({
+            collegeNameNormalized: course.collegeNameNormalized,
+            enteredByRepresentative: course.addedByRepresentative
+          }),
+          session
+        );
+        profileDeleted = deleteResult.deletedCount > 0;
+      } else {
         const deletedProfile = await withSession(
           CollegeProfile.findOneAndDelete({
             collegeNameNormalized: course.collegeNameNormalized,
+            courseId: course.courseNameNormalized,
             enteredByRepresentative: course.addedByRepresentative
           }),
           session
@@ -913,7 +974,8 @@ export async function upsertCollegeProfile(req, res, next) {
     const payload = validateCollegeProfilePayload(req.body);
     const normalizedCollege = normalizeCollegeName(payload.collegeName);
     const existingProfile = await CollegeProfile.findOne({
-      collegeNameNormalized: normalizedCollege
+      collegeNameNormalized: normalizedCollege,
+      courseId: payload.courseId
     });
 
     if (req.user.role === "representative") {
@@ -1020,8 +1082,10 @@ export async function getCollegeProfile(req, res, next) {
     const collegeScope = resolveStudentCollegeScope(req, requestedCollegeName, {
       mismatchMessage: "Students can view college profile only for their assigned college."
     });
+    const courseId = req.query.courseId?.toString().trim() || "overall";
     const profile = await CollegeProfile.findOne({
-      collegeNameNormalized: collegeScope.collegeNameNormalized
+      collegeNameNormalized: collegeScope.collegeNameNormalized,
+      courseId
     }).populate("enteredByRepresentative", "fullName email").lean();
 
     if (!profile) {

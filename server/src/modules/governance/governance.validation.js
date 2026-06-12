@@ -58,6 +58,7 @@ export function validateCollegeProfilePayload(payload) {
 
   return {
     collegeName,
+    courseId: payload.courseId?.toString().trim() || "overall",
     entranceExams: entranceExamsRaw,
     rankings: {
       nirf: payload.rankings?.nirf?.toString().trim() || "",
