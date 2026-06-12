@@ -10,7 +10,8 @@ const ACCOUNT_TABS = [
   { id: "history", label: "History" },
   { id: "blocked", label: "Blocked Users" },
   { id: "guidelines", label: "Community Guidelines" },
-  { id: "security", label: "Security" }
+  { id: "security", label: "Security" },
+  { id: "billing", label: "Billing & Subscriptions" }
 ];
 
 const defaultPreferences = {
@@ -1081,6 +1082,43 @@ export function AccountSettingsPage() {
           </div>
         </SectionCard>
         </>
+      ) : null}
+
+      {activeTab === "billing" ? (
+        <SectionCard
+          title="Billing & Subscriptions"
+          description="Manage your payment methods, view invoices, and cancel your active subscriptions."
+        >
+          <div style={{ background: "rgba(255, 255, 255, 0.02)", border: "1px solid rgba(255, 255, 255, 0.05)", borderRadius: "8px", padding: "1.5rem" }}>
+            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", flexWrap: "wrap", gap: "1rem" }}>
+              <div>
+                <h3 style={{ margin: "0 0 0.25rem 0", fontSize: "1rem", color: "#f8fafc" }}>Current Plan: Free Tier</h3>
+                <p style={{ margin: 0, color: "#94a3b8", fontSize: "0.875rem" }}>You do not have any active paid subscriptions.</p>
+              </div>
+              <button
+                disabled
+                style={{
+                  background: "rgba(255, 255, 255, 0.05)",
+                  color: "rgba(255, 255, 255, 0.3)",
+                  border: "1px solid rgba(255, 255, 255, 0.1)",
+                  padding: "0.5rem 1rem",
+                  borderRadius: "6px",
+                  fontWeight: "500",
+                  cursor: "not-allowed",
+                  fontSize: "0.875rem"
+                }}
+                title="No active subscription to cancel"
+              >
+                Cancel Subscription
+              </button>
+            </div>
+            <div style={{ marginTop: "1.5rem", borderTop: "1px solid rgba(255, 255, 255, 0.05)", paddingTop: "1rem" }}>
+              <p style={{ color: "#64748b", fontSize: "0.875rem", margin: 0 }}>
+                When you subscribe to a paid plan in the future, you will be able to manage your billing cycle and cancel easily from this panel with one click.
+              </p>
+            </div>
+          </div>
+        </SectionCard>
       ) : null}
     </div>
   );
