@@ -211,19 +211,12 @@ export function DashboardPage() {
   const programCards = useMemo(() => {
     if (structures.length) {
       return structures.map((program) => {
-        const branchNames = program.branches.map((branch) => branch.name).filter(Boolean);
-        const branchPreview = branchNames.slice(0, 3).join(", ");
-
+        const branchCount = program.branches.length;
         return {
           id: program.id,
           name: program.name,
-          branch:
-            branchPreview ||
-            `${program.branches.length} database-managed branch${program.branches.length === 1 ? "" : "es"}`,
-          description:
-            branchNames.length > 3
-              ? `+${branchNames.length - 3} more branches available inside this course.`
-              : "Open this course to manage branch, semester, and subject flow."
+          branch: branchCount > 0 ? `${branchCount} active branch${branchCount === 1 ? "" : "es"}` : "No branches configured yet.",
+          description: "Open this course to manage branch, semester, and subject flow."
         };
       });
     }
@@ -738,10 +731,11 @@ export function DashboardPage() {
                   <div className="branch-card-body">
                     <div className="branch-card-top-row">
                       <span className="branch-icon">🏛️</span>
-                      <span className="branch-program-tag">{program.name}</span>
+                      <span className="branch-program-tag">Course</span>
                     </div>
-                    <h3 className="branch-card-name">{program.branch}</h3>
-                    <p className="muted branch-card-desc">{program.description}</p>
+                    <h3 className="branch-card-name">{program.name}</h3>
+                    <p className="muted branch-card-desc" style={{ marginBottom: "0.25rem" }}>{program.branch}</p>
+                    {program.description ? <p className="muted branch-card-desc" style={{ fontSize: "0.85rem", opacity: 0.8 }}>{program.description}</p> : null}
                   </div>
                   <div className="branch-card-footer">
                     <span className="branch-open-label">Open Course Flow</span>
@@ -1033,6 +1027,32 @@ export function DashboardPage() {
                     }}>
                       <span className="overview-side-label" style={{ fontSize: "0.875rem", fontWeight: "600", display: "block", marginBottom: "0.5rem" }}>Placement Report Summary</span>
                       <p className="muted" style={{ margin: 0, fontSize: "0.95rem", lineHeight: "1.6" }}>{profile.placementReport || "Not provided"}</p>
+                      {profile.placementReportUrl ? (
+                        <div style={{ marginTop: "1rem" }}>
+                          <a
+                            href={profile.placementReportUrl}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="notes-focus-chip"
+                            style={{
+                              display: "inline-flex",
+                              alignItems: "center",
+                              gap: "6px",
+                              color: "#ffcf7c",
+                              border: "1px solid rgba(255, 207, 124, 0.3)",
+                              background: "rgba(255, 207, 124, 0.05)",
+                              padding: "6px 12px",
+                              borderRadius: "8px",
+                              fontSize: "0.85rem",
+                              fontWeight: "600",
+                              transition: "all 0.2s ease"
+                            }}
+                          >
+                            <span>📄</span>
+                            <span>View Full Placement Report</span>
+                          </a>
+                        </div>
+                      ) : null}
                     </article>
                     <article className="detail-card" style={{
                       padding: "1.25rem",

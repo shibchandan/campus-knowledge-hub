@@ -311,6 +311,7 @@ export function DashboardLayout() {
                   onChange={(e) => setContactEmail(e.target.value)}
                   placeholder="you@example.com"
                   required
+                  disabled={Boolean(user?.email)}
                 />
               </label>
               
