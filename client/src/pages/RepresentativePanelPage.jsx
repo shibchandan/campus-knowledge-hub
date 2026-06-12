@@ -1207,6 +1207,7 @@ export function RepresentativePanelPage() {
               onChange={(event) =>
                 setProfileForm((current) => ({ ...current, cutOffSummary: event.target.value }))
               }
+              placeholder="Summarize cutoff criteria. Markdown tables are supported. Example:&#10;| Branch | Cut-off |&#10;| --- | --- |&#10;| CSE | 5000 |"
               rows={3}
               value={profileForm.cutOffSummary}
             />
@@ -1218,6 +1219,7 @@ export function RepresentativePanelPage() {
               onChange={(event) =>
                 setProfileForm((current) => ({ ...current, placementReport: event.target.value }))
               }
+              placeholder="Summarize placement records. Markdown tables are supported. Example:&#10;| Branch | Avg Package |&#10;| --- | --- |&#10;| CSE | 24 LPA |"
               rows={3}
               value={profileForm.placementReport}
             />

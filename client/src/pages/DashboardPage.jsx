@@ -25,6 +25,112 @@ function slugify(value = "") {
     .replace(/^-|-$/g, "");
 }
 
+function renderRichText(text = "") {
+  if (!text) return null;
+
+  const lines = text.split("\n").map(l => l.trim());
+  const hasTable = lines.some(l => l.startsWith("|") && l.endsWith("|"));
+
+  if (!hasTable) {
+    return text.split("\n").map((line, idx) => (
+      <span key={idx} style={{ display: "block", marginBottom: "0.25rem" }}>
+        {line}
+      </span>
+    ));
+  }
+
+  const parsedElements = [];
+  let currentTable = null;
+
+  for (let i = 0; i < lines.length; i++) {
+    const line = lines[i];
+    if (line.startsWith("|") && line.endsWith("|")) {
+      const cells = line.split("|").map(c => c.trim()).filter((_, idx, arr) => idx > 0 && idx < arr.length - 1);
+      
+      if (cells.every(c => /^:-*|-+:*|:-+:*$/.test(c) || c.includes("---"))) {
+        continue;
+      }
+
+      if (!currentTable) {
+        currentTable = { headers: cells, rows: [] };
+      } else {
+        currentTable.rows.push(cells);
+      }
+    } else {
+      if (currentTable) {
+        parsedElements.push(currentTable);
+        currentTable = null;
+      }
+      if (line) {
+        parsedElements.push(line);
+      }
+    }
+  }
+
+  if (currentTable) {
+    parsedElements.push(currentTable);
+  }
+
+  return (
+    <div className="rich-text-content">
+      {parsedElements.map((elem, idx) => {
+        if (typeof elem === "string") {
+          return (
+            <p key={idx} style={{ margin: "0 0 0.5rem 0", fontSize: "0.95rem", lineHeight: "1.6" }}>
+              {elem}
+            </p>
+          );
+        }
+
+        return (
+          <div key={idx} className="table-responsive" style={{ overflowX: "auto", margin: "1rem 0" }}>
+            <table style={{
+              width: "100%",
+              borderCollapse: "collapse",
+              background: "rgba(255, 255, 255, 0.02)",
+              border: "1px solid rgba(255, 255, 255, 0.05)",
+              borderRadius: "8px",
+              fontSize: "0.85rem"
+            }}>
+              <thead>
+                <tr style={{ background: "rgba(255, 255, 255, 0.04)" }}>
+                  {elem.headers.map((h, hIdx) => (
+                    <th key={hIdx} style={{
+                      padding: "8px 10px",
+                      textAlign: "left",
+                      fontWeight: "600",
+                      color: "#f8fafc",
+                      borderBottom: "1px solid rgba(255, 255, 255, 0.08)"
+                    }}>
+                      {h}
+                    </th>
+                  ))}
+                </tr>
+              </thead>
+              <tbody>
+                {elem.rows.map((row, rIdx) => (
+                  <tr key={rIdx} style={{
+                    borderBottom: rIdx === elem.rows.length - 1 ? "none" : "1px solid rgba(255, 255, 255, 0.04)"
+                  }}>
+                    {row.map((cell, cIdx) => (
+                      <td key={cIdx} style={{
+                        padding: "8px 10px",
+                        color: "#cbd5e1"
+                      }}>
+                        {cell}
+                      </td>
+                    ))}
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        );
+      })}
+    </div>
+  );
+}
+
 const defaultSubjectCategories = [
   { id: "notice", label: "Notice" },
   { id: "syllabus", label: "Syllabus" },
@@ -1069,7 +1175,7 @@ export function DashboardPage() {
                       border: "1px solid rgba(255, 255, 255, 0.05)"
                     }}>
                       <span className="overview-side-label" style={{ fontSize: "0.875rem", fontWeight: "600", display: "block", marginBottom: "0.5rem" }}>Placement Report Summary</span>
-                      <p className="muted" style={{ margin: 0, fontSize: "0.95rem", lineHeight: "1.6" }}>{profile.placementReport || "Not provided"}</p>
+                      <div style={{ margin: 0, fontSize: "0.95rem", lineHeight: "1.6" }}>{renderRichText(profile.placementReport) || <p className="muted" style={{ margin: 0 }}>Not provided</p>}</div>
                       {profile.placementReportUrl ? (
                         <div style={{ marginTop: "1rem" }}>
                           <a
@@ -1104,7 +1210,7 @@ export function DashboardPage() {
                       border: "1px solid rgba(255, 255, 255, 0.05)"
                     }}>
                       <span className="overview-side-label" style={{ fontSize: "0.875rem", fontWeight: "600", display: "block", marginBottom: "0.5rem" }}>Cut Off Summary</span>
-                      <p className="muted" style={{ margin: 0, fontSize: "0.95rem", lineHeight: "1.6" }}>{profile.cutOffSummary || "Not provided"}</p>
+                      <div style={{ margin: 0, fontSize: "0.95rem", lineHeight: "1.6" }}>{renderRichText(profile.cutOffSummary) || <p className="muted" style={{ margin: 0 }}>Not provided</p>}</div>
                     </article>
                     <article className="detail-card" style={{
                       padding: "1.25rem",
@@ -1113,7 +1219,7 @@ export function DashboardPage() {
                       border: "1px solid rgba(255, 255, 255, 0.05)"
                     }}>
                       <span className="overview-side-label" style={{ fontSize: "0.875rem", fontWeight: "600", display: "block", marginBottom: "0.5rem" }}>Other Rankings & Info</span>
-                      <p className="muted" style={{ margin: 0, fontSize: "0.95rem", lineHeight: "1.6" }}>{profile.rankings?.other || "Not provided"}</p>
+                      <div style={{ margin: 0, fontSize: "0.95rem", lineHeight: "1.6" }}>{renderRichText(profile.rankings?.other) || <p className="muted" style={{ margin: 0 }}>Not provided</p>}</div>
                     </article>
                   </div>
                 </div>
