@@ -1511,7 +1511,7 @@ export function SubjectCategoryPage() {
                         Unlock 🔓
                       </button>
                     ) : null}
-                    {canManage ? (
+                    {canManage && !resource.fileUrl ? (
                       <button
                         className="resource-action-btn edit"
                         onClick={() => {

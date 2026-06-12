@@ -1379,21 +1379,23 @@ export function AdminPanelPage() {
               <p className="muted" style={{ marginBottom: "0.25rem" }}>Added: {new Date(resource.createdAt).toLocaleString(undefined, { year: 'numeric', month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' })}</p>
               <p className="muted">Access: {resource.visibility || "private"}</p>
               <div className="panel-actions">
-                <button
-                  className="action-button approve"
-                  onClick={() => {
-                    setEditingResourceId(resource._id);
-                    setResourceEditForm({
-                      title: resource.title || "",
-                      description: resource.description || "",
-                      textContent: resource.textContent || ""
-                    });
-                    window.scrollTo({ top: 0, behavior: 'smooth' });
-                  }}
-                  type="button"
-                >
-                  Edit
-                </button>
+                {!resource.fileUrl ? (
+                  <button
+                    className="action-button approve"
+                    onClick={() => {
+                      setEditingResourceId(resource._id);
+                      setResourceEditForm({
+                        title: resource.title || "",
+                        description: resource.description || "",
+                        textContent: resource.textContent || ""
+                      });
+                      window.scrollTo({ top: 0, behavior: 'smooth' });
+                    }}
+                    type="button"
+                  >
+                    Edit
+                  </button>
+                ) : null}
                 <button className="action-button reject" onClick={() => handleDeleteResource(resource._id)} type="button">
                   Delete
                 </button>
