@@ -388,6 +388,7 @@ export function AdminPanelPage() {
       semesterName: structure.semesterName || "",
       semesterOrder: Number(structure.semesterOrder || 1)
     });
+    window.scrollTo({ top: 0, behavior: 'smooth' });
     clearMessages();
   }
 
@@ -447,6 +448,7 @@ export function AdminPanelPage() {
       subjectId: subject.subjectId || "",
       name: subject.name || ""
     });
+    window.scrollTo({ top: 0, behavior: 'smooth' });
     clearMessages();
   }
 
@@ -1295,6 +1297,7 @@ export function AdminPanelPage() {
                       content: notice.content,
                       isPublished: notice.isPublished
                     });
+                    window.scrollTo({ top: 0, behavior: 'smooth' });
                   }}
                   type="button"
                 >
@@ -1372,7 +1375,9 @@ export function AdminPanelPage() {
               <p className="muted">
                 {resource.collegeName} | {resource.categoryId} | {resource.subjectId}
               </p>
-              <p className="muted">Uploaded by: {resource.uploadedBy?.fullName || resource.uploadedBy?.email}</p>
+              <p className="muted" style={{ marginBottom: "0.25rem" }}>Uploaded by: {resource.uploadedBy?.fullName || resource.uploadedBy?.email}</p>
+              <p className="muted" style={{ marginBottom: "0.25rem" }}>Added: {new Date(resource.createdAt).toLocaleString(undefined, { year: 'numeric', month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' })}</p>
+              <p className="muted">Access: {resource.visibility || "private"}</p>
               <div className="panel-actions">
                 <button
                   className="action-button approve"
@@ -1383,6 +1388,7 @@ export function AdminPanelPage() {
                       description: resource.description || "",
                       textContent: resource.textContent || ""
                     });
+                    window.scrollTo({ top: 0, behavior: 'smooth' });
                   }}
                   type="button"
                 >

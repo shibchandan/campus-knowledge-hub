@@ -1525,6 +1525,7 @@ export function SubjectCategoryPage() {
                             allowBasicSubscription: Boolean(resource.allowBasicSubscription),
                             externalLink: resource.storageProvider === "external" ? resource.fileUrl : ""
                           });
+                          window.scrollTo({ top: 0, behavior: 'smooth' });
                         }}
                         type="button"
                       >
