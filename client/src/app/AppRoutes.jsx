@@ -24,6 +24,8 @@ import { AdminPanelPage } from "../pages/AdminPanelPage";
 import { RepresentativePanelPage } from "../pages/RepresentativePanelPage";
 import { StudentPanelPage } from "../pages/StudentPanelPage";
 import { AccountSettingsPage } from "../pages/AccountSettingsPage";
+import { PrivacyPolicyPage } from "../pages/PrivacyPolicyPage";
+import { TermsOfServicePage } from "../pages/TermsOfServicePage";
 
 export function AppRoutes() {
   const { showError } = useToast();
@@ -49,6 +51,8 @@ export function AppRoutes() {
   return (
     <Routes>
       <Route path="/login" element={<AuthPage />} />
+      <Route path="/privacy" element={<PrivacyPolicyPage />} />
+      <Route path="/terms" element={<TermsOfServicePage />} />
       <Route
         path="/"
         element={

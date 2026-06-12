@@ -224,9 +224,15 @@ export function DashboardLayout() {
           borderTop: "1px solid rgba(255, 255, 255, 0.05)",
           background: "rgba(255, 255, 255, 0.01)"
         }}>
-          <p style={{ margin: 0, color: "rgba(255, 255, 255, 0.4)", fontSize: "0.875rem" }}>
-            © {new Date().getFullYear()} Campus Knowledge Hub. All Rights Reserved.
-          </p>
+          <div style={{ display: "flex", alignItems: "center", gap: "1.5rem", flexWrap: "wrap" }}>
+            <p style={{ margin: 0, color: "rgba(255, 255, 255, 0.4)", fontSize: "0.875rem" }}>
+              © {new Date().getFullYear()} Campus Knowledge Hub. All Rights Reserved.
+            </p>
+            <div style={{ display: "flex", gap: "1rem", fontSize: "0.875rem" }}>
+              <NavLink to="/privacy" style={{ color: "rgba(255, 255, 255, 0.6)", textDecoration: "none" }}>Privacy Policy</NavLink>
+              <NavLink to="/terms" style={{ color: "rgba(255, 255, 255, 0.6)", textDecoration: "none" }}>Terms of Service</NavLink>
+            </div>
+          </div>
           <button
             onClick={() => setIsContactOpen(true)}
             style={{

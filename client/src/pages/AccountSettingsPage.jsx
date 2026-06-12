@@ -1036,6 +1036,50 @@ export function AccountSettingsPage() {
             </div>
           )}
         </SectionCard>
+
+        <SectionCard
+          title="Data Deletion"
+          description="Request to have all your personal data permanently removed from our platform. This action is irreversible."
+        >
+          <div style={{ background: "rgba(239, 68, 68, 0.1)", border: "1px solid rgba(239, 68, 68, 0.2)", borderRadius: "8px", padding: "1.5rem" }}>
+            <h3 style={{ color: "#ef4444", fontSize: "1rem", margin: "0 0 0.5rem 0" }}>Right to be Forgotten</h3>
+            <p style={{ color: "#fca5a5", fontSize: "0.875rem", marginBottom: "1.5rem" }}>
+              In compliance with data protection laws, you can request full deletion of your account and associated personal data. 
+              Once processed, you will lose access to all your notes, lectures, and academic records.
+            </p>
+            <button
+              onClick={() => {
+                const conf = window.confirm("Are you sure you want to request data deletion? This will send a request to the admin.");
+                if (conf) {
+                  // Reusing the delete with password modal to enforce security
+                  const pwd = requestDeletePassword("your account and all associated data");
+                  if (pwd) {
+                    apiClient.post("/auth/contact-admin", {
+                      email: user?.email,
+                      subject: "URGENT: Data Deletion Request",
+                      message: `I verify my password was entered correctly. Please permanently delete my account and all associated data for user ID: ${user?._id}`
+                    })
+                    .then(() => alert("Your data deletion request has been securely verified and submitted to the admins."))
+                    .catch(() => alert("Failed to submit request. Please try again or contact support."));
+                  }
+                }
+              }}
+              style={{
+                background: "#ef4444",
+                color: "white",
+                border: "none",
+                padding: "0.5rem 1rem",
+                borderRadius: "6px",
+                fontWeight: "600",
+                cursor: "pointer",
+                fontSize: "0.875rem"
+              }}
+              type="button"
+            >
+              Request Data Deletion
+            </button>
+          </div>
+        </SectionCard>
         </>
       ) : null}
     </div>

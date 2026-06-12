@@ -1,5 +1,6 @@
 import { useState, useEffect } from "react";
-import { Navigate, useLocation, useNavigate } from "react-router-dom";
+import { Navigate, useLocation, useNavigate, Link } from "react-router-dom";
+import { Footer } from "../components/Footer";
 import { useAuth } from "../auth/AuthContext";
 import { apiClient } from "../lib/apiClient";
 
@@ -80,6 +81,7 @@ export function AuthPage() {
   const [twoFactorRequired, setTwoFactorRequired] = useState(false);
   const [twoFactorUserId, setTwoFactorUserId] = useState("");
   const [twoFactorCode, setTwoFactorCode] = useState("");
+  const [agreedToTerms, setAgreedToTerms] = useState(false);
 
   useEffect(() => {
     const params = new URLSearchParams(location.search);
@@ -155,6 +157,12 @@ export function AuthPage() {
     setLoading(true);
     setError("");
     setSuccess("");
+
+    if (!agreedToTerms) {
+      setError("You must agree to the Terms of Service and Privacy Policy.");
+      setLoading(false);
+      return;
+    }
 
     try {
       const session = await register(registerForm);
@@ -459,6 +467,18 @@ export function AuthPage() {
               </p>
             ) : null}
 
+            <label style={{ display: "flex", alignItems: "flex-start", gap: "0.75rem", margin: "1rem 0", color: "#94a3b8", fontSize: "0.875rem", cursor: "pointer" }}>
+              <input
+                type="checkbox"
+                checked={agreedToTerms}
+                onChange={(e) => setAgreedToTerms(e.target.checked)}
+                style={{ marginTop: "0.2rem", accentColor: "#3b82f6" }}
+              />
+              <span>
+                I agree to the <Link to="/terms" style={{ color: "#3b82f6", textDecoration: "none" }}>Terms of Service</Link> and <Link to="/privacy" style={{ color: "#3b82f6", textDecoration: "none" }}>Privacy Policy</Link>.
+              </span>
+            </label>
+
             <button className="auth-submit" disabled={loading} type="submit">
               {loading ? "Creating account..." : "Register"}
             </button>
@@ -556,6 +576,10 @@ export function AuthPage() {
             </button>
           </form>
         ) : null}
+      </div>
+      
+      <div style={{ marginTop: "2rem", width: "100%", maxWidth: "800px" }}>
+        <Footer />
       </div>
     </div>
   );
