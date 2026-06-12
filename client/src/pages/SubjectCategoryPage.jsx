@@ -1291,8 +1291,11 @@ export function SubjectCategoryPage() {
                         </span>
                       )}
                     </div>
-                    <p className="muted" style={{ fontSize: "0.8rem" }}>
+                    <p className="muted" style={{ fontSize: "0.8rem", marginBottom: "0.25rem" }}>
                       Uploaded by: {resource.uploadedBy?.fullName || "Unknown"} ({resource.uploadedBy?.role})
+                    </p>
+                    <p className="muted" style={{ fontSize: "0.8rem", marginBottom: "0.25rem" }}>
+                      Added: {new Date(resource.createdAt).toLocaleString(undefined, { year: 'numeric', month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' })}
                     </p>
                     <p className="muted" style={{ fontSize: "0.8rem" }}>
                       Access: {resource.visibility || "private"}
