@@ -105,7 +105,19 @@ const collegeProfileSchema = new mongoose.Schema(
     placementReport: { type: String, default: "" },
     placementReportUrl: { type: String, default: "" },
     averagePackageLpa: { type: String, default: "" },
-    highestPackageLpa: { type: String, default: "" }
+    highestPackageLpa: { type: String, default: "" },
+    cutOffList: [
+      {
+        branch: { type: String, trim: true },
+        value: { type: String, trim: true }
+      }
+    ],
+    placementList: [
+      {
+        branch: { type: String, trim: true },
+        value: { type: String, trim: true }
+      }
+    ]
   },
   { timestamps: true }
 );

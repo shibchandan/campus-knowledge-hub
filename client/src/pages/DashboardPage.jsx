@@ -1175,7 +1175,37 @@ export function DashboardPage() {
                       border: "1px solid rgba(255, 255, 255, 0.05)"
                     }}>
                       <span className="overview-side-label" style={{ fontSize: "0.875rem", fontWeight: "600", display: "block", marginBottom: "0.5rem" }}>Placement Report Summary</span>
-                      <div style={{ margin: 0, fontSize: "0.95rem", lineHeight: "1.6" }}>{renderRichText(profile.placementReport) || <p className="muted" style={{ margin: 0 }}>Not provided</p>}</div>
+                      <div style={{ margin: 0, fontSize: "0.95rem", lineHeight: "1.6" }}>
+                        {profile.placementList && profile.placementList.length > 0 ? (
+                          <div className="table-responsive" style={{ overflowX: "auto", margin: "0.5rem 0" }}>
+                            <table style={{
+                              width: "100%",
+                              borderCollapse: "collapse",
+                              background: "rgba(255, 255, 255, 0.02)",
+                              border: "1px solid rgba(255, 255, 255, 0.05)",
+                              borderRadius: "8px",
+                              fontSize: "0.85rem"
+                            }}>
+                              <thead>
+                                <tr style={{ background: "rgba(255, 255, 255, 0.04)" }}>
+                                  <th style={{ padding: "8px 10px", textAlign: "left", fontWeight: "600", color: "#f8fafc", borderBottom: "1px solid rgba(255, 255, 255, 0.08)" }}>Branch</th>
+                                  <th style={{ padding: "8px 10px", textAlign: "left", fontWeight: "600", color: "#f8fafc", borderBottom: "1px solid rgba(255, 255, 255, 0.08)" }}>Avg/Highest Package</th>
+                                </tr>
+                              </thead>
+                              <tbody>
+                                {profile.placementList.map((row, rIdx) => (
+                                  <tr key={rIdx} style={{ borderBottom: rIdx === profile.placementList.length - 1 ? "none" : "1px solid rgba(255, 255, 255, 0.04)" }}>
+                                    <td style={{ padding: "8px 10px", color: "#cbd5e1" }}>{row.branch}</td>
+                                    <td style={{ padding: "8px 10px", color: "#cbd5e1" }}>{row.value}</td>
+                                  </tr>
+                                ))}
+                              </tbody>
+                            </table>
+                          </div>
+                        ) : (
+                          renderRichText(profile.placementReport) || <p className="muted" style={{ margin: 0 }}>Not provided</p>
+                        )}
+                      </div>
                       {profile.placementReportUrl ? (
                         <div style={{ marginTop: "1rem" }}>
                           <a
@@ -1210,7 +1240,37 @@ export function DashboardPage() {
                       border: "1px solid rgba(255, 255, 255, 0.05)"
                     }}>
                       <span className="overview-side-label" style={{ fontSize: "0.875rem", fontWeight: "600", display: "block", marginBottom: "0.5rem" }}>Cut Off Summary</span>
-                      <div style={{ margin: 0, fontSize: "0.95rem", lineHeight: "1.6" }}>{renderRichText(profile.cutOffSummary) || <p className="muted" style={{ margin: 0 }}>Not provided</p>}</div>
+                      <div style={{ margin: 0, fontSize: "0.95rem", lineHeight: "1.6" }}>
+                        {profile.cutOffList && profile.cutOffList.length > 0 ? (
+                          <div className="table-responsive" style={{ overflowX: "auto", margin: "0.5rem 0" }}>
+                            <table style={{
+                              width: "100%",
+                              borderCollapse: "collapse",
+                              background: "rgba(255, 255, 255, 0.02)",
+                              border: "1px solid rgba(255, 255, 255, 0.05)",
+                              borderRadius: "8px",
+                              fontSize: "0.85rem"
+                            }}>
+                              <thead>
+                                <tr style={{ background: "rgba(255, 255, 255, 0.04)" }}>
+                                  <th style={{ padding: "8px 10px", textAlign: "left", fontWeight: "600", color: "#f8fafc", borderBottom: "1px solid rgba(255, 255, 255, 0.08)" }}>Branch</th>
+                                  <th style={{ padding: "8px 10px", textAlign: "left", fontWeight: "600", color: "#f8fafc", borderBottom: "1px solid rgba(255, 255, 255, 0.08)" }}>Cut-off</th>
+                                </tr>
+                              </thead>
+                              <tbody>
+                                {profile.cutOffList.map((row, rIdx) => (
+                                  <tr key={rIdx} style={{ borderBottom: rIdx === profile.cutOffList.length - 1 ? "none" : "1px solid rgba(255, 255, 255, 0.04)" }}>
+                                    <td style={{ padding: "8px 10px", color: "#cbd5e1" }}>{row.branch}</td>
+                                    <td style={{ padding: "8px 10px", color: "#cbd5e1" }}>{row.value}</td>
+                                  </tr>
+                                ))}
+                              </tbody>
+                            </table>
+                          </div>
+                        ) : (
+                          renderRichText(profile.cutOffSummary) || <p className="muted" style={{ margin: 0 }}>Not provided</p>
+                        )}
+                      </div>
                     </article>
                     <article className="detail-card" style={{
                       padding: "1.25rem",

@@ -28,7 +28,9 @@ const initialProfileForm = {
   placementReport: "",
   placementReportUrl: "",
   averagePackageLpa: "",
-  highestPackageLpa: ""
+  highestPackageLpa: "",
+  cutOffList: [],
+  placementList: []
 };
 
 const initialNoticeForm = {
@@ -78,10 +80,37 @@ const initialSubjectForm = {
   name: ""
 };
 
+function parseMarkdownTable(text = "") {
+  if (!text) return [];
+  const lines = text.split("\n").map(l => l.trim());
+  const rows = [];
+  for (let line of lines) {
+    if (line.startsWith("|") && line.endsWith("|")) {
+      const cells = line.split("|").map(c => c.trim()).filter((_, idx, arr) => idx > 0 && idx < arr.length - 1);
+      // Skip header divider rows
+      if (cells.every(c => /^:-*|-+:*|:-+:*$/.test(c) || c.includes("---"))) {
+        continue;
+      }
+      // Skip header labels
+      const lowerCells = cells.map(c => c.toLowerCase());
+      if (lowerCells.includes("branch") && (lowerCells.includes("cut-off") || lowerCells.includes("cutoff") || lowerCells.includes("avg package") || lowerCells.includes("average package") || lowerCells.includes("avg/highest package"))) {
+        continue;
+      }
+      if (cells.length >= 2) {
+        rows.push({ branch: cells[0], value: cells[1] });
+      }
+    }
+  }
+  return rows;
+}
+
 function mapProfileToForm(profile) {
   if (!profile) {
     return initialProfileForm;
   }
+
+  const legacyCutOffs = parseMarkdownTable(profile.cutOffSummary);
+  const legacyPlacements = parseMarkdownTable(profile.placementReport);
 
   return {
     collegeName: profile.collegeName || "",
@@ -94,7 +123,13 @@ function mapProfileToForm(profile) {
     placementReport: profile.placementReport || "",
     placementReportUrl: profile.placementReportUrl || "",
     averagePackageLpa: profile.averagePackageLpa || "",
-    highestPackageLpa: profile.highestPackageLpa || ""
+    highestPackageLpa: profile.highestPackageLpa || "",
+    cutOffList: Array.isArray(profile.cutOffList) && profile.cutOffList.length > 0
+      ? profile.cutOffList
+      : legacyCutOffs,
+    placementList: Array.isArray(profile.placementList) && profile.placementList.length > 0
+      ? profile.placementList
+      : legacyPlacements
   };
 }
 
@@ -398,6 +433,50 @@ export function RepresentativePanelPage() {
     }
   }
 
+  const handleAddCutOffRow = () => {
+    setProfileForm((current) => ({
+      ...current,
+      cutOffList: [...(current.cutOffList || []), { branch: "", value: "" }]
+    }));
+  };
+
+  const handleUpdateCutOffRow = (index, field, value) => {
+    setProfileForm((current) => {
+      const updated = [...(current.cutOffList || [])];
+      updated[index] = { ...updated[index], [field]: value };
+      return { ...current, cutOffList: updated };
+    });
+  };
+
+  const handleRemoveCutOffRow = (index) => {
+    setProfileForm((current) => ({
+      ...current,
+      cutOffList: (current.cutOffList || []).filter((_, idx) => idx !== index)
+    }));
+  };
+
+  const handleAddPlacementRow = () => {
+    setProfileForm((current) => ({
+      ...current,
+      placementList: [...(current.placementList || []), { branch: "", value: "" }]
+    }));
+  };
+
+  const handleUpdatePlacementRow = (index, field, value) => {
+    setProfileForm((current) => {
+      const updated = [...(current.placementList || [])];
+      updated[index] = { ...updated[index], [field]: value };
+      return { ...current, placementList: updated };
+    });
+  };
+
+  const handleRemovePlacementRow = (index) => {
+    setProfileForm((current) => ({
+      ...current,
+      placementList: (current.placementList || []).filter((_, idx) => idx !== index)
+    }));
+  };
+
   async function handleProfileSubmit(event) {
     event.preventDefault();
     setProfileSubmitting(true);
@@ -418,7 +497,9 @@ export function RepresentativePanelPage() {
         placementReport: profileForm.placementReport,
         placementReportUrl: profileForm.placementReportUrl,
         averagePackageLpa: profileForm.averagePackageLpa,
-        highestPackageLpa: profileForm.highestPackageLpa
+        highestPackageLpa: profileForm.highestPackageLpa,
+        cutOffList: profileForm.cutOffList,
+        placementList: profileForm.placementList
       });
 
       setSuccess(editingProfileId ? "College profile updated successfully." : "College profile saved successfully.");
@@ -1200,30 +1281,145 @@ export function RepresentativePanelPage() {
               />
             </label>
           </div>
-          <label className="auth-field">
-            <span>Cut Off Summary</span>
-            <textarea
-              className="panel-textarea"
-              onChange={(event) =>
-                setProfileForm((current) => ({ ...current, cutOffSummary: event.target.value }))
-              }
-              placeholder="Summarize cutoff criteria. Markdown tables are supported. Example:&#10;| Branch | Cut-off |&#10;| --- | --- |&#10;| CSE | 5000 |"
-              rows={3}
-              value={profileForm.cutOffSummary}
-            />
-          </label>
-          <label className="auth-field">
-            <span>Placement Report Summary</span>
-            <textarea
-              className="panel-textarea"
-              onChange={(event) =>
-                setProfileForm((current) => ({ ...current, placementReport: event.target.value }))
-              }
-              placeholder="Summarize placement records. Markdown tables are supported. Example:&#10;| Branch | Avg Package |&#10;| --- | --- |&#10;| CSE | 24 LPA |"
-              rows={3}
-              value={profileForm.placementReport}
-            />
-          </label>
+          <div className="auth-field" style={{ display: "flex", flexDirection: "column", gap: "0.5rem" }}>
+            <span style={{ fontSize: "0.9rem", fontWeight: "600", color: "#f8fafc" }}>Cut Off Summary (Branch-wise Mapping)</span>
+            <div style={{
+              background: "rgba(255, 255, 255, 0.02)",
+              border: "1px solid rgba(255, 255, 255, 0.05)",
+              borderRadius: "8px",
+              padding: "1rem",
+              display: "flex",
+              flexDirection: "column",
+              gap: "0.75rem"
+            }}>
+              {(profileForm.cutOffList || []).length === 0 ? (
+                <p className="muted" style={{ margin: 0, fontSize: "0.9rem" }}>No branch cutoffs added yet.</p>
+              ) : (
+                <div style={{ display: "flex", flexDirection: "column", gap: "0.5rem" }}>
+                  {(profileForm.cutOffList || []).map((row, index) => (
+                    <div key={`cutoff-${index}`} style={{ display: "flex", gap: "0.75rem", alignItems: "center" }}>
+                      <div style={{ flex: 1, display: "grid", gridTemplateColumns: "1fr 1fr", gap: "0.75rem" }}>
+                        <input
+                          type="text"
+                          placeholder="e.g. CSE"
+                          value={row.branch}
+                          onChange={(e) => handleUpdateCutOffRow(index, "branch", e.target.value)}
+                          style={{ width: "100%" }}
+                        />
+                        <input
+                          type="text"
+                          placeholder="e.g. 5000"
+                          value={row.value}
+                          onChange={(e) => handleUpdateCutOffRow(index, "value", e.target.value)}
+                          style={{ width: "100%" }}
+                        />
+                      </div>
+                      <button
+                        type="button"
+                        onClick={() => handleRemoveCutOffRow(index)}
+                        style={{
+                          background: "rgba(239, 68, 68, 0.1)",
+                          color: "#ef4444",
+                          border: "1px solid rgba(239, 68, 68, 0.2)",
+                          borderRadius: "4px",
+                          width: "32px",
+                          height: "32px",
+                          cursor: "pointer",
+                          display: "flex",
+                          alignItems: "center",
+                          justifyContent: "center",
+                          fontSize: "1.2rem",
+                          fontWeight: "bold",
+                          transition: "all 0.2s ease"
+                        }}
+                        title="Remove row"
+                      >
+                        &times;
+                      </button>
+                    </div>
+                  ))}
+                </div>
+              )}
+              <button
+                type="button"
+                onClick={handleAddCutOffRow}
+                className="action-button neutral"
+                style={{ width: "fit-content", padding: "6px 12px", fontSize: "0.85rem", marginTop: "0.25rem" }}
+              >
+                + Add Branch Cut-off
+              </button>
+            </div>
+          </div>
+
+          <div className="auth-field" style={{ display: "flex", flexDirection: "column", gap: "0.5rem", marginTop: "1rem" }}>
+            <span style={{ fontSize: "0.9rem", fontWeight: "600", color: "#f8fafc" }}>Placement Report Summary (Branch-wise Mapping)</span>
+            <div style={{
+              background: "rgba(255, 255, 255, 0.02)",
+              border: "1px solid rgba(255, 255, 255, 0.05)",
+              borderRadius: "8px",
+              padding: "1rem",
+              display: "flex",
+              flexDirection: "column",
+              gap: "0.75rem"
+            }}>
+              {(profileForm.placementList || []).length === 0 ? (
+                <p className="muted" style={{ margin: 0, fontSize: "0.9rem" }}>No branch placements added yet.</p>
+              ) : (
+                <div style={{ display: "flex", flexDirection: "column", gap: "0.5rem" }}>
+                  {(profileForm.placementList || []).map((row, index) => (
+                    <div key={`placement-${index}`} style={{ display: "flex", gap: "0.75rem", alignItems: "center" }}>
+                      <div style={{ flex: 1, display: "grid", gridTemplateColumns: "1fr 1fr", gap: "0.75rem" }}>
+                        <input
+                          type="text"
+                          placeholder="e.g. CSE"
+                          value={row.branch}
+                          onChange={(e) => handleUpdatePlacementRow(index, "branch", e.target.value)}
+                          style={{ width: "100%" }}
+                        />
+                        <input
+                          type="text"
+                          placeholder="e.g. 24 LPA"
+                          value={row.value}
+                          onChange={(e) => handleUpdatePlacementRow(index, "value", e.target.value)}
+                          style={{ width: "100%" }}
+                        />
+                      </div>
+                      <button
+                        type="button"
+                        onClick={() => handleRemovePlacementRow(index)}
+                        style={{
+                          background: "rgba(239, 68, 68, 0.1)",
+                          color: "#ef4444",
+                          border: "1px solid rgba(239, 68, 68, 0.2)",
+                          borderRadius: "4px",
+                          width: "32px",
+                          height: "32px",
+                          cursor: "pointer",
+                          display: "flex",
+                          alignItems: "center",
+                          justifyContent: "center",
+                          fontSize: "1.2rem",
+                          fontWeight: "bold",
+                          transition: "all 0.2s ease"
+                        }}
+                        title="Remove row"
+                      >
+                        &times;
+                      </button>
+                    </div>
+                  ))}
+                </div>
+              )}
+              <button
+                type="button"
+                onClick={handleAddPlacementRow}
+                className="action-button neutral"
+                style={{ width: "fit-content", padding: "6px 12px", fontSize: "0.85rem", marginTop: "0.25rem" }}
+              >
+                + Add Branch Placement
+              </button>
+            </div>
+          </div>
           <label className="auth-field">
             <span>Placement Report URL</span>
             <input

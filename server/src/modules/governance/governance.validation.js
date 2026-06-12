@@ -56,6 +56,33 @@ export function validateCollegeProfilePayload(payload) {
         .map((item) => item.trim())
         .filter(Boolean);
 
+  const cutOffListRaw = Array.isArray(payload.cutOffList)
+    ? payload.cutOffList.map(item => ({
+        branch: String(item.branch || "").trim(),
+        value: String(item.value || "").trim()
+      })).filter(item => item.branch || item.value)
+    : [];
+
+  const placementListRaw = Array.isArray(payload.placementList)
+    ? payload.placementList.map(item => ({
+        branch: String(item.branch || "").trim(),
+        value: String(item.value || "").trim()
+      })).filter(item => item.branch || item.value)
+    : [];
+
+  // Serialize lists into markdown tables for backward compatibility
+  let cutOffSummary = payload.cutOffSummary?.toString().trim() || "";
+  if (cutOffListRaw.length > 0) {
+    cutOffSummary = `| Branch | Cut-off |\n| --- | --- |\n` +
+      cutOffListRaw.map(item => `| ${item.branch} | ${item.value} |`).join("\n");
+  }
+
+  let placementReport = payload.placementReport?.toString().trim() || "";
+  if (placementListRaw.length > 0) {
+    placementReport = `| Branch | Avg/Highest Package |\n| --- | --- |\n` +
+      placementListRaw.map(item => `| ${item.branch} | ${item.value} |`).join("\n");
+  }
+
   return {
     collegeName,
     courseId: payload.courseId?.toString().trim() || "overall",
@@ -65,10 +92,12 @@ export function validateCollegeProfilePayload(payload) {
       qs: payload.rankings?.qs?.toString().trim() || "",
       other: payload.rankings?.other?.toString().trim() || ""
     },
-    cutOffSummary: payload.cutOffSummary?.toString().trim() || "",
-    placementReport: payload.placementReport?.toString().trim() || "",
+    cutOffSummary,
+    placementReport,
     placementReportUrl: payload.placementReportUrl?.toString().trim() || "",
     averagePackageLpa: payload.averagePackageLpa?.toString().trim() || "",
-    highestPackageLpa: payload.highestPackageLpa?.toString().trim() || ""
+    highestPackageLpa: payload.highestPackageLpa?.toString().trim() || "",
+    cutOffList: cutOffListRaw,
+    placementList: placementListRaw
   };
 }
