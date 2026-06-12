@@ -1294,20 +1294,25 @@ export function SubjectCategoryPage() {
                     <p className="muted" style={{ fontSize: "0.8rem", marginBottom: "0.25rem" }}>
                       Uploaded by: {resource.uploadedBy?.fullName || "Unknown"} ({resource.uploadedBy?.role})
                     </p>
-                    <p className="muted" style={{ fontSize: "0.8rem", marginBottom: "0.25rem" }}>
-                      Added: {new Date(resource.createdAt).toLocaleString(undefined, { year: 'numeric', month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' })}
-                    </p>
-                    <p className="muted" style={{ fontSize: "0.8rem" }}>
-                      Access: {resource.visibility || "private"}
-                      {resource.visibility === "protected"
-                        ? ` | ₹${resource.accessPrice || 0}${resource.allowBasicSubscription ? " | Sub allowed" : ""}`
-                        : ""}
-                    </p>
+                    {resource.description ? <p className="muted" style={{ fontSize: "0.8rem", marginBottom: "0.5rem" }}>{resource.description}</p> : null}
+                    {resource.textContent ? <pre className="resource-text" style={{ marginBottom: "0.5rem" }}>{resource.textContent}</pre> : null}
 
-                    {resource.description ? <p className="muted" style={{ fontSize: "0.8rem" }}>{resource.description}</p> : null}
-                    {resource.textContent ? <pre className="resource-text">{resource.textContent}</pre> : null}
-
-                    <ResourcePreview resource={resource} onAccessAttempt={() => handleAccessAttempt(resource)} />
+                    <div style={{ display: "flex", gap: "16px", alignItems: "center", flexWrap: "wrap", marginBottom: "12px" }}>
+                      <div style={{ flex: 1, minWidth: "250px" }}>
+                        <ResourcePreview resource={resource} onAccessAttempt={() => handleAccessAttempt(resource)} />
+                      </div>
+                      <div style={{ minWidth: "160px", textAlign: "right" }}>
+                        <p className="muted" style={{ fontSize: "0.75rem", margin: 0, marginBottom: "4px" }}>
+                          Added: {new Date(resource.createdAt).toLocaleString(undefined, { year: 'numeric', month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' })}
+                        </p>
+                        <p className="muted" style={{ fontSize: "0.75rem", margin: 0 }}>
+                          Access: <span style={{ color: resource.visibility === 'public' ? '#10b981' : '#f59e0b' }}>{resource.visibility || "private"}</span>
+                          {resource.visibility === "protected"
+                            ? ` | ₹${resource.accessPrice || 0}${resource.allowBasicSubscription ? " | Sub allowed" : ""}`
+                            : ""}
+                        </p>
+                      </div>
+                    </div>
 
                     <div style={{
                       padding: "8px 12px",
