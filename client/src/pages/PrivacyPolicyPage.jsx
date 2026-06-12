@@ -71,7 +71,12 @@ export function PrivacyPolicyPage() {
             You can delete your account and all associated personal data directly from the <strong>Account Settings</strong> page inside the application.
           </p>
 
-          <h2 style={{ fontSize: "1.5rem", marginTop: "2rem", marginBottom: "1rem", color: "#f1f5f9" }}>6. Contact Us</h2>
+          <h2 style={{ fontSize: "1.5rem", marginTop: "2rem", marginBottom: "1rem", color: "#f1f5f9" }}>6. Children's Privacy</h2>
+          <p style={{ marginBottom: "1.5rem", color: "#cbd5e1" }}>
+            Our platform is designed strictly for college students and adults. We do not knowingly collect personal data from anyone under the age of 13. If we become aware that we have collected personal data from a child under 13 without verification of parental consent, we will take steps to remove that information from our servers immediately.
+          </p>
+
+          <h2 style={{ fontSize: "1.5rem", marginTop: "2rem", marginBottom: "1rem", color: "#f1f5f9" }}>7. Contact Us</h2>
           <p style={{ marginBottom: "0", color: "#cbd5e1" }}>
             If you have any questions about this privacy policy, please contact the platform administrator.
           </p>
