@@ -235,6 +235,8 @@ export function RepresentativePanelPage() {
   const [subjectSubmitting, setSubjectSubmitting] = useState(false);
   const [subjectSearch, setSubjectSearch] = useState("");
   const [openSelector, setOpenSelector] = useState("");
+  const [activeTab, setActiveTab] = useState("overview");
+  
   const representativeCollegeNames = useMemo(
     () => [...new Set(myColleges.map((item) => item.collegeName).filter(Boolean))],
     [myColleges]
@@ -1186,8 +1188,48 @@ export function RepresentativePanelPage() {
         </div>
       </SectionCard>
 
-      <SectionCard
-        title="College Request Form"
+      <div className="tab-navigation">
+        <button 
+          className={`tab-btn ${activeTab === 'overview' ? 'active' : ''}`}
+          onClick={() => setActiveTab('overview')}
+        >
+          Overview
+        </button>
+        <button 
+          className={`tab-btn ${activeTab === 'college-profile' ? 'active' : ''}`}
+          onClick={() => setActiveTab('college-profile')}
+        >
+          College Profile
+        </button>
+        <button 
+          className={`tab-btn ${activeTab === 'academic-setup' ? 'active' : ''}`}
+          onClick={() => setActiveTab('academic-setup')}
+        >
+          Academic Setup
+        </button>
+        <button 
+          className={`tab-btn ${activeTab === 'notices' ? 'active' : ''}`}
+          onClick={() => setActiveTab('notices')}
+        >
+          Notices
+        </button>
+        <button 
+          className={`tab-btn ${activeTab === 'quizzes' ? 'active' : ''}`}
+          onClick={() => setActiveTab('quizzes')}
+        >
+          Quizzes
+        </button>
+        <button 
+          className={`tab-btn ${activeTab === 'request-course' ? 'active' : ''}`}
+          onClick={() => setActiveTab('request-course')}
+        >
+          Request Course
+        </button>
+      </div>
+
+      {activeTab === 'request-course' && (
+        <SectionCard
+          title="College Request Form"
         description="Add a college and course directly under your approved representative account, or update one of your assigned course entries."
       >
         <CourseForm
@@ -1202,7 +1244,9 @@ export function RepresentativePanelPage() {
           submitting={submitting}
         />
       </SectionCard>
+      )}
 
+      {activeTab === 'college-profile' && (
       <SectionCard
         title="College Detail Entry"
         description="Add exam, ranking, cut-off, and placement details for your own approved colleges."
@@ -1474,7 +1518,9 @@ export function RepresentativePanelPage() {
           </div>
         </form>
       </SectionCard>
+      )}
 
+      {activeTab === 'notices' && (
       <SectionCard
         title="College Notices"
         description="Create and manage published or draft notices only for colleges assigned to your account."
@@ -1525,9 +1571,12 @@ export function RepresentativePanelPage() {
           ))}
         </div>
       </SectionCard>
+      )}
 
-      <SectionCard
-        title="Academic Structure Management"
+      {activeTab === 'academic-setup' && (
+        <>
+          <SectionCard
+            title="Academic Structure Management"
         description="Track branch and semester records here. Use the college overview and course pages as the main place to add branches and semesters."
       >
         <div className="panel-subsection">
@@ -1632,8 +1681,11 @@ export function RepresentativePanelPage() {
             </article>
           ))}
         </div>
-      </SectionCard>
+          </SectionCard>
+        </>
+      )}
 
+      {activeTab === 'quizzes' && (
       <SectionCard
         title="Quiz Management"
         description="Create dynamic quiz arrangements for your assigned colleges from the representative panel."
@@ -1878,7 +1930,9 @@ export function RepresentativePanelPage() {
           ))}
         </div>
       </SectionCard>
+      )}
 
+      {activeTab === 'overview' && (
       <SectionCard
         title="My Approved Colleges"
         description="Search, sort, and manage only the college records assigned to your account."
@@ -1997,7 +2051,8 @@ export function RepresentativePanelPage() {
           })}
         </div>
       </SectionCard>
+      )}
+      </div>
     </div>
-  </div>
   );
 }
