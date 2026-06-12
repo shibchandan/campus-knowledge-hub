@@ -4471,12 +4471,12 @@ h3 {
 /* Panel Tab Navigation */
 .tab-navigation {
   display: flex;
-  gap: 0.5rem;
+  gap: 0.25rem;
   margin-bottom: 1.5rem;
-  padding: 0.5rem;
-  background: rgba(15, 23, 42, 0.4);
-  border: 1px solid rgba(255, 255, 255, 0.05);
-  border-radius: 12px;
+  padding: 0.35rem;
+  background: #0b0f19; /* Very dark background from the image */
+  border: 1px solid rgba(255, 255, 255, 0.03);
+  border-radius: 8px;
   overflow-x: auto;
   scrollbar-width: none; /* Firefox */
 }
@@ -4486,12 +4486,12 @@ h3 {
 }
 
 .tab-btn {
-  padding: 0.75rem 1.25rem;
+  padding: 0.6rem 1.25rem;
   background: transparent;
   color: #94a3b8;
-  border: none;
-  border-radius: 8px;
-  font-size: 0.95rem;
+  border: 1px solid transparent;
+  border-radius: 6px;
+  font-size: 0.9rem;
   font-weight: 500;
   cursor: pointer;
   white-space: nowrap;
@@ -4499,13 +4499,11 @@ h3 {
 }
 
 .tab-btn:hover {
-  color: #f8fafc;
-  background: rgba(255, 255, 255, 0.05);
+  color: #e2e8f0;
 }
 
 .tab-btn.active {
   color: #ffffff;
-  background: rgba(59, 130, 246, 0.2);
-  border: 1px solid rgba(59, 130, 246, 0.3);
-  box-shadow: 0 0 10px rgba(59, 130, 246, 0.1);
+  background: #1e293b;
+  border: 1px solid rgba(59, 130, 246, 0.5); /* Blue border for the active tab */
 }
