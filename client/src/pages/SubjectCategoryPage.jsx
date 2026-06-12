@@ -161,10 +161,14 @@ function ResourcePreview({ resource, onAccessAttempt }) {
   if (!user) {
     return (
       <div className="locked-preview-card" onClick={onAccessAttempt}>
-        <div className="locked-preview-icon">🔒</div>
-        <h4>Log in to view content</h4>
-        <p className="muted">This resource file is restricted. Sign in or register to preview or download.</p>
-        <button className="open-college-button compact" type="button">Sign In to Access</button>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '12px', flex: 1, minWidth: 0 }}>
+          <div className="locked-preview-icon" style={{ fontSize: '1.5rem', margin: 0 }}>🔒</div>
+          <div style={{ textAlign: 'left', minWidth: 0 }}>
+            <h4 style={{ margin: 0, fontSize: '0.9rem', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>Log in to view content</h4>
+            <p className="muted" style={{ margin: 0, fontSize: '0.75rem', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>This resource file is restricted. Sign in or register to preview or download.</p>
+          </div>
+        </div>
+        <button className="open-college-button compact" type="button" style={{ margin: 0, whiteSpace: 'nowrap' }}>Sign In to Access</button>
       </div>
     );
   }
@@ -172,10 +176,14 @@ function ResourcePreview({ resource, onAccessAttempt }) {
   if (resource.isLocked) {
     return (
       <div className="locked-preview-card" onClick={onAccessAttempt}>
-        <div className="locked-preview-icon">🔒</div>
-        <h4>Resource Locked</h4>
-        <p className="muted">This resource is private/protected. Sign in or unlock to view the content.</p>
-        <button className="open-college-button compact" type="button">Access Resource</button>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '12px', flex: 1, minWidth: 0 }}>
+          <div className="locked-preview-icon" style={{ fontSize: '1.5rem', margin: 0 }}>🔒</div>
+          <div style={{ textAlign: 'left', minWidth: 0 }}>
+            <h4 style={{ margin: 0, fontSize: '0.9rem', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>Resource Locked</h4>
+            <p className="muted" style={{ margin: 0, fontSize: '0.75rem', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>This resource is private/protected. Sign in or unlock to view the content.</p>
+          </div>
+        </div>
+        <button className="open-college-button compact" type="button" style={{ margin: 0, whiteSpace: 'nowrap' }}>Access Resource</button>
       </div>
     );
   }

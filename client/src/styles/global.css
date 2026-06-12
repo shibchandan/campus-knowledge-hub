@@ -2409,13 +2409,14 @@ h3 {
 
 .locked-preview-card {
   margin-top: 12px;
-  padding: 24px;
-  border-radius: 18px;
+  padding: 12px 16px;
+  border-radius: 12px;
   border: 1px dashed rgba(242, 166, 90, 0.4);
   background: linear-gradient(135deg, rgba(255, 247, 236, 0.6), rgba(255, 255, 255, 0.8));
-  display: grid;
-  place-items: center;
-  text-align: center;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
   gap: 12px;
   cursor: pointer;
   transition: transform 0.2s ease, border-color 0.2s ease, box-shadow 0.2s ease;
