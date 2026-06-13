@@ -119,9 +119,10 @@ async function assertRepresentativeCollegeAccess(user, collegeNameNormalized, pr
 export async function listQuizzes(req, res, next) {
   try {
     const filters = {};
-    const collegeName = resolveStudentCollegeScope(req, req.query.collegeName, {
+    const collegeScope = resolveStudentCollegeScope(req, req.query.collegeName, {
       fieldName: "collegeName"
     });
+    const collegeName = collegeScope.collegeName;
 
     if (req.user.role === "student") {
       requireStudentAssignedCollege(req);
