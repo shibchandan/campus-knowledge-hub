@@ -11,6 +11,7 @@ import {
   getApprovedCollegeCourses,
   getCollegeProfile,
   getPendingRequestsForAdmin,
+  getPublicColleges,
   getRepresentativeColleges,
   getRepresentativeRequests,
   updateApprovedCollegeCourse,
@@ -21,6 +22,7 @@ import { cacheMiddleware, invalidateCacheMiddleware } from "../../middleware/cac
 export const governanceRouter = Router();
 
 governanceRouter.get("/approved-courses", optionalProtect, cacheMiddleware(300), getApprovedCollegeCourses);
+governanceRouter.get("/public-colleges", cacheMiddleware(300), getPublicColleges);
 governanceRouter.get(
   "/requestable-colleges",
   protect,

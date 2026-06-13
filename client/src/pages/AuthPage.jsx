@@ -88,10 +88,9 @@ export function AuthPage() {
   useEffect(() => {
     async function loadColleges() {
       try {
-        const response = await apiClient.get("/governance/approved-courses");
-        const courses = response.data.data || [];
-        const uniqueColleges = [...new Set(courses.map(c => c.collegeName).filter(Boolean))];
-        setAvailableColleges(uniqueColleges.sort());
+        const response = await apiClient.get("/governance/public-colleges");
+        const colleges = response.data.data || [];
+        setAvailableColleges(colleges);
       } catch (err) {
         console.error("Failed to load approved colleges for autocomplete", err);
       }
