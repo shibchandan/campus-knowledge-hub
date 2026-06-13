@@ -16,7 +16,7 @@ export const env = {
   jwtSecret: resolvedJwtSecret,
   jwtPreviousSecrets: resolvedJwtPreviousSecrets,
   jwtAllVerificationSecrets: [resolvedJwtSecret, ...resolvedJwtPreviousSecrets],
-  jwtExpiresIn: process.env.JWT_EXPIRES_IN || "7d",
+  jwtExpiresIn: process.env.JWT_EXPIRES_IN || "1h",
   clientUrl: process.env.CLIENT_URL || "http://localhost:5173",
   nodeEnv: (process.env.NODE_ENV || "development").trim().toLowerCase(),
   trustProxy: Number(process.env.TRUST_PROXY || 0),

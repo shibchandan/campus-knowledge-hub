@@ -318,12 +318,37 @@ export async function register(req, res, next) {
 export async function login(req, res, next) {
   try {
     const { email, password } = validateLoginPayload(req.body);
-    const user = await User.findOne({ email }).select("+password");
+    const user = await User.findOne({ email }).select("+password +loginAttempts +loginLockedUntil");
 
-    if (!user || !(await user.comparePassword(password))) {
+    if (!user) {
       const error = new Error("Invalid email or password");
       error.statusCode = 401;
       throw error;
+    }
+
+    if (user.loginLockedUntil && user.loginLockedUntil > new Date()) {
+      const error = new Error("Account is temporarily locked due to too many failed login attempts. Please try again later.");
+      error.statusCode = 429;
+      throw error;
+    }
+
+    if (!(await user.comparePassword(password))) {
+      user.loginAttempts = (user.loginAttempts || 0) + 1;
+      if (user.loginAttempts >= 5) {
+        user.loginLockedUntil = new Date(Date.now() + 15 * 60 * 1000); // 15 mins
+      }
+      await user.save();
+      
+      const error = new Error("Invalid email or password");
+      error.statusCode = 401;
+      throw error;
+    }
+
+    // Reset attempts on successful password verification
+    if (user.loginAttempts > 0) {
+      user.loginAttempts = 0;
+      user.loginLockedUntil = null;
+      await user.save();
     }
 
     const status = user.status || "active";

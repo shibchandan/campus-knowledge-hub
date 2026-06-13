@@ -41,6 +41,8 @@ const userSchema = new mongoose.Schema(
     passwordResetOtpSentAt: { type: Date, default: null, select: false },
     passwordResetLockedUntil: { type: Date, default: null, select: false },
     passwordResetVerifiedAt: { type: Date, default: null, select: false },
+    loginAttempts: { type: Number, default: 0, select: false },
+    loginLockedUntil: { type: Date, default: null, select: false },
     twoFactorEnabled: { type: Boolean, default: false },
     twoFactorSecret: { type: String, default: "", select: false },
     twoFactorTempSecret: { type: String, default: "", select: false }
@@ -64,8 +66,8 @@ userSchema.pre("save", async function hashPassword(next) {
     return next();
   }
 
-  this.password = await bcrypt.hash(this.password, 10);
-  return next();
+  this.password = await bcrypt.hash(this.password, 12);
+  next();
 });
 
 userSchema.methods.comparePassword = function comparePassword(candidatePassword) {
