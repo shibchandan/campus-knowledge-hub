@@ -228,6 +228,8 @@ export function RepresentativePanelPage() {
   const [quizForm, setQuizForm] = useState(initialQuizForm);
   const [quizSubmitting, setQuizSubmitting] = useState(false);
   const [quizSearch, setQuizSearch] = useState("");
+  const [transferEmail, setTransferEmail] = useState("");
+  const [transferring, setTransferring] = useState(false);
   const [structureForm, setStructureForm] = useState(initialStructureForm);
   const [structureSubmitting, setStructureSubmitting] = useState(false);
   const [structureSearch, setStructureSearch] = useState("");
@@ -918,11 +920,29 @@ export function RepresentativePanelPage() {
       showSuccess("Subject deleted successfully.");
       await loadRepresentativeData();
     } catch (requestError) {
-      const message = requestError.response?.data?.message || "Failed to delete subject.";
-      setError(message);
-      showError(message);
+      showError(requestError.response?.data?.message || "Failed to delete subject. Please check if there are resources attached.");
     }
   }
+
+  const handleTransferRights = async (e) => {
+    e.preventDefault();
+    if (!transferEmail) return;
+
+    if (!window.confirm(`DANGER: Are you absolutely sure you want to transfer your Representative rights to ${transferEmail}? You will instantly lose access to this panel and become a student.`)) {
+      return;
+    }
+
+    setTransferring(true);
+    try {
+      await apiClient.post("/governance/transfer-representative", { targetUserEmail: transferEmail });
+      showSuccess("Rights transferred successfully. You are now a student.");
+      await refreshCurrentUser();
+    } catch (err) {
+      showError(err.response?.data?.message || "Failed to transfer representative rights.");
+    } finally {
+      setTransferring(false);
+    }
+  };
 
   const filteredColleges = useMemo(() => {
     const term = collegeSearch.trim().toLowerCase();
@@ -1225,6 +1245,12 @@ export function RepresentativePanelPage() {
         >
           Request Course
         </button>
+        <button 
+          className={`tab-btn danger ${activeTab === 'settings' ? 'active' : ''}`}
+          onClick={() => setActiveTab('settings')}
+        >
+          Settings
+        </button>
       </div>
 
       {activeTab === 'request-course' && (
@@ -1518,6 +1544,39 @@ export function RepresentativePanelPage() {
           </div>
         </form>
       </SectionCard>
+      )}
+
+      {activeTab === 'settings' && (
+        <SectionCard title="Settings">
+          <div className="danger-zone" style={{ border: '1px solid #ef4444', borderRadius: '8px', padding: '1.5rem', backgroundColor: 'rgba(239, 68, 68, 0.05)' }}>
+            <h3 style={{ color: '#ef4444', marginTop: 0 }}>Danger Zone</h3>
+            <p style={{ marginBottom: '1.5rem', color: 'var(--text-color)' }}>
+              Transfer your College Representative rights to another student in your college. 
+              <strong> You will instantly lose access to this panel upon a successful transfer.</strong>
+            </p>
+            <form onSubmit={handleTransferRights} style={{ display: 'flex', gap: '1rem', alignItems: 'flex-end' }}>
+              <label className="form-field" style={{ flex: 1, marginBottom: 0 }}>
+                <span>New Representative's Email</span>
+                <input
+                  type="email"
+                  required
+                  placeholder="student@college.edu"
+                  value={transferEmail}
+                  onChange={(e) => setTransferEmail(e.target.value)}
+                  disabled={transferring}
+                />
+              </label>
+              <button 
+                type="submit" 
+                className="btn btn-danger" 
+                disabled={transferring || !transferEmail}
+                style={{ backgroundColor: '#ef4444', color: 'white', padding: '0.75rem 1.5rem', borderRadius: '8px', border: 'none', fontWeight: '600', cursor: transferring ? 'not-allowed' : 'pointer' }}
+              >
+                {transferring ? "Transferring..." : "Transfer Rights"}
+              </button>
+            </form>
+          </div>
+        </SectionCard>
       )}
 
       {activeTab === 'notices' && (

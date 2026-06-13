@@ -15,7 +15,8 @@ import {
   getRepresentativeColleges,
   getRepresentativeRequests,
   updateApprovedCollegeCourse,
-  upsertCollegeProfile
+  upsertCollegeProfile,
+  transferRepresentativeRights
 } from "./governance.controller.js";
 import { cacheMiddleware, invalidateCacheMiddleware } from "../../middleware/cacheMiddleware.js";
 
@@ -103,4 +104,11 @@ governanceRouter.patch(
   protect,
   authorize("admin"),
   decideCollegeRequest
+);
+
+governanceRouter.post(
+  "/transfer-representative",
+  protect,
+  authorize("representative"),
+  transferRepresentativeRights
 );

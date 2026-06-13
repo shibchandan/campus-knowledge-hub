@@ -10,7 +10,8 @@ import { removeStoredFile } from "../../services/resourceStorage.service.js";
 import {
   validateAdminDecisionPayload,
   validateCollegeProfilePayload,
-  validateCollegeRequestPayload
+  validateCollegeRequestPayload,
+  validateTransferRepresentativePayload
 } from "./governance.validation.js";
 import {
   createHttpError,
@@ -1122,6 +1123,67 @@ export async function getCollegeProfile(req, res, next) {
     }
 
     res.json({ success: true, data: profile });
+  } catch (error) {
+    next(error);
+  }
+}
+
+export async function transferRepresentativeRights(req, res, next) {
+  try {
+    const payload = validateTransferRepresentativePayload(req.body);
+    
+    await requirePasswordConfirmation(req, res);
+
+    const currentUser = await User.findById(req.user.id);
+    if (!currentUser || currentUser.role !== "representative" || currentUser.representativeRequestStatus !== "approved") {
+      throw createHttpError("You must be an approved college representative to transfer rights.", 403);
+    }
+
+    const currentCollegeNormalized = currentUser.collegeNameNormalized;
+    if (!currentCollegeNormalized) {
+      throw createHttpError("Your account is not properly associated with a college.", 400);
+    }
+
+    const targetUser = await User.findOne({ email: payload.targetUserEmail });
+    if (!targetUser) {
+      throw createHttpError("Target user not found. They must be registered first.", 404);
+    }
+
+    if (targetUser.role !== "student") {
+      throw createHttpError("Target user must be a student to receive representative rights.", 400);
+    }
+
+    if (targetUser.collegeNameNormalized !== currentCollegeNormalized) {
+      throw createHttpError("Target user must belong to the exact same college as you.", 400);
+    }
+
+    await runWithOptionalTransaction(async (session) => {
+      // Demote current user
+      currentUser.role = "student";
+      currentUser.representativeRequestStatus = "none";
+      await currentUser.save({ session });
+
+      // Promote target user
+      targetUser.role = "representative";
+      targetUser.representativeRequestStatus = "approved";
+      targetUser.studentVerificationStatus = "none";
+      await targetUser.save({ session });
+
+      await createAuditLog({
+        req,
+        action: "governance.transfer_representative",
+        entityType: "user",
+        entityId: targetUser._id,
+        metadata: {
+          fromUser: currentUser._id,
+          toUser: targetUser._id,
+          college: currentCollegeNormalized
+        },
+        session
+      });
+    });
+
+    res.json({ success: true, message: "Representative rights transferred successfully." });
   } catch (error) {
     next(error);
   }

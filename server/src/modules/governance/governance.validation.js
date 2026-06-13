@@ -101,3 +101,18 @@ export function validateCollegeProfilePayload(payload) {
     placementList: placementListRaw
   };
 }
+
+export function validateTransferRepresentativePayload(payload) {
+  const targetUserEmail = payload.targetUserEmail?.trim().toLowerCase();
+
+  if (!targetUserEmail) {
+    throw createHttpError("Target user email is required for transferring representative rights.");
+  }
+
+  // Basic email format validation
+  if (!/^[\w.-]+@[\w.-]+\.\w+$/.test(targetUserEmail)) {
+    throw createHttpError("Invalid email format.");
+  }
+
+  return { targetUserEmail };
+}
