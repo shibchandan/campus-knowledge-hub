@@ -6,6 +6,7 @@ import { Notice } from "../notices/notice.model.js";
 import { Quiz } from "../quizzes/quiz.model.js";
 import { Resource } from "../resources/resource.model.js";
 import { createAuditLog } from "../../services/audit.service.js";
+import { sendEmail } from "../../services/email.service.js";
 import { removeStoredFile } from "../../services/resourceStorage.service.js";
 import {
   validateAdminDecisionPayload,
@@ -294,7 +295,7 @@ export async function decideCollegeRequest(req, res, next) {
     const requestId = readMongoId(req.params.requestId, { field: "requestId" });
     const { action, decisionNote } = validateAdminDecisionPayload(req.body);
     const result = await runWithOptionalTransaction(async (session) => {
-      const request = await withSession(CollegeRequest.findById(requestId), session);
+      const request = await withSession(CollegeRequest.findById(requestId).populate("representative", "fullName email"), session);
 
       if (!request) {
         throw createHttpError("Request not found.", 404);
@@ -356,6 +357,16 @@ export async function decideCollegeRequest(req, res, next) {
         entityId: result.request._id,
         metadata: { collegeName: result.request.collegeName, courseName: result.request.courseName }
       });
+      
+      if (result.request.representative?.email) {
+        await sendEmail({
+          to: result.request.representative.email,
+          subject: "Your Representative Request has been rejected",
+          text: `Hello ${result.request.representative.fullName},\n\nYour request to be the representative for ${result.request.collegeName} has been rejected by an administrator.\n\nNote: ${decisionNote || "No note provided."}\n\nBest regards,\nCampus Knowledge Hub`,
+          html: `<p>Hello ${result.request.representative.fullName},</p><p>Your request to be the representative for <strong>${result.request.collegeName}</strong> has been rejected by an administrator.</p><p><strong>Note:</strong> ${decisionNote || "No note provided."}</p><p>Best regards,<br/>Campus Knowledge Hub</p>`
+        });
+      }
+
       res.json({ success: true, data: result.request });
       return;
     }
@@ -368,7 +379,20 @@ export async function decideCollegeRequest(req, res, next) {
       metadata: { collegeName: result.request.collegeName, courseName: result.request.courseName }
     });
 
-    res.json({ success: true, data: result });
+    if (result.request.representative?.email) {
+      await sendEmail({
+        to: result.request.representative.email,
+        subject: "Your Representative Request has been approved!",
+        text: `Hello ${result.request.representative.fullName},\n\nCongratulations! Your request to be the representative for ${result.request.collegeName} has been approved by an administrator.\n\nYou can now log in to the Representative Panel to manage resources, structures, notices, and quizzes for your college.\n\nNote: ${decisionNote || "No note provided."}\n\nBest regards,\nCampus Knowledge Hub`,
+        html: `<p>Hello ${result.request.representative.fullName},</p><p>Congratulations! Your request to be the representative for <strong>${result.request.collegeName}</strong> has been approved by an administrator.</p><p>You can now log in to the Representative Panel to manage resources, structures, notices, and quizzes for your college.</p><p><strong>Note:</strong> ${decisionNote || "No note provided."}</p><p>Best regards,<br/>Campus Knowledge Hub</p>`
+      });
+    }
+
+    res.json({
+      success: true,
+      data: result,
+      message: "College request approved and active."
+    });
   } catch (error) {
     next(error);
   }
