@@ -6,6 +6,25 @@
 
 :root {
 
+  /* Unified Button System Variables */
+  --btn-padding: 10px 18px;
+  --btn-radius: 12px;
+  --btn-font-weight: 600;
+  --btn-transition: all 0.2s ease;
+  
+  --btn-primary-bg: var(--color-indigo-400-adaptive);
+  --btn-primary-text: #ffffff;
+  --btn-primary-hover: #4338ca;
+  
+  --btn-secondary-bg: rgba(24, 33, 47, 0.05);
+  --btn-secondary-text: var(--color-slate-400-adaptive);
+  --btn-secondary-hover: rgba(24, 33, 47, 0.1);
+  
+  --btn-danger-bg: rgba(239, 68, 68, 0.1);
+  --btn-danger-text: #ef4444;
+  --btn-danger-hover: rgba(239, 68, 68, 0.2);
+
+
   --color-eyebrow: #4f46e5;
   --color-slate-400-adaptive: #475569;
   --color-indigo-400-adaptive: #4f46e5;
@@ -22,6 +41,19 @@
 }
 
 [data-theme="dark"] {
+
+  --btn-primary-bg: #818cf8;
+  --btn-primary-text: #ffffff;
+  --btn-primary-hover: #6366f1;
+  
+  --btn-secondary-bg: rgba(255, 255, 255, 0.05);
+  --btn-secondary-text: var(--color-slate-400-adaptive);
+  --btn-secondary-hover: rgba(255, 255, 255, 0.1);
+  
+  --btn-danger-bg: rgba(239, 68, 68, 0.15);
+  --btn-danger-text: #f87171;
+  --btn-danger-hover: rgba(239, 68, 68, 0.25);
+
 
   --color-eyebrow: #818cf8;
   --color-slate-400-adaptive: #94a3b8;
@@ -430,10 +462,10 @@ h3 {
 
 .auth-panel {
   width: min(100%, 520px);
-  padding: 32px;
+  padding: 24px;
   background: rgba(255, 255, 255, 0.86);
   border: 1px solid rgba(24, 33, 47, 0.08);
-  border-radius: 28px;
+  border-radius: 20px;
   box-shadow: 0 24px 60px rgba(24, 33, 47, 0.12);
 }
 
@@ -453,9 +485,15 @@ h3 {
 
 .auth-tab,
 .auth-submit {
+  padding: 14px 18px;
+  background: var(--btn-primary-bg);
+  color: #ffffff;
+  font-weight: var(--btn-font-weight);
   border: none;
   border-radius: 14px;
   cursor: pointer;
+  transition: var(--btn-transition);
+  width: 100%;
 }
 
 .auth-tab {
@@ -531,10 +569,15 @@ h3 {
 }
 
 .auth-submit {
-  padding: 14px 16px;
-  background: #18212f;
-  color: #f7f3ea;
-  font-weight: 700;
+  padding: 14px 18px;
+  background: var(--btn-primary-bg);
+  color: #ffffff;
+  font-weight: var(--btn-font-weight);
+  border: none;
+  border-radius: 14px;
+  cursor: pointer;
+  transition: var(--btn-transition);
+  width: 100%;
 }
 
 .auth-submit:disabled {
@@ -907,8 +950,8 @@ h3 {
   background: rgba(255, 255, 255, 0.78);
   backdrop-filter: blur(14px);
   border: 1px solid rgba(24, 33, 47, 0.08);
-  border-radius: 28px;
-  padding: 26px;
+  border-radius: 20px;
+  padding: 24px;
   box-shadow: 0 22px 54px rgba(24, 33, 47, 0.08);
 }
 
@@ -1228,25 +1271,32 @@ h3 {
 }
 
 .action-button {
+  padding: 8px 14px;
+  border-radius: var(--btn-radius);
+  font-weight: 500;
+  font-size: 0.85rem;
   border: none;
-  border-radius: 12px;
-  padding: 10px 14px;
-  color: #f7f3ea;
   cursor: pointer;
-  font-weight: 600;
-  box-shadow: 0 10px 18px rgba(24, 33, 47, 0.08);
+  transition: var(--btn-transition);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
 }
 
 .action-button.approve {
-  background: #1d7a3d;
+  background: var(--btn-primary-bg);
+  color: #ffffff;
 }
 
 .action-button.reject {
-  background: #b43a21;
+  background: var(--btn-danger-bg);
+  color: var(--btn-danger-text);
 }
 
 .action-button.neutral {
-  background: #5f6f86;
+  background: var(--btn-secondary-bg);
+  color: var(--btn-secondary-text);
 }
 
 .status-chip {
@@ -1515,15 +1565,16 @@ h3 {
 }
 
 .open-college-button {
-  margin-top: 14px;
-  border: none;
-  border-radius: 12px;
-  padding: 11px 15px;
-  background: #18212f;
-  color: #f7f3ea;
-  cursor: pointer;
-  font-weight: 700;
-  box-shadow: 0 12px 22px rgba(24, 33, 47, 0.12);
+  display: block;
+  width: 100%;
+  padding: 12px;
+  background: var(--btn-primary-bg);
+  color: #ffffff;
+  text-align: center;
+  border-radius: var(--btn-radius);
+  font-weight: var(--btn-font-weight);
+  margin-top: auto;
+  transition: var(--btn-transition);
 }
 
 .open-college-button:disabled {
@@ -2171,8 +2222,8 @@ h3 {
   }
 
   .card {
-    padding: 16px;
-    border-radius: 18px;
+    padding: 24px;
+    border-radius: 20px;
   }
 
   .program-grid,
@@ -2257,7 +2308,7 @@ h3 {
   }
 
   .auth-panel {
-    padding: 20px;
+    padding: 24px;
   }
 
   .college-chip h3 {
@@ -2302,7 +2353,7 @@ h3 {
 }
 
 .dense-admin .card {
-  padding: 18px 20px;
+  padding: 16px;
   border-radius: 16px;
 }
 
@@ -2668,38 +2719,24 @@ h3 {
 
 .subject-action-btn {
   border: none;
-  background: rgba(24, 33, 47, 0.05);
-  border: 1px solid rgba(24, 33, 47, 0.08);
-  color: #4b5563;
-  width: 38px;
-  height: 38px;
-  border-radius: 10px;
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
+  background: var(--btn-secondary-bg);
+  color: var(--btn-secondary-text);
+  border-radius: var(--btn-radius);
+  padding: 8px 14px;
+  font-weight: 500;
   cursor: pointer;
-  transition: all 0.2s ease;
-  flex-shrink: 0;
+  transition: var(--btn-transition);
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 0.85rem;
 }
 
-.subject-action-btn:hover {
-  background: rgba(242, 166, 90, 0.15);
-  border-color: rgba(242, 166, 90, 0.4);
-  color: #b56311;
-  transform: translateY(-1px);
-}
+.subject-action-btn:hover { background: var(--btn-secondary-hover); }
 
-[data-theme="dark"] .subject-action-btn {
-  background: rgba(255, 255, 255, 0.03);
-  border-color: rgba(255, 255, 255, 0.08);
-  color: var(--color-gray-400-adaptive);
-}
 
-[data-theme="dark"] .subject-action-btn:hover {
-  background: rgba(255, 207, 124, 0.1);
-  border-color: rgba(255, 207, 124, 0.3);
-  color: #ffcf7c;
-}
+
+
 
 /* Collapsible Semester Accordion */
 .semester-accordion-list {
@@ -2918,44 +2955,33 @@ h3 {
 .resource-action-btn {
   display: block;
   width: 100%;
-  padding: 7px 12px;
-  font-size: 0.78rem;
+  padding: 8px 12px;
+  font-size: 0.85rem;
   font-weight: 600;
   text-align: center;
-  border-radius: 8px;
-  border: 1px solid transparent;
+  border-radius: var(--btn-radius);
+  border: none;
   cursor: pointer;
-  transition: all 0.2s ease;
-  text-decoration: none;
-  white-space: nowrap;
+  transition: var(--btn-transition);
 }
 
 .resource-action-btn.primary {
-  background: rgba(99, 102, 241, 0.12);
-  color: var(--color-indigo-400-adaptive);
-  border-color: rgba(99, 102, 241, 0.25);
+  background: var(--btn-primary-bg);
+  color: #ffffff;
 }
-.resource-action-btn.primary:hover {
-  background: rgba(99, 102, 241, 0.22);
-}
+.resource-action-btn.primary:hover { background: var(--btn-primary-hover); }
 
 .resource-action-btn.edit {
-  background: rgba(16, 185, 129, 0.1);
-  color: #34d399;
-  border-color: rgba(16, 185, 129, 0.2);
+  background: var(--btn-secondary-bg);
+  color: var(--btn-secondary-text);
 }
-.resource-action-btn.edit:hover {
-  background: rgba(16, 185, 129, 0.2);
-}
+.resource-action-btn.edit:hover { background: var(--btn-secondary-hover); }
 
 .resource-action-btn.delete {
-  background: rgba(239, 68, 68, 0.08);
-  color: #f87171;
-  border-color: rgba(239, 68, 68, 0.18);
+  background: var(--btn-danger-bg);
+  color: var(--btn-danger-text);
 }
-.resource-action-btn.delete:hover {
-  background: rgba(239, 68, 68, 0.18);
-}
+.resource-action-btn.delete:hover { background: var(--btn-danger-hover); }
 
 .resource-action-btn.report {
   background: rgba(245, 158, 11, 0.08);
@@ -2991,10 +3017,17 @@ h3 {
   }
 
   .resource-action-btn {
-    width: auto;
-    flex: 1 1 auto;
-    min-width: 80px;
-  }
+  display: block;
+  width: 100%;
+  padding: 8px 12px;
+  font-size: 0.85rem;
+  font-weight: 600;
+  text-align: center;
+  border-radius: var(--btn-radius);
+  border: none;
+  cursor: pointer;
+  transition: var(--btn-transition);
+}
 
   .category-icon {
     font-size: 1.2rem;
@@ -3599,23 +3632,48 @@ h3 {
 }
 
 .subject-card-enhanced .subject-action-btn {
-  position: absolute;
-  top: 10px;
-  right: 10px;
-  z-index: 2;
-  background: rgba(255, 255, 255, 0.85);
-  border-radius: 8px;
-  padding: 4px;
-  opacity: 0;
-  transition: opacity 0.2s ease;
+  border: none;
+  background: var(--btn-secondary-bg);
+  color: var(--btn-secondary-text);
+  border-radius: var(--btn-radius);
+  padding: 8px 14px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: var(--btn-transition);
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 0.85rem;
 }
 
 [data-theme="dark"] .subject-card-enhanced .subject-action-btn {
-  background: rgba(30, 41, 59, 0.85);
+  border: none;
+  background: var(--btn-secondary-bg);
+  color: var(--btn-secondary-text);
+  border-radius: var(--btn-radius);
+  padding: 8px 14px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: var(--btn-transition);
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 0.85rem;
 }
 
 .subject-card-enhanced:hover .subject-action-btn {
-  opacity: 1;
+  border: none;
+  background: var(--btn-secondary-bg);
+  color: var(--btn-secondary-text);
+  border-radius: var(--btn-radius);
+  padding: 8px 14px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: var(--btn-transition);
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 0.85rem;
 }
 
 @media (max-width: 640px) {
