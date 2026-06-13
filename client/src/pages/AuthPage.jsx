@@ -180,6 +180,12 @@ export function AuthPage() {
       return;
     }
 
+    if (registerForm.role === "student" && isNewCollege) {
+      setError("Students cannot register a new college. A College Representative must add it first.");
+      setLoading(false);
+      return;
+    }
+
     try {
       const session = await register(registerForm);
       if (session?.user?.representativeRequestStatus === "pending") {
@@ -437,7 +443,7 @@ export function AuthPage() {
                     <option value="other">My college is not listed</option>
                   </select>
                   
-                  {isNewCollege && (
+                  {isNewCollege && registerForm.role === "representative" && (
                     <input
                       type="text"
                       value={registerForm.collegeName}
@@ -448,6 +454,15 @@ export function AuthPage() {
                       required
                       style={{ marginTop: '8px' }}
                     />
+                  )}
+
+                  {isNewCollege && registerForm.role === "student" && (
+                    <div style={{ marginTop: '12px', padding: '12px', backgroundColor: 'rgba(242, 166, 90, 0.1)', border: '1px solid rgba(242, 166, 90, 0.3)', borderRadius: '8px' }}>
+                      <p className="muted" style={{ margin: 0, fontSize: '0.85rem' }}>
+                        <strong>Your college is not listed here.</strong><br/>
+                        A College Representative needs to register and add your college to the platform first. Once approved, it will automatically appear in this list!
+                      </p>
+                    </div>
                   )}
                 </label>
                 <label className="auth-field">
