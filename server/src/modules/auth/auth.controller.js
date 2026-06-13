@@ -21,6 +21,7 @@ import {
   validateResetPasswordPayload,
   validateStudentVerificationSubmissionPayload
 } from "./auth.validation.js";
+import { normalizeCollegeName } from "../../utils/requestValidation.js";
 
 const OTP_LENGTH = 6;
 const OTP_EXPIRY_MINUTES = 10;
@@ -229,6 +230,21 @@ export async function register(req, res, next) {
     }
 
     const requestedRepresentative = payload.role === "representative";
+
+    if (requestedRepresentative && payload.collegeName) {
+      const normalizedCollege = normalizeCollegeName(payload.collegeName);
+      const existingRep = await User.findOne({
+        role: "representative",
+        collegeNameNormalized: normalizedCollege
+      });
+
+      if (existingRep) {
+        const error = new Error("This college already has an approved representative. A college can have only one representative for data security.");
+        error.statusCode = 409;
+        throw error;
+      }
+    }
+
     if (payload.role === "student") {
       if (!req.file) {
         const error = new Error("Student proof document is required for student registration.");
@@ -406,6 +422,22 @@ export async function adminUpdateUser(req, res, next) {
     }
 
     if (updates.role === "representative") {
+      const targetCollege = updates.collegeName ?? user.collegeName;
+      if (targetCollege) {
+        const normalizedCollege = normalizeCollegeName(targetCollege);
+        const existingRep = await User.findOne({
+          _id: { $ne: user._id },
+          role: "representative",
+          collegeNameNormalized: normalizedCollege
+        });
+
+        if (existingRep) {
+          const error = new Error("This college already has an approved representative. A college can have only one representative.");
+          error.statusCode = 409;
+          throw error;
+        }
+      }
+
       updates.representativeRequestStatus = "approved";
       updates.studentVerificationStatus = "none";
     }
