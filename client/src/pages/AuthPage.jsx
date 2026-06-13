@@ -531,7 +531,7 @@ export function AuthPage() {
               </p>
             ) : null}
 
-            <label style={{ display: "flex", alignItems: "flex-start", gap: "0.75rem", margin: "1rem 0", color: "#94a3b8", fontSize: "0.875rem", cursor: "pointer" }}>
+            <label style={{ display: "flex", alignItems: "flex-start", gap: "0.75rem", margin: "1rem 0", color: "var(--color-slate-400-adaptive)", fontSize: "0.875rem", cursor: "pointer" }}>
               <input
                 type="checkbox"
                 checked={agreedToTerms}

@@ -9,7 +9,7 @@ const CATEGORY_LABELS = {
   notice: { label: "Notice", icon: "📢", color: "#ef4444" },
   syllabus: { label: "Syllabus", icon: "📋", color: "#8b5cf6" },
   books: { label: "Books", icon: "📚", color: "#f59e0b" },
-  "class-notes": { label: "Class Notes", icon: "📝", color: "#10b981" },
+  "class-notes": { label: "Class Notes", icon: "📝", color: "var(--color-emerald-500-adaptive, #059669)" },
   "pdf-ppt": { label: "PDF / PPT", icon: "📄", color: "#06b6d4" },
   lecture: { label: "Lecture", icon: "🎬", color: "#f97316" },
   lab: { label: "Lab", icon: "🔬", color: "#ec4899" },
@@ -18,7 +18,7 @@ const CATEGORY_LABELS = {
 };
 
 function getCategoryInfo(categoryId) {
-  return CATEGORY_LABELS[categoryId] || { label: categoryId, icon: "📁", color: "#64748b" };
+  return CATEGORY_LABELS[categoryId] || { label: categoryId, icon: "📁", color: "var(--color-slate-400-adaptive)" };
 }
 
 function formatDate(dateString) {

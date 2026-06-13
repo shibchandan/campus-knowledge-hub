@@ -16,7 +16,7 @@ export function TermsOfServicePage() {
           onClick={() => navigate(-1)}
           style={{
             background: "transparent",
-            color: "#94a3b8",
+            color: "var(--color-slate-400-adaptive)",
             border: "none",
             cursor: "pointer",
             display: "flex",
@@ -30,7 +30,7 @@ export function TermsOfServicePage() {
         </button>
 
         <h1 style={{ fontSize: "2.5rem", fontWeight: "700", marginBottom: "1rem", color: "#ffffff" }}>Terms of Service</h1>
-        <p style={{ color: "#94a3b8", marginBottom: "2rem" }}>Last updated: June 2026</p>
+        <p style={{ color: "var(--color-slate-400-adaptive)", marginBottom: "2rem" }}>Last updated: June 2026</p>
 
         <div style={{
           background: "rgba(30, 41, 59, 0.4)",

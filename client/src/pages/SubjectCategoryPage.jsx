@@ -1274,7 +1274,7 @@ export function SubjectCategoryPage() {
                       {resource.storageProvider === "external" ? (
                         <span style={{
                           background: "rgba(16, 185, 129, 0.1)",
-                          color: "#10b981",
+                          color: "var(--color-emerald-500-adaptive, #059669)",
                           border: "1px solid rgba(16, 185, 129, 0.2)",
                           padding: "4px 8px",
                           borderRadius: "6px",
@@ -1495,7 +1495,7 @@ export function SubjectCategoryPage() {
                         type="button"
                         style={resource.storageProvider === "external" ? {
                           background: "rgba(16, 185, 129, 0.15)",
-                          color: "#10b981",
+                          color: "var(--color-emerald-500-adaptive, #059669)",
                           borderColor: "rgba(16, 185, 129, 0.3)"
                         } : undefined}
                       >

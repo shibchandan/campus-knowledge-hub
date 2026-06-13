@@ -929,7 +929,7 @@ export function AccountSettingsPage() {
           {user?.twoFactorEnabled ? (
             <div className="two-factor-settings-enabled">
               <div className="status-banner success" style={{ marginBottom: "1.5rem", padding: "1rem", borderRadius: "8px", background: "rgba(16, 185, 129, 0.1)", border: "1px solid rgba(16, 185, 129, 0.2)" }}>
-                <p style={{ color: "#10b981", fontWeight: "600" }}>✓ Two-Factor Authentication is currently Active</p>
+                <p style={{ color: "var(--color-emerald-500-adaptive, #059669)", fontWeight: "600" }}>✓ Two-Factor Authentication is currently Active</p>
                 <p className="muted" style={{ fontSize: "0.875rem", marginTop: "0.25rem" }}>
                   Your account requires a code from your authenticator app when logging in.
                 </p>
@@ -1044,7 +1044,7 @@ export function AccountSettingsPage() {
         >
           <div style={{ background: "rgba(239, 68, 68, 0.1)", border: "1px solid rgba(239, 68, 68, 0.2)", borderRadius: "8px", padding: "1.5rem" }}>
             <h3 style={{ color: "#ef4444", fontSize: "1rem", margin: "0 0 0.5rem 0" }}>Right to be Forgotten</h3>
-            <p style={{ color: "#fca5a5", fontSize: "0.875rem", marginBottom: "1.5rem" }}>
+            <p style={{ color: "var(--color-red-400-adaptive, #ef4444)", fontSize: "0.875rem", marginBottom: "1.5rem" }}>
               In compliance with data protection laws, you can request full deletion of your account and associated personal data. 
               Once processed, you will lose access to all your notes, lectures, and academic records.
             </p>
@@ -1093,7 +1093,7 @@ export function AccountSettingsPage() {
             <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", flexWrap: "wrap", gap: "1rem" }}>
               <div>
                 <h3 style={{ margin: "0 0 0.25rem 0", fontSize: "1rem", color: "#f8fafc" }}>Current Plan: Free Tier</h3>
-                <p style={{ margin: 0, color: "#94a3b8", fontSize: "0.875rem" }}>You do not have any active paid subscriptions.</p>
+                <p style={{ margin: 0, color: "var(--color-slate-400-adaptive)", fontSize: "0.875rem" }}>You do not have any active paid subscriptions.</p>
               </div>
               <button
                 disabled
@@ -1113,7 +1113,7 @@ export function AccountSettingsPage() {
               </button>
             </div>
             <div style={{ marginTop: "1.5rem", borderTop: "1px solid rgba(255, 255, 255, 0.05)", paddingTop: "1rem" }}>
-              <p style={{ color: "#64748b", fontSize: "0.875rem", margin: 0 }}>
+              <p style={{ color: "var(--color-slate-400-adaptive)", fontSize: "0.875rem", margin: 0 }}>
                 When you subscribe to a paid plan in the future, you will be able to manage your billing cycle and cancel easily from this panel with one click.
               </p>
             </div>

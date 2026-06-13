@@ -293,7 +293,7 @@ export function DashboardLayout() {
                 style={{
                   background: "none",
                   border: "none",
-                  color: "#94a3b8",
+                  color: "var(--color-slate-400-adaptive)",
                   cursor: "pointer",
                   fontSize: "1.5rem",
                   lineHeight: 1,

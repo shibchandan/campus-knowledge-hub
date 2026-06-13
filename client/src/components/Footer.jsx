@@ -9,7 +9,7 @@ export function Footer() {
       padding: "2rem 1rem",
       borderTop: "1px solid rgba(255, 255, 255, 0.05)",
       background: "transparent",
-      color: "#64748b",
+      color: "var(--color-slate-400-adaptive)",
       fontSize: "0.875rem",
       textAlign: "center"
     }}>
@@ -22,11 +22,14 @@ export function Footer() {
         gap: "1rem"
       }}>
         <div style={{ display: "flex", gap: "1.5rem" }}>
-          <Link to="/privacy" style={{ color: "#94a3b8", textDecoration: "none", transition: "color 0.2s" }} onMouseOver={(e) => e.target.style.color = "#f1f5f9"} onMouseOut={(e) => e.target.style.color = "#94a3b8"}>
+          <Link to="/privacy" style={{ color: "var(--color-slate-400-adaptive)", textDecoration: "none", transition: "color 0.2s" }} onMouseOver={(e) => e.target.style.color = "#f1f5f9"} onMouseOut={(e) => e.target.style.color = "#94a3b8"}>
             Privacy Policy
           </Link>
-          <Link to="/terms" style={{ color: "#94a3b8", textDecoration: "none", transition: "color 0.2s" }} onMouseOver={(e) => e.target.style.color = "#f1f5f9"} onMouseOut={(e) => e.target.style.color = "#94a3b8"}>
+          <Link to="/terms" style={{ color: "var(--color-slate-400-adaptive)", textDecoration: "none", transition: "color 0.2s" }} onMouseOver={(e) => e.target.style.color = "#f1f5f9"} onMouseOut={(e) => e.target.style.color = "var(--color-slate-400-adaptive)"}>
             Terms of Service
+          </Link>
+          <Link to="/sitemap" style={{ color: "var(--color-slate-400-adaptive)", textDecoration: "none", transition: "color 0.2s" }} onMouseOver={(e) => e.target.style.color = "#f1f5f9"} onMouseOut={(e) => e.target.style.color = "var(--color-slate-400-adaptive)"}>
+            Sitemap
           </Link>
         </div>
         <div>
