@@ -94,6 +94,7 @@ async function callOpenAI(question, prompt) {
         { role: "system", content: prompt },
         { role: "user", content: question }
       ],
+      max_tokens: 1000,
       temperature: 0.3,
       response_format: { type: "json_object" }
     })
@@ -123,6 +124,7 @@ async function callGemini(question, prompt) {
         }
       ],
       generationConfig: {
+        maxOutputTokens: 1000,
         temperature: 0.3,
         responseMimeType: "application/json"
       }
@@ -248,7 +250,8 @@ export async function generateStructuredAnswer({
   question,
   contextResources = [],
   historyItems = [],
-  intent = "general"
+  intent = "general",
+  userId = "anonymous"
 }) {
   const trimmedQuestion = question?.trim();
   if (!trimmedQuestion) {
@@ -262,6 +265,17 @@ export async function generateStructuredAnswer({
     contextSummary: summarizeContextResources(contextResources),
     historySummary: summarizeHistory(historyItems)
   });
+
+  console.log(
+    JSON.stringify({
+      event: "ai_api_call",
+      provider,
+      userId,
+      questionLength: trimmedQuestion.length,
+      promptLength: prompt.length,
+      timestamp: new Date().toISOString()
+    })
+  );
 
   try {
     let rawAnswer = null;

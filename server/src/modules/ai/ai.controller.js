@@ -125,7 +125,8 @@ async function buildAiResponse({
     question,
     contextResources: sourceResources,
     historyItems,
-    intent
+    intent,
+    userId: req.user?.id
   });
 
   answer.contextUsed = sourceResources.map((resource) => ({
