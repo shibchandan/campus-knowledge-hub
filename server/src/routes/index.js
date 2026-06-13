@@ -14,6 +14,7 @@ import { noticeRouter } from "../modules/notices/notice.routes.js";
 import { auditRouter } from "../modules/audit/audit.routes.js";
 import { quizRouter } from "../modules/quizzes/quiz.routes.js";
 import { settingsRouter } from "../modules/settings/settings.routes.js";
+import adminRouter from "../modules/admin/admin.routes.js";
 
 export const apiRouter = Router();
 
@@ -32,3 +33,4 @@ apiRouter.use("/notices", noticeRouter);
 apiRouter.use("/audit", auditRouter);
 apiRouter.use("/quizzes", quizRouter);
 apiRouter.use("/settings", settingsRouter);
+apiRouter.use("/admin", adminRouter);

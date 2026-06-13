@@ -71,6 +71,7 @@ export function AdminPanelPage() {
    const [resources, setResources] = useState([]);
   const [syllabusResources, setSyllabusResources] = useState([]);
   const [auditLogs, setAuditLogs] = useState([]);
+  const [analytics, setAnalytics] = useState(null);
   const [aiStatus, setAiStatus] = useState(null);
   const [aiStatusLoading, setAiStatusLoading] = useState(false);
   const [loading, setLoading] = useState(true);
@@ -117,7 +118,8 @@ export function AdminPanelPage() {
         subjectsResponse,
         resourcesResponse,
         syllabusResponse,
-        auditResponse
+        auditResponse,
+        analyticsResponse
       ] = await Promise.all([
         apiClient.get("/auth/admin/users"),
         apiClient.get("/governance/approved-courses"),
@@ -126,7 +128,8 @@ export function AdminPanelPage() {
         apiClient.get("/academic/subjects"),
         apiClient.get("/resources", { params: { page: 1, limit: 50 } }),
         apiClient.get("/resources", { params: { page: 1, limit: 20, categoryId: "syllabus" } }),
-        apiClient.get("/audit/logs", { params: { page: 1, limit: 20 } })
+        apiClient.get("/audit/logs", { params: { page: 1, limit: 20 } }),
+        apiClient.get("/admin/analytics").catch(() => ({ data: { data: null } }))
       ]);
 
       setPendingRequests([]);
@@ -138,6 +141,7 @@ export function AdminPanelPage() {
       setResources(resourcesResponse.data.data?.items || []);
       setSyllabusResources(syllabusResponse.data.data?.items || []);
       setAuditLogs(auditResponse.data.data?.items || []);
+      setAnalytics(analyticsResponse?.data?.data || null);
     } catch (requestError) {
       setError(requestError.response?.data?.message || "Failed to load admin control data.");
     } finally {
@@ -697,21 +701,90 @@ export function AdminPanelPage() {
     <div className="dense-admin">
       <div className="page-stack">
         <SectionCard
-        title="Admin Control Center"
-        description="Central oversight for requests, users, notices, resources, and audit visibility."
+        title="Admin Control Center & Analytics Dashboard"
+        description="High-level metrics and central oversight for the entire platform."
       >
         {error ? <p className="auth-error">{error}</p> : null}
         {success ? <p className="success-note">{success}</p> : null}
         {loading ? <p className="muted">Loading admin control data...</p> : null}
-        <div className="stat-grid">
-          {metrics.map((metric) => (
-            <article className="stat-card" key={metric.label}>
-              <p className="stat-label">{metric.label}</p>
-              <h3>{metric.value}</h3>
-              <p className="muted">{metric.note}</p>
-            </article>
-          ))}
-        </div>
+        
+        {analytics ? (
+          <div className="analytics-dashboard">
+            <div className="analytics-section">
+              <h4 className="analytics-section-title">User Demographics</h4>
+              <div className="analytics-cards">
+                <article className="analytics-card gradient-primary">
+                  <div className="analytics-card-icon">👥</div>
+                  <div className="analytics-card-content">
+                    <p className="analytics-label">Total Users</p>
+                    <h3 className="analytics-value">{analytics.totalUsers}</h3>
+                    <p className="analytics-note">{analytics.activeUsers} Active</p>
+                  </div>
+                </article>
+                <article className="analytics-card">
+                  <div className="analytics-card-icon">🎓</div>
+                  <div className="analytics-card-content">
+                    <p className="analytics-label">Students</p>
+                    <h3 className="analytics-value">{analytics.roleDistribution.students}</h3>
+                  </div>
+                </article>
+                <article className="analytics-card">
+                  <div className="analytics-card-icon">🏛️</div>
+                  <div className="analytics-card-content">
+                    <p className="analytics-label">Representatives</p>
+                    <h3 className="analytics-value">{analytics.roleDistribution.representatives}</h3>
+                    {analytics.pendingRequests > 0 && (
+                      <p className="analytics-note warning">{analytics.pendingRequests} Pending Req</p>
+                    )}
+                  </div>
+                </article>
+              </div>
+            </div>
+
+            <div className="analytics-section">
+              <h4 className="analytics-section-title">Platform Engagement</h4>
+              <div className="analytics-cards">
+                <article className="analytics-card gradient-success">
+                  <div className="analytics-card-icon">📚</div>
+                  <div className="analytics-card-content">
+                    <p className="analytics-label">Total Resources</p>
+                    <h3 className="analytics-value">{analytics.totalResources}</h3>
+                    <p className="analytics-note">+{analytics.resourcesThisWeek} this week</p>
+                  </div>
+                </article>
+                <article className="analytics-card">
+                  <div className="analytics-card-icon">🏫</div>
+                  <div className="analytics-card-content">
+                    <p className="analytics-label">Approved Colleges</p>
+                    <h3 className="analytics-value">{analytics.totalColleges}</h3>
+                  </div>
+                </article>
+                <article className="analytics-card">
+                  <div className="analytics-card-icon">⚠️</div>
+                  <div className="analytics-card-content">
+                    <p className="analytics-label">Active Reports</p>
+                    <h3 className="analytics-value">{analytics.activeReports}</h3>
+                    {analytics.activeReports > 0 ? (
+                      <p className="analytics-note danger">Needs Review</p>
+                    ) : (
+                      <p className="analytics-note success">All clear</p>
+                    )}
+                  </div>
+                </article>
+              </div>
+            </div>
+          </div>
+        ) : (
+          <div className="stat-grid">
+            {metrics.map((metric) => (
+              <article className="stat-card" key={metric.label}>
+                <p className="stat-label">{metric.label}</p>
+                <h3>{metric.value}</h3>
+                <p className="muted">{metric.note}</p>
+              </article>
+            ))}
+          </div>
+        )}
       </SectionCard>
 
       <SectionCard

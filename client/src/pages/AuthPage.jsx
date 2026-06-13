@@ -439,14 +439,14 @@ export function AuthPage() {
                         {college.name}
                       </option>
                     ))}
-                    <option value="other">My college is not listed</option>
+                    <option value="other">My college is not listed here (Needs a Representative)</option>
                   </select>
 
                   {registerForm.role === "representative" && !isNewCollege && availableColleges.find(c => c.name === registerForm.collegeName)?.hasRepresentative && (
                     <div style={{ marginTop: '12px', padding: '12px', backgroundColor: 'rgba(239, 68, 68, 0.1)', border: '1px solid rgba(239, 68, 68, 0.3)', borderRadius: '8px' }}>
                       <p style={{ margin: 0, fontSize: '0.85rem', color: '#ef4444' }}>
-                        <strong>Representative Taken</strong><br/>
-                        This college already has an approved representative. You can only register as a student for this college.
+                        <strong>Data Security: Representative Already Exists</strong><br/>
+                        This college already has an approved representative. A college can have only one representative for data security. You can only register as a student for this college.
                       </p>
                     </div>
                   )}
