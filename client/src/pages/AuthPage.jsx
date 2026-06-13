@@ -421,7 +421,7 @@ export function AuthPage() {
                 <label className="auth-field">
                   <span>College Name</span>
                   <select
-                    value={isNewCollege ? "other" : (availableColleges.includes(registerForm.collegeName) ? registerForm.collegeName : (registerForm.collegeName ? "other" : ""))}
+                    value={isNewCollege ? "other" : (availableColleges.some(c => c.name === registerForm.collegeName) ? registerForm.collegeName : (registerForm.collegeName ? "other" : ""))}
                     onChange={(event) => {
                       if (event.target.value === "other") {
                         setIsNewCollege(true);
@@ -435,12 +435,21 @@ export function AuthPage() {
                   >
                     <option value="" disabled>Select your college</option>
                     {availableColleges.map((college) => (
-                      <option key={college} value={college}>
-                        {college}
+                      <option key={college.name} value={college.name}>
+                        {college.name}
                       </option>
                     ))}
                     <option value="other">My college is not listed</option>
                   </select>
+
+                  {registerForm.role === "representative" && !isNewCollege && availableColleges.find(c => c.name === registerForm.collegeName)?.hasRepresentative && (
+                    <div style={{ marginTop: '12px', padding: '12px', backgroundColor: 'rgba(239, 68, 68, 0.1)', border: '1px solid rgba(239, 68, 68, 0.3)', borderRadius: '8px' }}>
+                      <p style={{ margin: 0, fontSize: '0.85rem', color: '#ef4444' }}>
+                        <strong>Representative Taken</strong><br/>
+                        This college already has an approved representative. You can only register as a student for this college.
+                      </p>
+                    </div>
+                  )}
                   
                   {isNewCollege && registerForm.role === "representative" && (
                     <input
@@ -534,8 +543,16 @@ export function AuthPage() {
               </span>
             </label>
 
-            <button className="auth-submit" disabled={loading} type="submit">
-              {loading ? "Creating account..." : "Register"}
+            <button
+              type="submit"
+              className="auth-button"
+              disabled={
+                loading || 
+                (registerForm.role === "student" && isNewCollege) ||
+                (registerForm.role === "representative" && !isNewCollege && availableColleges.find(c => c.name === registerForm.collegeName)?.hasRepresentative)
+              }
+            >
+              {loading ? "Registering..." : "Register"}
             </button>
           </form>
         ) : null}

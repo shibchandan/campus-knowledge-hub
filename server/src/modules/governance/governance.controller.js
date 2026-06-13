@@ -173,10 +173,11 @@ export async function createCollegeRequest(req, res, next) {
 
 export async function getPublicColleges(req, res, next) {
   try {
-    const [userColleges, courseColleges, profileColleges] = await Promise.all([
+    const [userColleges, courseColleges, profileColleges, takenColleges] = await Promise.all([
       User.distinct("collegeName", { collegeName: { $ne: null, $ne: "" } }),
       CollegeCourse.distinct("collegeName", { collegeName: { $ne: null, $ne: "" } }),
-      CollegeProfile.distinct("collegeName", { collegeName: { $ne: null, $ne: "" } })
+      CollegeProfile.distinct("collegeName", { collegeName: { $ne: null, $ne: "" } }),
+      User.distinct("collegeNameNormalized", { role: "representative" })
     ]);
 
     const allColleges = new Set([
@@ -185,7 +186,14 @@ export async function getPublicColleges(req, res, next) {
       ...profileColleges
     ].map(c => String(c).trim()).filter(Boolean));
 
-    res.json({ success: true, data: Array.from(allColleges).sort() });
+    const takenSet = new Set(takenColleges);
+
+    const data = Array.from(allColleges).sort().map(c => ({
+      name: c,
+      hasRepresentative: takenSet.has(normalizeCollegeName(c))
+    }));
+
+    res.json({ success: true, data });
   } catch (error) {
     next(error);
   }
