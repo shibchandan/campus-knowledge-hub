@@ -13,6 +13,7 @@ import { requestLogStream } from "./services/logger.service.js";
 
 export function createApp() {
   const app = express();
+  app.disable("x-powered-by");
   app.set("trust proxy", env.trustProxy);
 
   app.use(

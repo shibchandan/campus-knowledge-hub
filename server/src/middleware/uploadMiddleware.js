@@ -1,4 +1,5 @@
 import fs from "fs";
+import crypto from "crypto";
 import path from "path";
 import multer from "multer";
 
@@ -14,13 +15,8 @@ const storage = multer.diskStorage({
   },
   filename: (_req, file, cb) => {
     const extension = path.extname(file.originalname).toLowerCase();
-    const baseName = path
-      .basename(file.originalname, extension)
-      .replace(/[^a-zA-Z0-9-_]/g, "-")
-      .replace(/-+/g, "-")
-      .slice(0, 80);
-    const safeOriginal = `${baseName || "file"}${extension}`;
-    cb(null, `${Date.now()}-${safeOriginal}`);
+    const uniqueId = crypto.randomUUID();
+    cb(null, `${uniqueId}${extension}`);
   }
 });
 
@@ -69,7 +65,7 @@ export const upload = multer({
     cb(null, true);
   },
   limits: {
-    fileSize: 250 * 1024 * 1024,
+    fileSize: 25 * 1024 * 1024, // 25 MB
     files: 1
   }
 });
