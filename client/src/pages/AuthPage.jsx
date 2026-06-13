@@ -82,6 +82,21 @@ export function AuthPage() {
   const [twoFactorUserId, setTwoFactorUserId] = useState("");
   const [twoFactorCode, setTwoFactorCode] = useState("");
   const [agreedToTerms, setAgreedToTerms] = useState(false);
+  const [availableColleges, setAvailableColleges] = useState([]);
+
+  useEffect(() => {
+    async function loadColleges() {
+      try {
+        const response = await apiClient.get("/governance/approved-courses");
+        const courses = response.data.data || [];
+        const uniqueColleges = [...new Set(courses.map(c => c.collegeName).filter(Boolean))];
+        setAvailableColleges(uniqueColleges.sort());
+      } catch (err) {
+        console.error("Failed to load approved colleges for autocomplete", err);
+      }
+    }
+    loadColleges();
+  }, []);
 
   useEffect(() => {
     const params = new URLSearchParams(location.search);
@@ -407,7 +422,13 @@ export function AuthPage() {
                     }
                     placeholder="Enter the college name"
                     required
+                    list="college-suggestions"
                   />
+                  <datalist id="college-suggestions">
+                    {availableColleges.map((college) => (
+                      <option key={college} value={college} />
+                    ))}
+                  </datalist>
                 </label>
                 <label className="auth-field">
                   <span>Official College Email (optional)</span>
