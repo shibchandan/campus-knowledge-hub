@@ -29,12 +29,19 @@ export const authRouter = Router();
 
 const authRateLimiter = createRateLimiter({
   windowMs: 15 * 60 * 1000,
-  maxRequests: 20,
+  maxRequests: 5,
   message: "Too many authentication attempts. Please try again later.",
   keyPrefix: "auth"
 });
 
-authRouter.post("/register", authRateLimiter, upload.single("studentProof"), register);
+const uploadRateLimiter = createRateLimiter({
+  windowMs: 60 * 1000,
+  maxRequests: 5,
+  message: "Too many file upload requests. Please wait a minute.",
+  keyPrefix: "upload"
+});
+
+authRouter.post("/register", authRateLimiter, uploadRateLimiter, upload.single("studentProof"), register);
 authRouter.post("/login", authRateLimiter, login);
 authRouter.post("/forgot-password", authRateLimiter, forgotPassword);
 authRouter.post("/reset-password", authRateLimiter, resetPassword);
@@ -45,6 +52,7 @@ authRouter.post(
   "/student-verification/submit",
   protect,
   authRateLimiter,
+  uploadRateLimiter,
   upload.single("studentProof"),
   submitStudentVerification
 );

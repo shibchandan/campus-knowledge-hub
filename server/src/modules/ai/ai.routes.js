@@ -15,10 +15,11 @@ import { createRateLimiter } from "../../middleware/rateLimit.js";
 export const aiRouter = Router();
 
 const aiRateLimiter = createRateLimiter({
-  windowMs: 10 * 60 * 1000,
-  maxRequests: 30,
-  message: "AI request limit reached. Please wait a few minutes and try again.",
-  keyPrefix: "ai"
+  windowMs: 60 * 1000,
+  maxRequests: 10,
+  message: "AI request limit reached. Please wait a minute and try again.",
+  keyPrefix: "ai",
+  keyGenerator: (req) => req.user?.id || req.ip
 });
 
 aiRouter.use(protect, aiRateLimiter);

@@ -1,5 +1,6 @@
 import { Router } from "express";
 import { authorize, optionalProtect, protect } from "../../middleware/authMiddleware.js";
+import { createRateLimiter } from "../../middleware/rateLimit.js";
 import { upload } from "../../middleware/uploadMiddleware.js";
 import {
   deleteResource,
@@ -18,6 +19,13 @@ import {
 
 export const resourceRouter = Router();
 
+const uploadRateLimiter = createRateLimiter({
+  windowMs: 60 * 1000,
+  maxRequests: 5,
+  message: "Too many file upload requests. Please wait a minute.",
+  keyPrefix: "upload"
+});
+
 resourceRouter.get("/", optionalProtect, getResources);
 resourceRouter.get("/reports", protect, authorize("representative"), getCollegeResourceReports);
 resourceRouter.patch("/reports/:reportId/dismiss", protect, authorize("representative"), dismissResourceReport);
@@ -32,6 +40,7 @@ resourceRouter.post("/:resourceId/report", protect, reportResource);
 resourceRouter.post(
   "/upload",
   protect,
+  uploadRateLimiter,
   upload.single("file"),
   uploadResource
 );

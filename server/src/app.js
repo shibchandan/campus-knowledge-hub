@@ -8,6 +8,7 @@ import { errorHandler } from "./middleware/errorHandler.js";
 import { notFoundHandler } from "./middleware/notFoundHandler.js";
 import { sanitizeRequest } from "./middleware/sanitizeRequest.js";
 import { securityHeaders } from "./middleware/securityHeaders.js";
+import { createRateLimiter } from "./middleware/rateLimit.js";
 import { apiRouter } from "./routes/index.js";
 import { requestLogStream } from "./services/logger.service.js";
 
@@ -81,7 +82,14 @@ export function createApp() {
     });
   });
 
-  app.use("/api", apiRouter);
+  const globalRateLimiter = createRateLimiter({
+    windowMs: 60 * 1000,
+    maxRequests: 60,
+    message: "Global rate limit exceeded. Please try again later.",
+    keyPrefix: "global"
+  });
+
+  app.use("/api", globalRateLimiter, apiRouter);
   app.use(notFoundHandler);
   app.use(errorHandler);
 

@@ -134,15 +134,22 @@ function setRateLimitHeaders(res, { maxRequests, count, resetAt }) {
   res.set("X-RateLimit-Limit", String(maxRequests));
   res.set("X-RateLimit-Remaining", String(Math.max(maxRequests - count, 0)));
   res.set("X-RateLimit-Reset", String(Math.ceil(resetAt / 1000)));
+  res.set("Retry-After", String(Math.ceil((resetAt - Date.now()) / 1000)));
 }
 
-export function createRateLimiter({ windowMs, maxRequests, message, keyPrefix = "global" }) {
+export function createRateLimiter({
+  windowMs,
+  maxRequests,
+  message,
+  keyPrefix = "global",
+  keyGenerator = (req) => normalizeIp(req.ip || req.headers["x-forwarded-for"] || "")
+}) {
   const hits = new Map();
   let cleanupCursor = Date.now();
 
   return async function rateLimiter(req, res, next) {
-    const ip = normalizeIp(req.ip || req.headers["x-forwarded-for"] || "");
-    const key = `${keyPrefix}:${ip}`;
+    const rawKey = keyGenerator(req);
+    const key = `${keyPrefix}:${rawKey}`;
     const now = Date.now();
     const windowStart = getWindowStart(now, windowMs);
     const resetAt = windowStart + windowMs;
@@ -160,7 +167,7 @@ export function createRateLimiter({ windowMs, maxRequests, message, keyPrefix = 
       setRateLimitHeaders(res, { maxRequests, count, resetAt });
 
       if (count > maxRequests) {
-        next(createHttpError(message));
+        next(createHttpError(message, 429));
         return;
       }
 
@@ -171,7 +178,7 @@ export function createRateLimiter({ windowMs, maxRequests, message, keyPrefix = 
       setRateLimitHeaders(res, { maxRequests, count, resetAt });
 
       if (count > maxRequests) {
-        next(createHttpError(message));
+        next(createHttpError(message, 429));
         return;
       }
 
