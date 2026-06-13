@@ -82,6 +82,7 @@ export function AuthPage() {
   const [twoFactorUserId, setTwoFactorUserId] = useState("");
   const [twoFactorCode, setTwoFactorCode] = useState("");
   const [agreedToTerms, setAgreedToTerms] = useState(false);
+  const [isNewCollege, setIsNewCollege] = useState(false);
   const [availableColleges, setAvailableColleges] = useState([]);
 
   useEffect(() => {
@@ -414,21 +415,40 @@ export function AuthPage() {
               <>
                 <label className="auth-field">
                   <span>College Name</span>
-                  <input
-                    type="text"
-                    value={registerForm.collegeName}
-                    onChange={(event) =>
-                      setRegisterForm((current) => ({ ...current, collegeName: event.target.value }))
-                    }
-                    placeholder="Enter the college name"
-                    required
-                    list="college-suggestions"
-                  />
-                  <datalist id="college-suggestions">
+                  <select
+                    value={isNewCollege ? "other" : (availableColleges.includes(registerForm.collegeName) ? registerForm.collegeName : (registerForm.collegeName ? "other" : ""))}
+                    onChange={(event) => {
+                      if (event.target.value === "other") {
+                        setIsNewCollege(true);
+                        setRegisterForm((current) => ({ ...current, collegeName: "" }));
+                      } else {
+                        setIsNewCollege(false);
+                        setRegisterForm((current) => ({ ...current, collegeName: event.target.value }));
+                      }
+                    }}
+                    required={!isNewCollege}
+                  >
+                    <option value="" disabled>Select your college</option>
                     {availableColleges.map((college) => (
-                      <option key={college} value={college} />
+                      <option key={college} value={college}>
+                        {college}
+                      </option>
                     ))}
-                  </datalist>
+                    <option value="other">My college is not listed</option>
+                  </select>
+                  
+                  {isNewCollege && (
+                    <input
+                      type="text"
+                      value={registerForm.collegeName}
+                      onChange={(event) =>
+                        setRegisterForm((current) => ({ ...current, collegeName: event.target.value }))
+                      }
+                      placeholder="Type your college name..."
+                      required
+                      style={{ marginTop: '8px' }}
+                    />
+                  )}
                 </label>
                 <label className="auth-field">
                   <span>Official College Email (optional)</span>
