@@ -1,5 +1,5 @@
 import { Router } from "express";
-import { optionalProtect, protect } from "../../middleware/authMiddleware.js";
+import { authorize, optionalProtect, protect } from "../../middleware/authMiddleware.js";
 import { upload } from "../../middleware/uploadMiddleware.js";
 import {
   deleteResource,
@@ -11,12 +11,16 @@ import {
   verifyProtectedResourcePayment,
   viewResourceFile,
   uploadResource,
-  reportResource
+  reportResource,
+  getCollegeResourceReports,
+  dismissResourceReport
 } from "./resource.controller.js";
 
 export const resourceRouter = Router();
 
 resourceRouter.get("/", optionalProtect, getResources);
+resourceRouter.get("/reports", protect, authorize("representative"), getCollegeResourceReports);
+resourceRouter.patch("/reports/:reportId/dismiss", protect, authorize("representative"), dismissResourceReport);
 resourceRouter.get("/category-counts", optionalProtect, getCategoryCounts);
 resourceRouter.get("/:resourceId/file", optionalProtect, viewResourceFile);
 resourceRouter.get("/:resourceId/download", optionalProtect, downloadResource);

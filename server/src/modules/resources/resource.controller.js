@@ -1,4 +1,5 @@
 import { Resource } from "./resource.model.js";
+import { ResourceReport } from "./resourceReport.model.js";
 import { ResourceAccessPurchase } from "./resourceAccess.model.js";
 import { MarketplacePurchase } from "../marketplace/marketplace.model.js";
 import { CollegeCourse } from "../governance/governance.model.js";
@@ -1095,7 +1096,7 @@ export async function reportResource(req, res, next) {
     const resourceId = readMongoId(req.params.resourceId, { field: "resourceId" });
     const reason = readEnum(req.body.reason, {
       field: "reason",
-      allowed: ["copyright", "spam", "inappropriate", "other"],
+      allowed: ["copyright", "spam", "inappropriate", "quality_issue", "wrong_content", "other"],
       defaultValue: "other"
     });
     const comments = readString(req.body.comments, {
@@ -1179,9 +1180,70 @@ Please review the resource on the platform database and take appropriate action.
       }
     });
 
+    if (req.user) {
+      await ResourceReport.create({
+        resourceId: resource._id,
+        reportedBy: req.user.id,
+        collegeNameNormalized: resource.collegeNameNormalized,
+        reason,
+        description: comments
+      });
+    }
+
     res.json({
       success: true,
       message: "Resource reported successfully. Administrators have been notified."
+    });
+  } catch (error) {
+    next(error);
+  }
+}
+
+export async function getCollegeResourceReports(req, res, next) {
+  try {
+    const collegeNameNormalized = req.user.collegeNameNormalized;
+    
+    if (!collegeNameNormalized) {
+      throw createHttpError("You are not associated with a college.", 400);
+    }
+
+    const reports = await ResourceReport.find({
+      collegeNameNormalized,
+      status: "pending"
+    })
+      .populate("resourceId", "title categoryId fileUrl linkUrl uploadedBy")
+      .populate("reportedBy", "fullName email")
+      .sort({ createdAt: -1 });
+
+    res.json({
+      success: true,
+      data: reports
+    });
+  } catch (error) {
+    next(error);
+  }
+}
+
+export async function dismissResourceReport(req, res, next) {
+  try {
+    const reportId = readMongoId(req.params.reportId, { field: "reportId" });
+    const collegeNameNormalized = req.user.collegeNameNormalized;
+
+    const report = await ResourceReport.findOne({
+      _id: reportId,
+      collegeNameNormalized
+    });
+
+    if (!report) {
+      throw createHttpError("Report not found or access denied.", 404);
+    }
+
+    report.status = "dismissed";
+    await report.save();
+
+    res.json({
+      success: true,
+      message: "Report dismissed."
     });
   } catch (error) {
     next(error);

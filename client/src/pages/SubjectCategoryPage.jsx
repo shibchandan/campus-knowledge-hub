@@ -1555,7 +1555,7 @@ export function SubjectCategoryPage() {
                         onClick={() => handleReportClick(resource)}
                         type="button"
                       >
-                        ⚠️ Report
+                        🚩 Report Issue
                       </button>
                     ) : null}
                   </div>
@@ -1614,6 +1614,8 @@ export function SubjectCategoryPage() {
                     <option value="copyright">Copyright / DMCA Violation</option>
                     <option value="spam">Spam / Duplicate Content</option>
                     <option value="inappropriate">Inappropriate / Off-topic Content</option>
+                    <option value="quality_issue">Quality Issue (Blurry / Unreadable)</option>
+                    <option value="wrong_content">Wrong Content / Semester</option>
                     <option value="other">Other reason</option>
                   </select>
                 </label>

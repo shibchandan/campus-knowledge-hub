@@ -206,6 +206,7 @@ export function RepresentativePanelPage() {
   const [quizzes, setQuizzes] = useState([]);
   const [structures, setStructures] = useState([]);
   const [subjects, setSubjects] = useState([]);
+  const [reports, setReports] = useState([]);
   const [requestableColleges, setRequestableColleges] = useState([]);
   const [loading, setLoading] = useState(true);
   const [submitting, setSubmitting] = useState(false);
@@ -278,6 +279,13 @@ export function RepresentativePanelPage() {
         setRequestableColleges(requestableResponse.data.data || []);
       } catch {
         setRequestableColleges([]);
+      }
+
+      try {
+        const reportsResponse = await apiClient.get("/resources/reports");
+        setReports(reportsResponse.data.data || []);
+      } catch {
+        setReports([]);
       }
 
       const collegeNames = [...new Set(collegeItems.map((item) => item.collegeName).filter(Boolean))];
@@ -944,6 +952,35 @@ export function RepresentativePanelPage() {
     }
   };
 
+  const handleDismissReport = async (reportId) => {
+    if (!window.confirm("Are you sure you want to dismiss this report? The resource will remain available.")) {
+      return;
+    }
+    try {
+      await apiClient.patch(`/resources/reports/${reportId}/dismiss`);
+      showSuccess("Report dismissed successfully.");
+      await loadRepresentativeData();
+    } catch (err) {
+      showError(err.response?.data?.message || "Failed to dismiss report.");
+    }
+  };
+
+  const handleDeleteReportedResource = async (reportId, resourceId) => {
+    if (!window.confirm("Are you sure you want to delete this resource? This will remove the file for everyone.")) {
+      return;
+    }
+    try {
+      // Deleting the resource
+      await apiClient.delete(`/resources/${resourceId}`);
+      // Dismissing the report (or you can leave it, but dismissing cleans up the list)
+      await apiClient.patch(`/resources/reports/${reportId}/dismiss`);
+      showSuccess("Resource deleted successfully.");
+      await loadRepresentativeData();
+    } catch (err) {
+      showError(err.response?.data?.message || "Failed to delete reported resource.");
+    }
+  };
+
   const filteredColleges = useMemo(() => {
     const term = collegeSearch.trim().toLowerCase();
     const items = myColleges.filter((item) => {
@@ -1238,6 +1275,13 @@ export function RepresentativePanelPage() {
           onClick={() => setActiveTab('quizzes')}
         >
           Quizzes
+        </button>
+        <button 
+          className={`tab-btn ${activeTab === 'reports' ? 'active' : ''}`}
+          onClick={() => setActiveTab('reports')}
+        >
+          Reported Content
+          {reports.length > 0 && <span className="notification-badge">{reports.length}</span>}
         </button>
         <button 
           className={`tab-btn ${activeTab === 'request-course' ? 'active' : ''}`}
@@ -1576,6 +1620,74 @@ export function RepresentativePanelPage() {
               </button>
             </form>
           </div>
+        </SectionCard>
+      )}
+
+      {activeTab === 'reports' && (
+        <SectionCard title="Reported Resources" description="Review and moderate resources flagged by students.">
+          {reports.length === 0 ? (
+            <div className="empty-state">
+              <span className="empty-icon">✅</span>
+              <p>No pending reports!</p>
+            </div>
+          ) : (
+            <div className="table-responsive">
+              <table className="data-table">
+                <thead>
+                  <tr>
+                    <th>Resource</th>
+                    <th>Reason</th>
+                    <th>Reported By</th>
+                    <th>Date</th>
+                    <th className="action-col">Actions</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {reports.map((report) => (
+                    <tr key={report._id}>
+                      <td>
+                        <strong>{report.resourceId?.title || "Deleted Resource"}</strong>
+                        <br />
+                        <span className="muted" style={{ fontSize: "0.85em" }}>
+                          ID: {report.resourceId?._id || "N/A"}
+                        </span>
+                      </td>
+                      <td>
+                        <span className="badge warning">{report.reason.replace("_", " ")}</span>
+                        {report.description && (
+                          <p className="muted" style={{ marginTop: "4px", fontSize: "0.85em" }}>"{report.description}"</p>
+                        )}
+                      </td>
+                      <td>
+                        {report.reportedBy?.fullName || "Unknown"}
+                      </td>
+                      <td>{new Date(report.createdAt).toLocaleDateString()}</td>
+                      <td>
+                        <div className="action-buttons">
+                          {report.resourceId && (
+                            <button
+                              className="btn btn-danger btn-sm"
+                              onClick={() => handleDeleteReportedResource(report._id, report.resourceId._id)}
+                              title="Delete the underlying resource"
+                            >
+                              🗑️ Delete
+                            </button>
+                          )}
+                          <button
+                            className="btn btn-secondary btn-sm"
+                            onClick={() => handleDismissReport(report._id)}
+                            title="Dismiss this report without deleting the resource"
+                          >
+                            ✅ Dismiss
+                          </button>
+                        </div>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          )}
         </SectionCard>
       )}
 
