@@ -8,6 +8,7 @@ import { groupStructuresIntoPrograms } from "../lib/academicHelpers";
 import { apiClient } from "../lib/apiClient";
 import { requestDeletePassword } from "../lib/deleteWithPassword";
 import { useToast } from "../ui/ToastContext";
+import { SkeletonCard } from "../components/LoadingStates";
 
 function normalizeProgramKey(value = "") {
   return String(value)
@@ -1129,7 +1130,7 @@ export function DashboardPage() {
                   ))}
                 </div>
               ) : null}
-              {loadingProfile ? <p className="muted">Loading college details...</p> : null}
+              {loadingProfile ? <SkeletonCard count={1} height="150px" /> : null}
               {profileError ? <p className="auth-error">{profileError}</p> : null}
               {!loadingProfile && !profile ? (
                 <p className="muted">
