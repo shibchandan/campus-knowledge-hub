@@ -13,12 +13,46 @@ Campus Knowledge Hub is designed for college communities to collaborate, manage 
 
 ---
 
-## 📂 Project Structure
+## 🏗️ Project Structure
 
 This project is structured as a monorepo containing:
 * **`client/`**: React + Vite frontend styled with responsive CSS tokens, featuring light/dark mode and a secure password visibility toggle.
 * **`server/`**: Node.js + Express backend, powered by MongoDB (Mongoose) with transactional integrity.
 * **`docs/`**: Detailed project documentation including WAF configurations, secret policy, and architecture design maps.
+
+### Architecture Diagram
+
+```mermaid
+graph TD
+    subgraph Client Layer
+        UI[React Dashboard UI]
+        AuthCtx[Auth & College Context]
+        UI --> AuthCtx
+    end
+
+    subgraph Server Layer Node.js / Express
+        WAF[WAF & Rate Limiter]
+        Auth[JWT Middleware]
+        API[Express API Routes]
+        AI[AI Studio Controller]
+        
+        WAF --> Auth
+        Auth --> API
+        Auth --> AI
+    end
+
+    subgraph Data & External Services
+        DB[(MongoDB Database)]
+        SMTP[SMTP Service]
+        LLM[External AI Providers]
+    end
+
+    AuthCtx -->|REST API Calls| WAF
+    API -->|Mongoose ODM| DB
+    API -->|Emails / OTP| SMTP
+    AI -->|Prompt Execution| LLM
+    AI -->|Audit Logs| DB
+```
 
 ---
 
