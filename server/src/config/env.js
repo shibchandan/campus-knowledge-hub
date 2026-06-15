@@ -17,7 +17,7 @@ export const env = {
   jwtPreviousSecrets: resolvedJwtPreviousSecrets,
   jwtAllVerificationSecrets: [resolvedJwtSecret, ...resolvedJwtPreviousSecrets],
   jwtExpiresIn: process.env.JWT_EXPIRES_IN || "1h",
-  clientUrl: process.env.CLIENT_URL || "http://localhost:5173",
+  clientUrl: process.env.CLIENT_URL || "https://campus-knowledge-hub.com",
   nodeEnv: (process.env.NODE_ENV || "development").trim().toLowerCase(),
   trustProxy: Number(process.env.TRUST_PROXY || 0),
   enforceHttps: String(process.env.ENFORCE_HTTPS || "false").trim().toLowerCase() === "true",

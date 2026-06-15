@@ -116,6 +116,11 @@ export async function bootstrap(config = env) {
     server.listen(config.port, () => {
       server.off("error", reject);
       console.log(`Server running on port ${config.port}`);
+      console.log(`===========================================================`);
+      console.log(`⚠️ PROPRIETARY SOFTWARE NOTICE ⚠️`);
+      console.log(`This software is the proprietary property of Shib Chandan Mistry.`);
+      console.log(`Unauthorized use, copying, or hosting is strictly prohibited.`);
+      console.log(`===========================================================`);
       logAppEvent("info", "server_started", {
         port: config.port,
         instanceId: config.instanceId,
