@@ -205,7 +205,7 @@ export function AssignmentsPage() {
               
               <div className="auth-field">
                 <label>Question or Context</label>
-                <textarea required rows={4} value={form.message} onChange={e => setForm({...form, message: e.target.value})} placeholder="Describe the assignment or what you need help with..."></textarea>
+                <textarea required rows={4} value={form.message} onChange={e => setForm({...form, message: e.target.value})} placeholder="Describe the assignment or what you need help with..." style={{ background: "var(--color-bg-primary)", color: "var(--color-text-primary)", border: "1px solid var(--color-border)", borderRadius: "8px", padding: "0.75rem", width: "100%", fontFamily: "inherit", resize: "vertical" }}></textarea>
               </div>
 
               <div className="auth-field">

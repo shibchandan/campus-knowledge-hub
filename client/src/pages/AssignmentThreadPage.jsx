@@ -32,6 +32,43 @@ export function AssignmentThreadPage() {
   const [replyAttachmentName, setReplyAttachmentName] = useState("");
   const [showPremiumModal, setShowPremiumModal] = useState(false);
   const [processingPayment, setProcessingPayment] = useState(false);
+  const [isFocused, setIsFocused] = useState(true);
+
+  // Anti-Screenshot & Piracy Protection
+  useEffect(() => {
+    const handleContextMenu = (e) => e.preventDefault();
+    const handleKeyDown = (e) => {
+      // Block PrintScreen, Ctrl+S, Ctrl+P, F12, Ctrl+Shift+I, Ctrl+C
+      if (
+        e.key === "PrintScreen" || 
+        e.keyCode === 44 || 
+        (e.ctrlKey && e.key === "p") || 
+        (e.ctrlKey && e.key === "s") || 
+        (e.ctrlKey && e.key === "c") || 
+        e.key === "F12" ||
+        (e.ctrlKey && e.shiftKey && e.key === "I") ||
+        (e.ctrlKey && e.shiftKey && e.key === "J") ||
+        (e.ctrlKey && e.key === "u")
+      ) {
+        e.preventDefault();
+        showError("Security Alert: Copying, Saving, or taking Screenshots is prohibited.");
+      }
+    };
+    const handleBlur = () => setIsFocused(false);
+    const handleFocus = () => setIsFocused(true);
+
+    document.addEventListener("contextmenu", handleContextMenu);
+    document.addEventListener("keydown", handleKeyDown);
+    window.addEventListener("blur", handleBlur);
+    window.addEventListener("focus", handleFocus);
+
+    return () => {
+      document.removeEventListener("contextmenu", handleContextMenu);
+      document.removeEventListener("keydown", handleKeyDown);
+      window.removeEventListener("blur", handleBlur);
+      window.removeEventListener("focus", handleFocus);
+    };
+  }, []);
 
   useEffect(() => {
     async function loadAssignment() {
@@ -182,15 +219,44 @@ export function AssignmentThreadPage() {
     return <div className="page-stack"><p className="muted">Loading assignment...</p></div>;
   }
 
-  if (!assignment) return null;
+  if (!assignment) {
+    return <div className="page-stack"><p className="muted">Assignment not found or expired.</p></div>;
+  }
 
   return (
-    <div className="page-stack">
-      <div style={{ marginBottom: "1rem" }}>
-        <Link to="/assignments" style={{ color: "var(--color-text-muted)", textDecoration: "none", fontSize: "0.9rem" }}>
-          &larr; Back to Live Assignments
-        </Link>
+    <div className="page-stack" style={{ 
+      userSelect: "none", 
+      WebkitUserSelect: "none", 
+      msUserSelect: "none",
+      position: "relative"
+    }}>
+      
+      {/* Dynamic Watermark Overlay */}
+      <div style={{
+        position: "fixed", top: 0, left: 0, right: 0, bottom: 0,
+        pointerEvents: "none", zIndex: 9998,
+        overflow: "hidden", display: "flex", flexWrap: "wrap",
+        opacity: 0.05, transform: "rotate(-30deg) scale(1.5)"
+      }}>
+        {Array.from({ length: 100 }).map((_, i) => (
+          <span key={i} style={{ padding: "2rem", fontSize: "1.2rem", fontWeight: "bold", whiteSpace: "nowrap" }}>
+            {user?.email} - {user?.id}
+          </span>
+        ))}
       </div>
+
+      <div style={{ 
+        filter: isFocused ? "none" : "blur(15px)", 
+        transition: "filter 0.2s ease",
+        pointerEvents: isFocused ? "auto" : "none"
+      }}>
+        <button 
+          className="back-btn" 
+          onClick={() => navigate("/assignments")}
+          style={{ marginBottom: "1rem", background: "none", border: "none", color: "var(--color-text-muted)", cursor: "pointer", display: "flex", alignItems: "center", gap: "0.5rem" }}
+        >
+          ← Back to Live Assignments
+        </button>
 
       <SectionCard>
         <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", marginBottom: "1.5rem" }}>
@@ -322,6 +388,18 @@ export function AssignmentThreadPage() {
         </form>
 
       </SectionCard>
+      </div>
+
+      {!isFocused && (
+        <div style={{
+          position: "fixed", top: "50%", left: "50%", transform: "translate(-50%, -50%)",
+          background: "rgba(0,0,0,0.8)", color: "white", padding: "2rem", borderRadius: "8px",
+          zIndex: 9999, textAlign: "center", border: "2px solid red"
+        }}>
+          <h2>⚠️ Security Warning</h2>
+          <p>Please return focus to this window.</p>
+        </div>
+      )}
 
       {showPremiumModal && (
         <div style={{
