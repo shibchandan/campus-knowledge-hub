@@ -2,6 +2,7 @@ import Razorpay from "razorpay";
 import crypto from "crypto";
 import { Payment } from "./payment.model.js";
 import { User } from "../auth/auth.model.js";
+import { CommunityGroup } from "../community/community.model.js";
 
 // Initialize razorpay securely. Fallback to mock keys if env variables are missing to prevent crashes.
 const razorpay = new Razorpay({
@@ -11,10 +12,11 @@ const razorpay = new Razorpay({
 
 export async function createOrder(req, res, next) {
   try {
-    const { paymentType, targetId } = req.body; // paymentType: "subscription" | "single_unlock"
+    const { paymentType, targetId, extraCapacity } = req.body; // paymentType: "subscription" | "single_unlock" | "group_capacity"
     
-    // ₹69 for subscription, ₹2 for single unlock
-    const amountInRupees = paymentType === "subscription" ? 69 : 2; 
+    // ₹69 for subscription, ₹2 for single unlock, ₹25 per 100 slots for group_capacity
+    const amountInRupees = paymentType === "subscription" ? 69 : 
+                           paymentType === "group_capacity" ? (extraCapacity / 100) * 25 : 2; 
     const amountInPaise = amountInRupees * 100;
 
     const options = {
@@ -30,7 +32,8 @@ export async function createOrder(req, res, next) {
       razorpayOrderId: order.id,
       amount: amountInPaise,
       paymentType,
-      targetId: paymentType === "single_unlock" ? targetId : null
+      targetId: paymentType === "single_unlock" || paymentType === "group_capacity" ? targetId : null,
+      extraCapacity: paymentType === "group_capacity" ? extraCapacity : 0
     });
 
     res.status(201).json({
@@ -80,6 +83,12 @@ export async function verifyPayment(req, res, next) {
     } else if (payment.paymentType === "single_unlock" && payment.targetId) {
       if (!user.unlockedAssignments.includes(payment.targetId)) {
         user.unlockedAssignments.push(payment.targetId);
+      }
+    } else if (payment.paymentType === "group_capacity" && payment.targetId) {
+      const group = await CommunityGroup.findById(payment.targetId);
+      if (group) {
+        group.maxCapacity += payment.extraCapacity;
+        await group.save();
       }
     }
     

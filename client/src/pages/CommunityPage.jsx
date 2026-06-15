@@ -25,6 +25,9 @@ export function CommunityPage() {
   const [showJoinModal, setShowJoinModal] = useState(false);
   const [joinCode, setJoinCode] = useState("");
 
+  const [showUpgradeModal, setShowUpgradeModal] = useState(false);
+  const [upgradeSlots, setUpgradeSlots] = useState(100);
+
   const chatEndRef = useRef(null);
 
   // Poll interval reference
@@ -140,6 +143,44 @@ export function CommunityPage() {
     }
   }
 
+  async function handleUpgradeCheckout(e) {
+    e.preventDefault();
+    try {
+      const orderRes = await apiClient.post("/payments/create-order", {
+        paymentType: "group_capacity",
+        targetId: activeGroup._id,
+        extraCapacity: upgradeSlots
+      });
+      const { orderId, amount, currency, key } = orderRes.data.data;
+
+      const options = {
+        key,
+        amount,
+        currency,
+        name: "Campus Hub",
+        description: `Upgrade Capacity (+${upgradeSlots} slots)`,
+        order_id: orderId,
+        handler: async function (response) {
+          try {
+            await apiClient.post("/payments/verify", response);
+            showSuccess("Group capacity upgraded!");
+            setShowUpgradeModal(false);
+            fetchGroups(); 
+          } catch (err) {
+            showError("Payment verification failed.");
+          }
+        },
+        theme: { color: "#3b82f6" }
+      };
+
+      const rzp = new window.Razorpay(options);
+      rzp.on("payment.failed", () => showError("Payment failed or cancelled"));
+      rzp.open();
+    } catch (err) {
+      showError("Failed to initiate checkout");
+    }
+  }
+
   return (
     <div className="page-stack" style={{ height: "calc(100vh - 100px)", display: "flex", flexDirection: "column" }}>
       <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "1rem" }}>
@@ -212,12 +253,19 @@ export function CommunityPage() {
                 <div>
                   <strong style={{ fontSize: "1.2rem" }}>{activeGroup.name}</strong>
                   <p className="muted" style={{ margin: 0, fontSize: "0.85rem" }}>
-                    {activeGroup.members?.length || 1} members
+                    {activeGroup.members?.length || 1} / {activeGroup.maxCapacity || 256} members
                   </p>
                 </div>
-                <div style={{ background: "rgba(245, 158, 11, 0.1)", border: "1px solid rgba(245, 158, 11, 0.3)", padding: "0.5rem 1rem", borderRadius: "8px" }}>
-                  <span className="muted" style={{ fontSize: "0.8rem", marginRight: "0.5rem" }}>Invite Code:</span>
-                  <strong style={{ color: "#f59e0b", letterSpacing: "1px" }}>{activeGroup.inviteCode}</strong>
+                <div style={{ display: "flex", gap: "1rem" }}>
+                  {user?.id === activeGroup.createdBy && (
+                    <button onClick={() => setShowUpgradeModal(true)} style={{ background: "#10b981", color: "white", border: "none", padding: "0.5rem 1rem", borderRadius: "8px", cursor: "pointer", fontWeight: "bold" }}>
+                      ⚡ Upgrade Capacity
+                    </button>
+                  )}
+                  <div style={{ background: "rgba(245, 158, 11, 0.1)", border: "1px solid rgba(245, 158, 11, 0.3)", padding: "0.5rem 1rem", borderRadius: "8px" }}>
+                    <span className="muted" style={{ fontSize: "0.8rem", marginRight: "0.5rem" }}>Invite Code:</span>
+                    <strong style={{ color: "#f59e0b", letterSpacing: "1px" }}>{activeGroup.inviteCode}</strong>
+                  </div>
                 </div>
               </div>
 
@@ -351,6 +399,35 @@ export function CommunityPage() {
               <div style={{ display: "flex", gap: "1rem", marginTop: "1rem" }}>
                 <button type="button" onClick={() => setShowJoinModal(false)} style={{ flex: 1, padding: "0.75rem", background: "transparent", border: "1px solid var(--color-border)", color: "white", borderRadius: "8px", cursor: "pointer" }}>Cancel</button>
                 <button type="submit" style={{ flex: 1, padding: "0.75rem", background: "#f59e0b", border: "none", color: "white", borderRadius: "8px", cursor: "pointer" }}>Join Group</button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
+
+      {/* UPGRADE MODAL */}
+      {showUpgradeModal && (
+        <div style={{ position: "fixed", top: 0, left: 0, right: 0, bottom: 0, background: "rgba(0,0,0,0.7)", zIndex: 9999, display: "flex", alignItems: "center", justifyContent: "center" }}>
+          <div style={{ width: "100%", maxWidth: "400px", background: "var(--color-bg-primary)", padding: "2rem", borderRadius: "12px" }}>
+            <h2 style={{ marginTop: 0 }}>Upgrade Group Capacity</h2>
+            <p className="muted">Expand your group's maximum size. Extra slots cost ₹25 per 100 members.</p>
+            <form onSubmit={handleUpgradeCheckout} style={{ display: "flex", flexDirection: "column", gap: "1rem" }}>
+              <div>
+                <label style={{ display: "block", marginBottom: "0.5rem" }}>Extra Member Slots</label>
+                <select 
+                  className="auth-input" 
+                  value={upgradeSlots} 
+                  onChange={e => setUpgradeSlots(Number(e.target.value))}
+                >
+                  <option value={100}>+100 Slots (₹25)</option>
+                  <option value={200}>+200 Slots (₹50)</option>
+                  <option value={500}>+500 Slots (₹125)</option>
+                  <option value={1000}>+1000 Slots (₹250)</option>
+                </select>
+              </div>
+              <div style={{ display: "flex", gap: "1rem", marginTop: "1rem" }}>
+                <button type="button" onClick={() => setShowUpgradeModal(false)} style={{ flex: 1, padding: "0.75rem", background: "transparent", border: "1px solid var(--color-border)", color: "white", borderRadius: "8px", cursor: "pointer" }}>Cancel</button>
+                <button type="submit" style={{ flex: 1, padding: "0.75rem", background: "#10b981", border: "none", color: "white", borderRadius: "8px", cursor: "pointer", fontWeight: "bold" }}>Pay ₹{ (upgradeSlots / 100) * 25 }</button>
               </div>
             </form>
           </div>

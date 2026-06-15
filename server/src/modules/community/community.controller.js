@@ -49,6 +49,9 @@ export async function joinGroup(req, res, next) {
     }
 
     if (!group.members.includes(req.user.id)) {
+      if (group.members.length >= group.maxCapacity) {
+        return res.status(403).json({ success: false, message: "This group has reached its maximum capacity." });
+      }
       group.members.push(req.user.id);
       await group.save();
     }

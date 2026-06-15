@@ -7,7 +7,8 @@ const communityGroupSchema = new mongoose.Schema(
     inviteCode: { type: String, required: true, unique: true },
     createdBy: { type: mongoose.Schema.Types.ObjectId, ref: "User", required: true },
     members: [{ type: mongoose.Schema.Types.ObjectId, ref: "User" }],
-    college: { type: mongoose.Schema.Types.ObjectId, ref: "College" } // Optional binding to a college
+    college: { type: mongoose.Schema.Types.ObjectId, ref: "College" }, // Optional binding to a college
+    maxCapacity: { type: Number, default: 256 }
   },
   { timestamps: true }
 );

@@ -9,8 +9,9 @@ const paymentSchema = new mongoose.Schema(
     amount: { type: Number, required: true },
     currency: { type: String, default: "INR" },
     status: { type: String, enum: ["created", "paid", "failed"], default: "created" },
-    paymentType: { type: String, enum: ["subscription", "single_unlock"], required: true },
-    targetId: { type: mongoose.Schema.Types.ObjectId, ref: "Assignment", default: null }, // Only for single_unlock
+    paymentType: { type: String, enum: ["subscription", "single_unlock", "group_capacity"], required: true },
+    targetId: { type: mongoose.Schema.Types.ObjectId, ref: "Assignment", default: null }, // Only for single_unlock or group_capacity
+    extraCapacity: { type: Number, default: 0 },
   },
   { timestamps: true }
 );
