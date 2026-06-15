@@ -19,6 +19,7 @@ const assignmentSchema = new mongoose.Schema(
     attachmentUrl: { type: String, default: null },
     attachmentName: { type: String, default: null },
     collegeNameNormalized: { type: String, required: true, index: true },
+    isGlobal: { type: Boolean, default: false, index: true },
     author: { type: mongoose.Schema.Types.ObjectId, ref: "User", required: true },
     replies: [replySchema],
     // The magical TTL index: deletes document automatically 6 hours (21600 seconds) after creation

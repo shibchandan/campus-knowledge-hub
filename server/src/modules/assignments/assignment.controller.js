@@ -10,9 +10,17 @@ export async function createAssignment(req, res, next) {
       return res.status(403).json({ success: false, message: "You must be associated with a college to post an assignment." });
     }
 
+    const user = await User.findById(req.user.id);
+    const isSubscribed = user.premiumUntil && user.premiumUntil > new Date();
+
+    if (req.body.isGlobal && !isSubscribed && req.user.role !== "admin") {
+      return res.status(403).json({ success: false, message: "Premium subscription required to post globally." });
+    }
+
     const assignment = await Assignment.create({
       ...req.body,
       collegeNameNormalized: userCollege || "admin_global",
+      isGlobal: req.body.isGlobal ? true : false,
       author: req.user.id
     });
 
@@ -24,11 +32,22 @@ export async function createAssignment(req, res, next) {
 
 export async function getAssignments(req, res, next) {
   try {
+    const user = await User.findById(req.user.id);
+    const isSubscribed = user.premiumUntil && user.premiumUntil > new Date();
+
     const filters = {};
     
-    // Only admins can see global, otherwise restrict to the user's college
     if (req.user.role !== "admin") {
-      filters.collegeNameNormalized = normalizeCollegeName(req.user.collegeName);
+      const userCollege = normalizeCollegeName(req.user.collegeName);
+      if (isSubscribed) {
+        filters.$or = [
+          { collegeNameNormalized: userCollege },
+          { isGlobal: true }
+        ];
+      } else {
+        filters.collegeNameNormalized = userCollege;
+        filters.isGlobal = false;
+      }
     } else if (req.query.collegeName) {
       filters.collegeNameNormalized = normalizeCollegeName(req.query.collegeName);
     }
@@ -53,8 +72,15 @@ export async function getAssignmentById(req, res, next) {
       return res.status(404).json({ success: false, message: "Assignment not found or has expired." });
     }
 
-    if (req.user.role !== "admin" && assignment.collegeNameNormalized !== normalizeCollegeName(req.user.collegeName)) {
-      return res.status(403).json({ success: false, message: "You do not have permission to view this assignment." });
+    const user = await User.findById(req.user.id);
+    const isSubscribed = user.premiumUntil && user.premiumUntil > new Date();
+    
+    if (req.user.role !== "admin") {
+      const isLocal = assignment.collegeNameNormalized === normalizeCollegeName(req.user.collegeName);
+      const isGlobalAccess = assignment.isGlobal && isSubscribed;
+      if (!isLocal && !isGlobalAccess) {
+        return res.status(403).json({ success: false, message: "You do not have permission to view this assignment." });
+      }
     }
 
     res.json({ success: true, data: assignment });
@@ -75,8 +101,15 @@ export async function replyToAssignment(req, res, next) {
       return res.status(404).json({ success: false, message: "Assignment not found or has expired." });
     }
 
-    if (req.user.role !== "admin" && assignment.collegeNameNormalized !== normalizeCollegeName(req.user.collegeName)) {
-      return res.status(403).json({ success: false, message: "You do not have permission to reply to this assignment." });
+    const user = await User.findById(req.user.id);
+    const isSubscribed = user.premiumUntil && user.premiumUntil > new Date();
+
+    if (req.user.role !== "admin") {
+      const isLocal = assignment.collegeNameNormalized === normalizeCollegeName(req.user.collegeName);
+      const isGlobalAccess = assignment.isGlobal && isSubscribed;
+      if (!isLocal && !isGlobalAccess) {
+        return res.status(403).json({ success: false, message: "You do not have permission to reply to this assignment." });
+      }
     }
 
     assignment.replies.push({
