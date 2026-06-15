@@ -10,7 +10,8 @@ import {
   getGroupMembers,
   leaveGroup,
   deleteGroup,
-  transferAdmin
+  transferAdmin,
+  toggleMessagingRestriction
 } from "./community.controller.js";
 
 export const communityRouter = Router();
@@ -23,6 +24,7 @@ communityRouter.get("/groups/:id/members", protect, getGroupMembers);
 communityRouter.post("/groups/:id/leave", protect, leaveGroup);
 communityRouter.delete("/groups/:id", protect, deleteGroup);
 communityRouter.put("/groups/:id/transfer", protect, transferAdmin);
+communityRouter.put("/groups/:id/restrict", protect, toggleMessagingRestriction);
 
 // Messaging
 communityRouter.get("/groups/:id/messages", protect, getMessages);

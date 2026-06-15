@@ -96,6 +96,10 @@ export async function sendMessage(req, res, next) {
       return res.status(403).json({ success: false, message: "Not authorized to send messages here" });
     }
 
+    if (group.onlyAdminsCanMessage && group.createdBy.toString() !== req.user.id) {
+      return res.status(403).json({ success: false, message: "Only the admin can send messages in this group." });
+    }
+
     const message = await CommunityMessage.create({
       groupId,
       sender: req.user.id,
@@ -224,6 +228,26 @@ export async function transferAdmin(req, res, next) {
     await group.save();
 
     res.json({ success: true, message: "Ownership transferred successfully." });
+  } catch (error) {
+    next(error);
+  }
+}
+
+export async function toggleMessagingRestriction(req, res, next) {
+  try {
+    const { id: groupId } = req.params;
+    
+    const group = await CommunityGroup.findById(groupId);
+    if (!group) return res.status(404).json({ success: false, message: "Group not found" });
+
+    if (group.createdBy.toString() !== req.user.id) {
+      return res.status(403).json({ success: false, message: "Only the group creator can restrict messaging." });
+    }
+
+    group.onlyAdminsCanMessage = !group.onlyAdminsCanMessage;
+    await group.save();
+
+    res.json({ success: true, message: "Messaging restriction updated", data: group });
   } catch (error) {
     next(error);
   }

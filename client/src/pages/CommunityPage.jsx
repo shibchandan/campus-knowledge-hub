@@ -238,6 +238,17 @@ export function CommunityPage() {
     }
   }
 
+  async function handleToggleRestriction() {
+    try {
+      const res = await apiClient.put(`/community/groups/${activeGroup._id}/restrict`);
+      setActiveGroup(res.data.data);
+      showSuccess(res.data.data.onlyAdminsCanMessage ? "Only admins can message now" : "Everyone can message now");
+      fetchGroups();
+    } catch (err) {
+      showError("Failed to update restriction");
+    }
+  }
+
   return (
     <div className="page-stack" style={{ height: "calc(100vh - 100px)", display: "flex", flexDirection: "column" }}>
       <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "1rem" }}>
@@ -397,31 +408,37 @@ export function CommunityPage() {
               </div>
 
               {/* Chat Input */}
-              <div style={{ padding: "1rem", background: "var(--color-bg-primary)", borderTop: "1px solid var(--color-border)" }}>
-                <form onSubmit={handleSendMessage} style={{ display: "flex", gap: "0.5rem" }}>
-                  <input 
-                    type="text" 
-                    value={messageText}
-                    onChange={(e) => setMessageText(e.target.value)}
-                    placeholder={`Message ${activeGroup.name}...`}
-                    style={{
-                      flex: 1, padding: "0.75rem 1rem", borderRadius: "24px",
-                      border: "1px solid var(--color-border)", background: "var(--color-bg-secondary)",
-                      color: "var(--color-text-primary)", outline: "none"
-                    }}
-                  />
-                  <button 
-                    type="submit" 
-                    disabled={sending || !messageText.trim()}
-                    style={{
-                      padding: "0 1.5rem", borderRadius: "24px", background: "#3b82f6", color: "white",
-                      border: "none", cursor: "pointer", fontWeight: "bold", opacity: (!messageText.trim() || sending) ? 0.5 : 1
-                    }}
-                  >
-                    Send
-                  </button>
-                </form>
-              </div>
+              {activeGroup.onlyAdminsCanMessage && activeGroup.createdBy !== user?.id ? (
+                <div style={{ padding: "1.5rem", background: "var(--color-bg-primary)", borderTop: "1px solid var(--color-border)", textAlign: "center" }}>
+                  <p className="muted" style={{ margin: 0 }}>Only admins can send messages in this group.</p>
+                </div>
+              ) : (
+                <div style={{ padding: "1rem", background: "var(--color-bg-primary)", borderTop: "1px solid var(--color-border)" }}>
+                  <form onSubmit={handleSendMessage} style={{ display: "flex", gap: "0.5rem" }}>
+                    <input 
+                      type="text" 
+                      value={messageText}
+                      onChange={(e) => setMessageText(e.target.value)}
+                      placeholder={`Message ${activeGroup.name}...`}
+                      style={{
+                        flex: 1, padding: "0.75rem 1rem", borderRadius: "24px",
+                        border: "1px solid var(--color-border)", background: "var(--color-bg-secondary)",
+                        color: "var(--color-text-primary)", outline: "none"
+                      }}
+                    />
+                    <button 
+                      type="submit" 
+                      disabled={sending || !messageText.trim()}
+                      style={{
+                        padding: "0 1.5rem", borderRadius: "24px", background: "#3b82f6", color: "white",
+                        border: "none", cursor: "pointer", fontWeight: "bold", opacity: (!messageText.trim() || sending) ? 0.5 : 1
+                      }}
+                    >
+                      Send
+                    </button>
+                  </form>
+                </div>
+              )}
             </>
           ) : (
             <div style={{ margin: "auto", textAlign: "center" }}>
@@ -502,8 +519,23 @@ export function CommunityPage() {
               <h2 style={{ marginTop: 0 }}>Group Settings</h2>
               <button onClick={() => setShowSettingsModal(false)} style={{ background: "transparent", border: "none", color: "white", cursor: "pointer", fontSize: "1.2rem" }}>✖</button>
             </div>
+
+            {user?.id === activeGroup.createdBy && (
+              <div style={{ marginTop: "1.5rem", padding: "1rem", background: "var(--color-bg-secondary)", borderRadius: "8px", display: "flex", justifyContent: "space-between", alignItems: "center", border: "1px solid rgba(255,255,255,0.05)" }}>
+                <div>
+                  <h3 style={{ margin: 0, fontSize: "1rem" }}>Restrict Messaging</h3>
+                  <p className="muted" style={{ margin: 0, fontSize: "0.85rem" }}>Only admins can send messages.</p>
+                </div>
+                <label style={{ position: "relative", display: "inline-block", width: "44px", height: "24px" }}>
+                  <input type="checkbox" checked={activeGroup.onlyAdminsCanMessage || false} onChange={handleToggleRestriction} style={{ opacity: 0, width: 0, height: 0 }} />
+                  <span style={{ position: "absolute", cursor: "pointer", top: 0, left: 0, right: 0, bottom: 0, backgroundColor: activeGroup.onlyAdminsCanMessage ? "#10b981" : "#475569", transition: ".4s", borderRadius: "24px" }}>
+                    <span style={{ position: "absolute", content: "''", height: "18px", width: "18px", left: activeGroup.onlyAdminsCanMessage ? "22px" : "3px", bottom: "3px", backgroundColor: "white", transition: ".4s", borderRadius: "50%" }}></span>
+                  </span>
+                </label>
+              </div>
+            )}
             
-            <div style={{ marginTop: "1rem", marginBottom: "1rem", padding: "1rem", background: "var(--color-bg-secondary)", borderRadius: "8px" }}>
+            <div style={{ marginTop: "1.5rem", marginBottom: "1rem", padding: "1rem", background: "var(--color-bg-secondary)", borderRadius: "8px", border: "1px solid rgba(255,255,255,0.05)" }}>
               <h3 style={{ marginTop: 0, fontSize: "1rem" }}>Members ({groupMembers.length})</h3>
               <div style={{ display: "flex", flexDirection: "column", gap: "0.5rem", maxHeight: "200px", overflowY: "auto" }}>
                 {groupMembers.map(m => (
