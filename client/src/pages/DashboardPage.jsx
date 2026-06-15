@@ -9,6 +9,7 @@ import { apiClient } from "../lib/apiClient";
 import { requestDeletePassword } from "../lib/deleteWithPassword";
 import { useToast } from "../ui/ToastContext";
 import { SkeletonCard } from "../components/LoadingStates";
+import { ChartCard, CustomPieChart, CustomBarChart } from "../components/charts/DataCharts";
 
 function normalizeProgramKey(value = "") {
   return String(value)
@@ -622,6 +623,28 @@ export function DashboardPage() {
     ]
   );
 
+  const academicDistributionData = useMemo(() => {
+    if (!structures.length) {
+      if (approvedCourses.length) {
+        return approvedCourses.map(course => ({ name: course.courseName, value: Number(course.semesterCount) || 1 }));
+      }
+      return [{ name: "Pending", value: 1 }];
+    }
+    return structures.map(program => ({
+      name: program.name,
+      value: program.branches.reduce((sum, b) => sum + b.semesters.length, 0) || 1
+    }));
+  }, [structures, approvedCourses]);
+
+  const representativeCoverageData = useMemo(() => {
+    if (!representativeDirectory.length) return [];
+    return representativeDirectory.map(rep => ({
+      name: rep.fullName,
+      courses: rep.courses.length,
+      semesters: rep.totalSemesters
+    })).slice(0, 10);
+  }, [representativeDirectory]);
+
   const heroStatusItems = useMemo(
     () => [
       {
@@ -810,7 +833,48 @@ export function DashboardPage() {
           <span className="tab-icon">📢</span>
           <span>Notice Desk</span>
         </button>
+        <button
+          className={`dashboard-tab ${activeTab === "analytics" ? "active" : ""}`}
+          onClick={() => setActiveTab("analytics")}
+          type="button"
+        >
+          <span className="tab-icon">📈</span>
+          <span>Analytics</span>
+        </button>
       </div>
+
+      {activeTab === "analytics" && (
+        <>
+          <SectionCard
+            title="Academic Analytics"
+            description="Visual breakdown of structural data, representative mapping, and system volume."
+          >
+            <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(350px, 1fr))", gap: "1.5rem" }}>
+              <ChartCard 
+                title="Program Distribution" 
+                subtitle="Semester density across programs" 
+                icon="🍩"
+              >
+                <CustomPieChart data={academicDistributionData} />
+              </ChartCard>
+
+              <ChartCard 
+                title="Representative Coverage" 
+                subtitle="Top 10 Representatives by assigned courses/semesters" 
+                icon="📊"
+              >
+                <CustomBarChart 
+                  data={representativeCoverageData} 
+                  bars={[
+                    { dataKey: "courses", name: "Courses Managed", color: "#6366f1" },
+                    { dataKey: "semesters", name: "Total Semesters", color: "#10b981" }
+                  ]}
+                />
+              </ChartCard>
+            </div>
+          </SectionCard>
+        </>
+      )}
 
       {activeTab === "workspace" && (
         <>

@@ -10,6 +10,7 @@ import { CourseForm } from "../components/forms/CourseForm";
 import { StructureForm } from "../components/forms/StructureForm";
 import { SubjectForm } from "../components/forms/SubjectForm";
 import { NoticeForm } from "../components/forms/NoticeForm";
+import { ChartCard, CustomPieChart, CustomBarChart } from "../components/charts/DataCharts";
 import { normalizeSearchValue, normalizeRouteId } from "../lib/stringUtils";
 
 const initialForm = {
@@ -1248,6 +1249,24 @@ export function RepresentativePanelPage() {
     [filteredColleges.length, myColleges, requests, subjects.length]
   );
 
+  const subjectDistributionData = useMemo(() => {
+    if (!subjects.length) return [];
+    const counts = {};
+    subjects.forEach(sub => {
+      counts[sub.collegeName] = (counts[sub.collegeName] || 0) + 1;
+    });
+    return Object.entries(counts).map(([name, value]) => ({ name, value }));
+  }, [subjects]);
+
+  const quizActivityData = useMemo(() => {
+    if (!quizzes || !quizzes.length) return [];
+    return quizzes.map(q => ({
+      name: q.title || "Untitled",
+      completed: q.status === "completed" ? 1 : 0,
+      active: q.status === "active" ? 1 : 0
+    })).slice(0, 10);
+  }, [quizzes]);
+
   return (
     <div className="dense-admin">
       <div className="page-stack">
@@ -1313,12 +1332,49 @@ export function RepresentativePanelPage() {
           Request Course
         </button>
         <button 
+          className={`tab-btn ${activeTab === 'analytics' ? 'active' : ''}`}
+          onClick={() => setActiveTab('analytics')}
+        >
+          Analytics
+        </button>
+        <button 
           className={`tab-btn danger ${activeTab === 'settings' ? 'active' : ''}`}
           onClick={() => setActiveTab('settings')}
         >
           Settings
         </button>
       </div>
+
+      {activeTab === 'analytics' && (
+        <SectionCard
+          title="Representative Analytics"
+          description="Visual breakdown of your managed resources, subject loads, and quiz engagement."
+        >
+          <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(350px, 1fr))", gap: "1.5rem" }}>
+            <ChartCard 
+              title="Subject Distribution" 
+              subtitle="Subjects managed per assigned college" 
+              icon="📚"
+            >
+              <CustomPieChart data={subjectDistributionData} />
+            </ChartCard>
+
+            <ChartCard 
+              title="Quiz Deployments" 
+              subtitle="Status of your recently arranged quizzes" 
+              icon="🎯"
+            >
+              <CustomBarChart 
+                data={quizActivityData} 
+                bars={[
+                  { dataKey: "active", name: "Active Quizzes", color: "#f59e0b" },
+                  { dataKey: "completed", name: "Completed Quizzes", color: "#10b981" }
+                ]}
+              />
+            </ChartCard>
+          </div>
+        </SectionCard>
+      )}
 
       {activeTab === 'request-course' && (
         <SectionCard
