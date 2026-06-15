@@ -739,6 +739,11 @@ export async function viewResourceFile(req, res, next) {
     if (resource.fileMimeType) {
       res.type(resource.fileMimeType);
     }
+    
+    // Add strict security headers to prevent XSS from uploaded files (like SVG)
+    res.setHeader("Content-Security-Policy", "default-src 'none'; style-src 'unsafe-inline'; sandbox");
+    res.setHeader("X-Content-Type-Options", "nosniff");
+    
     res.sendFile(filePath);
   } catch (error) {
     next(error);
