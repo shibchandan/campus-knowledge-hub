@@ -1,6 +1,6 @@
 # Campus Knowledge Hub 🎓
 
-![License](https://img.shields.io/badge/license-MIT-blue.svg)
+![License](https://img.shields.io/badge/license-Proprietary-red.svg)
 ![React](https://img.shields.io/badge/React-18-blue.svg)
 ![Node](https://img.shields.io/badge/Node.js-20-green.svg)
 ![MongoDB](https://img.shields.io/badge/MongoDB-Latest-green.svg)
@@ -94,4 +94,4 @@ npm run dev
 ---
 
 ## 📄 License
-This project is licensed under the MIT License.
+This project is proprietary and confidential. All rights are reserved by Shib Chandan Mistry. Unauthorized copying, modification, or distribution is strictly prohibited. See the [LICENSE](./LICENSE) file for more details.
