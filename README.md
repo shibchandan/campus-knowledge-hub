@@ -111,7 +111,16 @@ graph TD
 
 ## 📸 Platform Previews
 
-*(Screenshots of the interactive dashboard, AI Studio, and analytics panels are available in the live demonstration.)*
+Here is a look at the different sections of the application, showcasing the responsive design and core user interfaces:
+
+### Academic Workspaces
+![Colleges](./docs/screenshots/colleges.png)
+![Branches](./docs/screenshots/branches.png)
+![Semesters](./docs/screenshots/semesters.png)
+
+### Resource Management
+![Resources](./docs/screenshots/resources.png)
+![Upload Section](./docs/screenshots/upload_section.png)
 
 ---
 
