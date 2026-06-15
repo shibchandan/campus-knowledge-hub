@@ -4,7 +4,8 @@ import {
   addBlockedUser,
   getMySettings,
   removeBlockedUser,
-  updateMyPreferences
+  updateMyPreferences,
+  requestEmailMigration
 } from "./settings.controller.js";
 
 export const settingsRouter = Router();
@@ -13,3 +14,4 @@ settingsRouter.get("/me", protect, getMySettings);
 settingsRouter.patch("/preferences", protect, updateMyPreferences);
 settingsRouter.post("/blocked-users", protect, addBlockedUser);
 settingsRouter.delete("/blocked-users/:blockedUserId", protect, removeBlockedUser);
+settingsRouter.post("/request-email-migration", protect, requestEmailMigration);

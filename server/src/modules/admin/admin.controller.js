@@ -53,3 +53,58 @@ export async function getAnalytics(req, res, next) {
     next(error);
   }
 }
+
+export async function getPendingEmailMigrations(req, res, next) {
+  try {
+    const pending = await User.find({ pendingEmailMigrationStatus: "pending" })
+      .select("_id fullName email role collegeName pendingEmailMigration createdAt")
+      .sort("-createdAt");
+      
+    res.json({ success: true, data: pending });
+  } catch (error) {
+    next(error);
+  }
+}
+
+export async function processEmailMigration(req, res, next) {
+  try {
+    const { userId } = req.params;
+    const { action } = req.body; // "approve" or "reject"
+    
+    if (action !== "approve" && action !== "reject") {
+      const error = new Error("Action must be approve or reject");
+      error.statusCode = 400;
+      throw error;
+    }
+
+    const user = await User.findById(userId);
+    if (!user || user.pendingEmailMigrationStatus !== "pending") {
+      const error = new Error("Pending email migration not found for this user");
+      error.statusCode = 404;
+      throw error;
+    }
+
+    if (action === "approve") {
+      // Ensure email isn't somehow taken between request and approval
+      const existing = await User.findOne({ email: user.pendingEmailMigration });
+      if (existing) {
+        const error = new Error("The requested email is already registered to another account.");
+        error.statusCode = 409;
+        throw error;
+      }
+      user.email = user.pendingEmailMigration;
+    }
+
+    user.pendingEmailMigration = "";
+    user.pendingEmailMigrationStatus = "none";
+    await user.save();
+
+    res.json({
+      success: true,
+      message: `Email migration request ${action}d successfully.`,
+      data: { id: user._id, email: user.email }
+    });
+  } catch (error) {
+    next(error);
+  }
+}

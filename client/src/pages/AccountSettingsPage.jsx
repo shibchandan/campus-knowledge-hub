@@ -70,6 +70,8 @@ export function AccountSettingsPage() {
   const [disablePassword, setDisablePassword] = useState("");
   const [showDisableForm, setShowDisableForm] = useState(false);
   const [disableLoading, setDisableLoading] = useState(false);
+  const [migrationEmail, setMigrationEmail] = useState("");
+  const [migrationLoading, setMigrationLoading] = useState(false);
 
   useEffect(() => {
     refreshCurrentUser().catch(() => {});
@@ -398,6 +400,26 @@ export function AccountSettingsPage() {
     }
   }
 
+  async function handleRequestEmailMigration(event) {
+    event.preventDefault();
+    setMigrationLoading(true);
+    setError("");
+    setSuccess("");
+
+    try {
+      const response = await apiClient.post("/settings/request-email-migration", {
+        newEmail: migrationEmail
+      });
+      setSuccess(response.data.message || "Email migration requested successfully.");
+      setMigrationEmail("");
+      await refreshCurrentUser();
+    } catch (requestError) {
+      setError(requestError.response?.data?.message || "Failed to request email migration.");
+    } finally {
+      setMigrationLoading(false);
+    }
+  }
+
   return (
     <div className="page-stack">
       <SectionCard
@@ -637,6 +659,42 @@ export function AccountSettingsPage() {
                   </form>
                 </>
               ) : null}
+            </div>
+          ) : null}
+
+          {user?.role === "representative" ? (
+            <div className="panel-subsection">
+              <h3>Email Migration Request</h3>
+              <p className="muted">
+                As a representative, you can request to transfer your account to a new email address. This requires Admin approval.
+              </p>
+              
+              {user?.pendingEmailMigrationStatus === "pending" ? (
+                <div className="detail-grid">
+                  <article className="detail-card">
+                    <h3>Pending Migration</h3>
+                    <p>You have requested to migrate this account to <strong>{user?.pendingEmailMigration}</strong>. Waiting for admin approval.</p>
+                  </article>
+                </div>
+              ) : (
+                <form className="panel-form" onSubmit={handleRequestEmailMigration}>
+                  <div className="panel-form-grid">
+                    <label className="auth-field">
+                      <span>New Email Address</span>
+                      <input
+                        onChange={(event) => setMigrationEmail(event.target.value)}
+                        placeholder="new.email@college.edu"
+                        required
+                        type="email"
+                        value={migrationEmail}
+                      />
+                    </label>
+                  </div>
+                  <button className="auth-submit" disabled={migrationLoading} type="submit">
+                    {migrationLoading ? "Requesting..." : "Request Email Migration"}
+                  </button>
+                </form>
+              )}
             </div>
           ) : null}
         </SectionCard>

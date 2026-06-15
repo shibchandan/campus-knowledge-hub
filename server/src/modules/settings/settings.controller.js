@@ -1,4 +1,5 @@
 import { UserSettings } from "./settings.model.js";
+import { User } from "../auth/auth.model.js";
 import { createAuditLog } from "../../services/audit.service.js";
 import { createHttpError, readString } from "../../utils/requestValidation.js";
 import { requirePasswordConfirmation } from "../../utils/passwordConfirmation.js";
@@ -203,6 +204,43 @@ export async function removeBlockedUser(req, res, next) {
       success: true,
       message: "Blocked user removed successfully.",
       data: serializeSettings(settings)
+    });
+  } catch (error) {
+    next(error);
+  }
+}
+
+export async function requestEmailMigration(req, res, next) {
+  try {
+    const user = await User.findById(req.user.id);
+    if (!user) throw createHttpError("User not found", 404);
+    if (user.role !== "representative") {
+      throw createHttpError("Only representatives can request an email migration.", 403);
+    }
+
+    const newEmail = readString(req.body.newEmail, { field: "New Email" }).toLowerCase();
+    
+    // Check if new email is already in use
+    const existing = await User.findOne({ email: newEmail });
+    if (existing) {
+      throw createHttpError("This email is already registered to another account.", 409);
+    }
+
+    user.pendingEmailMigration = newEmail;
+    user.pendingEmailMigrationStatus = "pending";
+    await user.save();
+
+    await createAuditLog({
+      req,
+      action: "settings.request_email_migration",
+      entityType: "user",
+      entityId: user._id,
+      metadata: { newEmail }
+    });
+
+    res.json({
+      success: true,
+      message: "Email migration requested. Pending admin approval."
     });
   } catch (error) {
     next(error);

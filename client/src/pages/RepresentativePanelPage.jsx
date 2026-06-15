@@ -55,6 +55,8 @@ const initialQuizForm = {
   mode: "",
   note: "",
   resourceMatch: "",
+  accessPassword: "",
+  timerMinutes: "",
   isPublished: true,
   questions: [initialQuizQuestion]
 };
@@ -147,6 +149,8 @@ function mapQuizToForm(quiz) {
     mode: quiz.mode || "",
     note: quiz.note || "",
     resourceMatch: quiz.resourceMatch || "",
+    accessPassword: quiz.accessPassword || "",
+    timerMinutes: quiz.timerMinutes || "",
     isPublished: Boolean(quiz.isPublished),
     questions:
       Array.isArray(quiz.questions) && quiz.questions.length
@@ -802,6 +806,25 @@ export function RepresentativePanelPage() {
       await loadRepresentativeData();
     } catch (requestError) {
       const message = requestError.response?.data?.message || "Failed to delete quiz arrangement.";
+      setError(message);
+      showError(message);
+    }
+  }
+
+  async function handleEndQuiz(quizId) {
+    if (!window.confirm("Are you sure you want to end this quiz? Students will no longer be able to attend it.")) {
+      return;
+    }
+    setError("");
+    setSuccess("");
+
+    try {
+      await apiClient.post(`/quizzes/${quizId}/end`);
+      setSuccess("Quiz ended successfully.");
+      showSuccess("Quiz ended successfully.");
+      await loadRepresentativeData();
+    } catch (requestError) {
+      const message = requestError.response?.data?.message || "Failed to end quiz.";
       setError(message);
       showError(message);
     }
@@ -1967,6 +1990,31 @@ export function RepresentativePanelPage() {
               </select>
             </label>
           </div>
+          <div className="panel-form-grid">
+            <label className="auth-field">
+              <span>Security PIN (Optional)</span>
+              <input
+                onChange={(event) =>
+                  setQuizForm((current) => ({ ...current, accessPassword: event.target.value }))
+                }
+                placeholder="Leave blank to auto-generate 6-digit PIN"
+                type="text"
+                value={quizForm.accessPassword}
+              />
+            </label>
+            <label className="auth-field">
+              <span>Timer Minutes (Optional)</span>
+              <input
+                onChange={(event) =>
+                  setQuizForm((current) => ({ ...current, timerMinutes: event.target.value }))
+                }
+                placeholder="e.g. 15 (0 for no timer)"
+                type="number"
+                min="0"
+                value={quizForm.timerMinutes}
+              />
+            </label>
+          </div>
           <label className="auth-field">
             <span>Arrangement Note</span>
             <textarea
@@ -2083,10 +2131,13 @@ export function RepresentativePanelPage() {
               <h3>{quiz.title}</h3>
               <p className="muted">
                 {quiz.collegeName} | {quiz.programId} | {quiz.difficulty} | {quiz.duration} |{" "}
-                {quiz.isPublished ? "Published" : "Draft"}
+                {quiz.isEnded ? "Ended" : (quiz.isPublished ? "Published" : "Draft")}
               </p>
               <p className="muted">
-                Mode: {quiz.mode} | Questions: {quiz.questions?.length || 0}
+                Mode: {quiz.mode} | Questions: {quiz.questions?.length || quiz.questionsCount || 0}
+              </p>
+              <p className="muted">
+                <strong>PIN:</strong> {quiz.accessPassword || "Auto-generated/Hidden"} | <strong>Timer:</strong> {quiz.timerMinutes ? `${quiz.timerMinutes} mins` : "None"}
               </p>
               {quiz.note ? <p>{quiz.note}</p> : null}
               <div className="panel-actions">
@@ -2096,6 +2147,14 @@ export function RepresentativePanelPage() {
                 <button className="action-button reject" onClick={() => handleDeleteQuiz(quiz._id)} type="button">
                   Delete Quiz
                 </button>
+                {!quiz.isEnded && (
+                  <button className="action-button reject" onClick={() => handleEndQuiz(quiz._id)} type="button" style={{ backgroundColor: '#f59e0b', borderColor: '#f59e0b', color: 'white' }}>
+                    End Quiz
+                  </button>
+                )}
+                <Link className="action-button neutral" to={`/quizzes/${quiz._id}/results`}>
+                  View Results
+                </Link>
               </div>
             </article>
           ))}

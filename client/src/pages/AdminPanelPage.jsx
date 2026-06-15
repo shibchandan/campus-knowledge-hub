@@ -64,6 +64,7 @@ export function AdminPanelPage() {
   const { user: currentUser } = useAuth();
   const [pendingRequests, setPendingRequests] = useState([]);
   const [users, setUsers] = useState([]);
+  const [pendingEmailMigrations, setPendingEmailMigrations] = useState([]);
   const [approvedCourses, setApprovedCourses] = useState([]);
   const [notices, setNotices] = useState([]);
   const [subjects, setSubjects] = useState([]);
@@ -119,7 +120,8 @@ export function AdminPanelPage() {
         resourcesResponse,
         syllabusResponse,
         auditResponse,
-        analyticsResponse
+        analyticsResponse,
+        emailMigrationsResponse
       ] = await Promise.all([
         apiClient.get("/auth/admin/users"),
         apiClient.get("/governance/approved-courses"),
@@ -129,11 +131,13 @@ export function AdminPanelPage() {
         apiClient.get("/resources", { params: { page: 1, limit: 50 } }),
         apiClient.get("/resources", { params: { page: 1, limit: 20, categoryId: "syllabus" } }),
         apiClient.get("/audit/logs", { params: { page: 1, limit: 20 } }),
-        apiClient.get("/admin/analytics").catch(() => ({ data: { data: null } }))
+        apiClient.get("/admin/analytics").catch(() => ({ data: { data: null } })),
+        apiClient.get("/admin/email-migrations").catch(() => ({ data: { data: [] } }))
       ]);
 
       setPendingRequests([]);
       setUsers(usersResponse.data.data || []);
+      setPendingEmailMigrations(emailMigrationsResponse?.data?.data || []);
       setApprovedCourses(approvedResponse.data.data || []);
       setNotices(noticesResponse.data.data || []);
       setStructures(structuresResponse.data.data || []);
@@ -224,6 +228,20 @@ export function AdminPanelPage() {
       await loadAdminData();
     } catch (requestError) {
       const message = requestError.response?.data?.message || "Failed to update user.";
+      setError(message);
+      showError(message);
+    }
+  }
+
+  async function handleEmailMigrationDecision(userId, action) {
+    clearMessages();
+    try {
+      await apiClient.post(`/admin/email-migrations/${userId}`, { action });
+      setSuccess(`Email migration ${action}d successfully.`);
+      showSuccess(`Email migration ${action}d successfully.`);
+      await loadAdminData();
+    } catch (requestError) {
+      const message = requestError.response?.data?.message || "Failed to process email migration.";
       setError(message);
       showError(message);
     }
@@ -1085,6 +1103,39 @@ export function AdminPanelPage() {
               </div>
             </article>
           ))}
+        </div>
+      </SectionCard>
+
+      <SectionCard title="Email Migration Requests" description="Review and approve requests from Representatives to migrate their accounts to a new email.">
+        <div className="panel-list">
+          {pendingEmailMigrations.map((migration) => (
+            <article className="panel-card" key={migration._id}>
+              <h3>{migration.fullName}</h3>
+              <p className="muted">Current Email: {migration.email}</p>
+              <p className="muted">Requested New Email: <strong>{migration.pendingEmailMigration}</strong></p>
+              <p className="muted">College: {migration.collegeName || "Not assigned"}</p>
+              <p className="muted">Requested on: {new Date(migration.createdAt).toLocaleDateString()}</p>
+              <div className="panel-actions">
+                <button
+                  className="action-button approve"
+                  onClick={() => handleEmailMigrationDecision(migration._id, "approve")}
+                  type="button"
+                >
+                  Approve Migration
+                </button>
+                <button
+                  className="action-button reject"
+                  onClick={() => handleEmailMigrationDecision(migration._id, "reject")}
+                  type="button"
+                >
+                  Reject
+                </button>
+              </div>
+            </article>
+          ))}
+          {!pendingEmailMigrations.length ? (
+            <p className="muted">No pending email migration requests.</p>
+          ) : null}
         </div>
       </SectionCard>
 

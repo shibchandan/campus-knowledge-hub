@@ -5,6 +5,7 @@ import { getQuizArrangementById } from "../features/notes/mockResources";
 import { apiClient } from "../lib/apiClient";
 import { useCollege } from "../college/CollegeContext";
 import { useToast } from "../ui/ToastContext";
+import { useAuth } from "../auth/AuthContext";
 
 const QUIZ_PLAN_STORAGE_KEY = "campus-knowledge-hub-quiz-plans";
 
@@ -28,6 +29,7 @@ export function QuizArrangementPage() {
   const [searchParams] = useSearchParams();
   const { selectedCollege } = useCollege();
   const { showInfo, showSuccess } = useToast();
+  const { user } = useAuth();
   const fallbackQuiz = getQuizArrangementById(quizId);
   const [dynamicQuiz, setDynamicQuiz] = useState(null);
   const [loading, setLoading] = useState(Boolean(quizId));
@@ -35,8 +37,38 @@ export function QuizArrangementPage() {
   const [selectedAnswers, setSelectedAnswers] = useState({});
   const [submitted, setSubmitted] = useState(false);
   const [saved, setSaved] = useState(false);
+  
+  const [unlockPassword, setUnlockPassword] = useState("");
+  const [unlockError, setUnlockError] = useState("");
+  const [unlockLoading, setUnlockLoading] = useState(false);
+  const [timeLeft, setTimeLeft] = useState(null);
+  
+  const [studentName, setStudentName] = useState(user?.fullName || "");
+  const [collegeId, setCollegeId] = useState("");
+  const [submitting, setSubmitting] = useState(false);
+  const [result, setResult] = useState(null);
+
   const quiz = dynamicQuiz || fallbackQuiz;
   const collegeName = searchParams.get("collegeName") || selectedCollege?.name || "";
+
+  useEffect(() => {
+    if (!quiz || !quiz.questions || submitted) return;
+    if (quiz.timerMinutes && timeLeft === null) {
+      setTimeLeft(quiz.timerMinutes * 60);
+    }
+  }, [quiz, submitted, timeLeft]);
+
+  useEffect(() => {
+    if (timeLeft === null || submitted) return;
+    if (timeLeft <= 0) {
+      handleSubmitQuiz();
+      return;
+    }
+    const timer = setInterval(() => {
+      setTimeLeft((prev) => prev - 1);
+    }, 1000);
+    return () => clearInterval(timer);
+  }, [timeLeft, submitted]);
 
   useEffect(() => {
     let ignore = false;
@@ -91,10 +123,62 @@ export function QuizArrangementPage() {
     return <Navigate to="/quizzes" replace />;
   }
 
-  const score = quiz.questions.reduce((total, item, index) => {
-    const chosen = selectedAnswers[index];
-    return total + Number(chosen === item.answer);
-  }, 0);
+  const isLocked = user?.role === "student" && (!quiz?.questions || quiz.questions.length === 0) && quiz.questionsCount > 0;
+
+  async function handleUnlock(event) {
+    event.preventDefault();
+    setUnlockError("");
+    setUnlockLoading(true);
+    try {
+      const response = await apiClient.post(`/quizzes/${quizId}/start`, {
+        accessPassword: unlockPassword
+      });
+      setDynamicQuiz(response.data.data);
+      showSuccess("Quiz unlocked successfully.");
+    } catch (error) {
+      setUnlockError(error.response?.data?.message || "Invalid PIN.");
+    } finally {
+      setUnlockLoading(false);
+    }
+  }
+
+  if (isLocked) {
+    return (
+      <div className="page-stack">
+        <SectionCard title="Secure Quiz Area" description="This quiz is protected and requires a PIN from your representative to start.">
+          {unlockError ? <p className="auth-error">{unlockError}</p> : null}
+          <form className="panel-form" onSubmit={handleUnlock}>
+            <div className="panel-form-grid">
+              <label className="auth-field">
+                <span>Quiz PIN</span>
+                <input
+                  onChange={(event) => setUnlockPassword(event.target.value)}
+                  placeholder="Enter the PIN to start"
+                  required
+                  type="text"
+                  value={unlockPassword}
+                />
+              </label>
+            </div>
+            <button className="auth-submit" disabled={unlockLoading} type="submit">
+              {unlockLoading ? "Verifying..." : "Unlock Quiz"}
+            </button>
+          </form>
+        </SectionCard>
+      </div>
+    );
+  }
+
+  if (!quiz.questions || quiz.questions.length === 0) {
+    return (
+      <div className="page-stack">
+        <SectionCard title="Quiz Unavailable" description="This quiz has no questions or is incomplete." />
+      </div>
+    );
+  }
+
+  // We no longer calculate a score locally since it is done by the backend
+  // and we don't display a single score field.
 
   function handleSelect(option) {
     setSelectedAnswers((current) => ({
@@ -115,9 +199,22 @@ export function QuizArrangementPage() {
     showSuccess("Quiz plan saved.");
   }
 
-  function handleSubmitQuiz() {
-    setSubmitted(true);
-    showInfo("Quiz submitted. Review your score below.");
+  async function handleSubmitQuiz() {
+    setSubmitting(true);
+    try {
+      const response = await apiClient.post(`/quizzes/${quiz._id || quiz.id}/submit`, {
+        studentName,
+        collegeId,
+        selectedAnswers
+      });
+      setResult(response.data.data);
+      setSubmitted(true);
+      showSuccess("Quiz submitted successfully.");
+    } catch (error) {
+      showError(error.response?.data?.message || "Failed to submit quiz.");
+    } finally {
+      setSubmitting(false);
+    }
   }
 
   return (
@@ -133,6 +230,11 @@ export function QuizArrangementPage() {
             <p className="muted">
               Question {currentIndex + 1} of {totalQuestions}
             </p>
+            {timeLeft !== null && !submitted ? (
+              <p className="status-chip pending" style={{ marginTop: '0.5rem', display: 'inline-block' }}>
+                Time Left: {Math.floor(timeLeft / 60)}:{(timeLeft % 60).toString().padStart(2, '0')}
+              </p>
+            ) : null}
           </div>
           <Link className="back-link" to="/quizzes">
             Back to Quizzes
@@ -203,20 +305,56 @@ export function QuizArrangementPage() {
             <p>{submitted ? "Submitted" : "In progress"}</p>
           </article>
           <article className="detail-card">
-            <h3>Score</h3>
-            <p>{submitted ? `${score} / ${totalQuestions}` : "Not submitted yet"}</p>
+            <h3>Completion</h3>
+            <p>{submitted ? "Done" : "Pending"}</p>
           </article>
         </div>
+        
+        {!submitted && (
+          <div className="panel-form-grid" style={{ marginTop: "1.5rem", marginBottom: "1rem" }}>
+            <label className="auth-field">
+              <span>Student Name *</span>
+              <input
+                type="text"
+                value={studentName}
+                onChange={(e) => setStudentName(e.target.value)}
+                required
+                placeholder="Enter your name"
+              />
+            </label>
+            <label className="auth-field">
+              <span>College ID *</span>
+              <input
+                type="text"
+                value={collegeId}
+                onChange={(e) => setCollegeId(e.target.value)}
+                required
+                placeholder="Enter your College ID"
+              />
+            </label>
+          </div>
+        )}
+
         <div className="panel-actions">
-          <button className="auth-submit" onClick={handleSubmitQuiz} type="button">
-            Submit Arrangement
+          <button 
+            className="auth-submit" 
+            onClick={handleSubmitQuiz} 
+            type="button"
+            disabled={submitted || submitting || (!studentName.trim() || !collegeId.trim())}
+          >
+            {submitting ? "Submitting..." : "Submit Arrangement"}
           </button>
         </div>
-        {submitted ? (
+        {submitted && result ? (
           <article className="panel-card">
             <h3>Result Insight</h3>
             <p>
-              You scored {score} out of {totalQuestions}. Review the highlighted correct answers and retry for stronger revision.
+              <strong>Correct:</strong> {result.correctCount} <br />
+              <strong>Wrong:</strong> {result.wrongCount} <br />
+              <strong>Not Attempted:</strong> {result.unattemptedCount}
+            </p>
+            <p className="muted" style={{ marginTop: '0.5rem' }}>
+              Review the highlighted correct answers and retry for stronger revision.
             </p>
           </article>
         ) : null}

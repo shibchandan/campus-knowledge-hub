@@ -45,7 +45,9 @@ const userSchema = new mongoose.Schema(
     loginLockedUntil: { type: Date, default: null, select: false },
     twoFactorEnabled: { type: Boolean, default: false },
     twoFactorSecret: { type: String, default: "", select: false },
-    twoFactorTempSecret: { type: String, default: "", select: false }
+    twoFactorTempSecret: { type: String, default: "", select: false },
+    pendingEmailMigration: { type: String, default: "", trim: true, lowercase: true },
+    pendingEmailMigrationStatus: { type: String, enum: ["none", "pending"], default: "none" }
   },
   { timestamps: true }
 );
@@ -92,6 +94,7 @@ userSchema.methods.toSafeObject = function toSafeObject() {
     twoFactorEnabled: Boolean(this.twoFactorEnabled),
     avatarUrl: this.avatarUrl,
     reputationScore: this.reputationScore,
+    pendingEmailMigrationStatus: this.pendingEmailMigrationStatus || "none",
     createdAt: this.createdAt,
     updatedAt: this.updatedAt
   };

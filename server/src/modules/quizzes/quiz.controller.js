@@ -1,4 +1,4 @@
-import { Quiz } from "./quiz.model.js";
+import { Quiz, QuizResult } from "./quiz.model.js";
 import { CollegeCourse } from "../governance/governance.model.js";
 import { createAuditLog } from "../../services/audit.service.js";
 import {
@@ -84,6 +84,10 @@ function validateQuizPayload(body) {
       required: false,
       max: 160
     }),
+    accessPassword: body.accessPassword
+      ? readString(body.accessPassword, { field: "accessPassword", min: 4, max: 20 })
+      : Math.floor(100000 + Math.random() * 900000).toString(),
+    timerMinutes: body.timerMinutes ? Number(body.timerMinutes) : 0,
     questions: validateQuestions(body.questions),
     isPublished: readBoolean(body.isPublished, true)
   };
@@ -152,6 +156,7 @@ export async function listQuizzes(req, res, next) {
       }
     } else {
       filters.isPublished = true;
+      filters.isEnded = { $ne: true };
       const effectiveCollegeName =
         req.user.role === "student" ? req.user.collegeName : collegeName;
       if (effectiveCollegeName) {
@@ -163,7 +168,16 @@ export async function listQuizzes(req, res, next) {
       .populate("createdByUser", "fullName role")
       .sort({ createdAt: -1 });
 
-    res.json({ success: true, data: quizzes });
+    const formattedQuizzes = quizzes.map(q => {
+      const obj = q.toObject();
+      if (req.user.role === "student") {
+        obj.questionsCount = obj.questions?.length || 0;
+        delete obj.questions;
+      }
+      return obj;
+    });
+
+    res.json({ success: true, data: formattedQuizzes });
   } catch (error) {
     next(error);
   }
@@ -203,6 +217,10 @@ export async function getQuizById(req, res, next) {
       throw createHttpError("Students can access quizzes only for their assigned college.", 403);
     }
 
+    if (quiz.isEnded && req.user.role === "student") {
+      throw createHttpError("This quiz has ended and is no longer available.", 403);
+    }
+
     if (!quiz.isPublished) {
       const isAdmin = req.user.role === "admin";
       const isOwner = String(quiz.createdByUser?._id || quiz.createdByUser) === String(req.user.id);
@@ -211,7 +229,13 @@ export async function getQuizById(req, res, next) {
       }
     }
 
-    res.json({ success: true, data: quiz });
+    const quizObj = quiz.toObject();
+    if (req.user.role === "student") {
+      quizObj.questionsCount = quizObj.questions?.length || 0;
+      delete quizObj.questions;
+    }
+
+    res.json({ success: true, data: quizObj });
   } catch (error) {
     next(error);
   }
@@ -235,7 +259,7 @@ export async function createQuiz(req, res, next) {
       metadata: { collegeName: quiz.collegeName, title: quiz.title }
     });
 
-    const populated = await Quiz.findById(quiz._id).populate("createdByUser", "fullName role");
+    const populated = await Quiz.findById(quiz._id).select("+accessPassword").populate("createdByUser", "fullName role");
     res.status(201).json({ success: true, data: populated });
   } catch (error) {
     next(error);
@@ -304,6 +328,175 @@ export async function deleteQuiz(req, res, next) {
     });
 
     res.json({ success: true, message: "Quiz arrangement deleted successfully." });
+  } catch (error) {
+    next(error);
+  }
+}
+
+export async function startQuiz(req, res, next) {
+  try {
+    const quizId = readMongoId(req.params.quizId, { field: "quizId" });
+    const accessPassword = readString(req.body.accessPassword, { field: "accessPassword" });
+
+    const quiz = await Quiz.findById(quizId).select("+accessPassword");
+
+    if (!quiz) {
+      throw createHttpError("Quiz not found.", 404);
+    }
+
+    if (!quiz.isPublished) {
+      throw createHttpError("Quiz is not published.", 403);
+    }
+
+    if (quiz.isEnded) {
+      throw createHttpError("This quiz has ended and is no longer available.", 403);
+    }
+
+    if (req.user.role === "student") {
+      requireStudentAssignedCollege(req);
+      if (normalizeCollegeName(req.user.collegeName) !== quiz.collegeNameNormalized) {
+        throw createHttpError("Students can access quizzes only for their assigned college.", 403);
+      }
+    }
+
+    if (quiz.accessPassword && quiz.accessPassword !== accessPassword) {
+      throw createHttpError("Invalid quiz PIN.", 401);
+    }
+
+    // We can just return the quiz (with questions intact)
+    // The frontend will now have the questions to render the active quiz
+    const quizObj = quiz.toObject();
+    delete quizObj.accessPassword;
+
+    res.json({ success: true, data: quizObj });
+  } catch (error) {
+    next(error);
+  }
+}
+
+export async function endQuiz(req, res, next) {
+  try {
+    const quizId = readMongoId(req.params.quizId, { field: "quizId" });
+    const quiz = await Quiz.findById(quizId);
+
+    if (!quiz) {
+      throw createHttpError("Quiz arrangement not found.", 404);
+    }
+
+    const isAdmin = req.user.role === "admin";
+    const isOwner = String(quiz.createdByUser) === String(req.user.id);
+    if (!isAdmin && !isOwner) {
+      throw createHttpError("You are not allowed to end this quiz.", 403);
+    }
+
+    quiz.isEnded = true;
+    await quiz.save();
+
+    await createAuditLog({
+      req,
+      action: `${req.user.role}.end_quiz`,
+      entityType: "quiz",
+      entityId: quiz._id,
+      metadata: { collegeName: quiz.collegeName, title: quiz.title }
+    });
+
+    const populated = await Quiz.findById(quiz._id).populate("createdByUser", "fullName role");
+    res.json({ success: true, data: populated });
+  } catch (error) {
+    next(error);
+  }
+}
+
+export async function submitQuiz(req, res, next) {
+  try {
+    const quizId = readMongoId(req.params.quizId, { field: "quizId" });
+    const quiz = await Quiz.findById(quizId);
+
+    if (!quiz) {
+      throw createHttpError("Quiz not found.", 404);
+    }
+
+    if (req.user.role === "student") {
+      requireStudentAssignedCollege(req);
+      if (normalizeCollegeName(req.user.collegeName) !== quiz.collegeNameNormalized) {
+        throw createHttpError("Students can access quizzes only for their assigned college.", 403);
+      }
+    }
+
+    const { studentName, collegeId, selectedAnswers } = req.body;
+
+    const validatedStudentName = readString(studentName, { field: "studentName", min: 2, max: 120 });
+    const validatedCollegeId = readString(collegeId, { field: "collegeId", min: 2, max: 60 });
+
+    if (!selectedAnswers || typeof selectedAnswers !== "object") {
+      throw createHttpError("Invalid answers format.", 400);
+    }
+
+    let correctCount = 0;
+    let wrongCount = 0;
+    let unattemptedCount = 0;
+    const totalQuestions = quiz.questions.length;
+
+    quiz.questions.forEach((question, index) => {
+      const chosen = selectedAnswers[index];
+      if (!chosen) {
+        unattemptedCount++;
+      } else if (chosen === question.answer) {
+        correctCount++;
+      } else {
+        wrongCount++;
+      }
+    });
+
+    const result = await QuizResult.create({
+      quizId: quiz._id,
+      studentId: req.user.id,
+      studentName: validatedStudentName,
+      collegeId: validatedCollegeId,
+      correctCount,
+      wrongCount,
+      unattemptedCount,
+      totalQuestions
+    });
+
+    res.status(201).json({
+      success: true,
+      data: result
+    });
+  } catch (error) {
+    next(error);
+  }
+}
+
+export async function getQuizResults(req, res, next) {
+  try {
+    const quizId = readMongoId(req.params.quizId, { field: "quizId" });
+    const quiz = await Quiz.findById(quizId);
+
+    if (!quiz) {
+      throw createHttpError("Quiz not found.", 404);
+    }
+
+    const isAdmin = req.user.role === "admin";
+    const isOwner = String(quiz.createdByUser) === String(req.user.id);
+    if (!isAdmin && !isOwner) {
+      throw createHttpError("You are not allowed to view results for this quiz.", 403);
+    }
+
+    const results = await QuizResult.find({ quizId: quiz._id }).sort({ correctCount: -1, createdAt: 1 });
+    
+    // We send back both the quiz metadata and the results
+    const quizObj = quiz.toObject();
+    delete quizObj.questions;
+    delete quizObj.accessPassword;
+
+    res.json({
+      success: true,
+      data: {
+        quiz: quizObj,
+        results
+      }
+    });
   } catch (error) {
     next(error);
   }

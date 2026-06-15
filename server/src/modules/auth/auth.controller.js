@@ -233,13 +233,13 @@ export async function register(req, res, next) {
 
     if (requestedRepresentative && payload.collegeName) {
       const normalizedCollege = normalizeCollegeName(payload.collegeName);
-      const existingRep = await User.findOne({
+      const repCount = await User.countDocuments({
         role: "representative",
         collegeNameNormalized: normalizedCollege
       });
 
-      if (existingRep) {
-        const error = new Error("This college already has an approved representative. A college can have only one representative for data security.");
+      if (repCount >= 5) {
+        const error = new Error("This college has reached the maximum limit of 5 representatives.");
         error.statusCode = 409;
         throw error;
       }
@@ -450,14 +450,13 @@ export async function adminUpdateUser(req, res, next) {
       const targetCollege = updates.collegeName ?? user.collegeName;
       if (targetCollege) {
         const normalizedCollege = normalizeCollegeName(targetCollege);
-        const existingRep = await User.findOne({
-          _id: { $ne: user._id },
+        const repCount = await User.countDocuments({
           role: "representative",
           collegeNameNormalized: normalizedCollege
         });
 
-        if (existingRep) {
-          const error = new Error("This college already has an approved representative. A college can have only one representative.");
+        if (repCount >= 5) {
+          const error = new Error("This college has reached the maximum limit of 5 representatives.");
           error.statusCode = 409;
           throw error;
         }
