@@ -17,6 +17,7 @@ To understand the architecture, business logic, and database schemas powering th
 - 🏗️ **[Technical Requirements & Architecture (TRD)](./docs/TRD.md)** - Details the tech stack, caching mechanisms, security compliance, and third-party integrations.
 - 🗄️ **[Database Schema & Relations](./docs/Database_Schema.md)** - Contains the NoSQL schema design, role models, and Mermaid ERD diagrams.
 - 🔄 **[App Flow & User Journeys](./docs/App_Flow.md)** - Maps out the step-by-step user experience from authentication to Razorpay checkout.
+- 📅 **[Implementation Plan & Agile Phases](./docs/Implementation_Plan.md)** - Breaks down the development lifecycle into 7 actionable sprints.
 
 ---
 
