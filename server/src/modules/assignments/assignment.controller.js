@@ -1,5 +1,7 @@
 import { Assignment } from "./assignment.model.js";
 import { normalizeCollegeName } from "../../utils/requestValidation.js";
+import { User } from "../auth/auth.model.js";
+import PDFDocument from "pdfkit";
 
 export async function createAssignment(req, res, next) {
   try {
@@ -105,6 +107,60 @@ export async function deleteAssignment(req, res, next) {
 
     await assignment.deleteOne();
     res.json({ success: true, message: "Assignment deleted successfully." });
+  } catch (error) {
+    next(error);
+  }
+}
+
+export async function downloadAssignmentAsPdf(req, res, next) {
+  try {
+    const assignment = await Assignment.findById(req.params.id)
+      .populate("author", "fullName")
+      .populate("replies.author", "fullName");
+
+    if (!assignment) {
+      return res.status(404).json({ success: false, message: "Assignment not found." });
+    }
+
+    // Check Premium Access
+    const user = await User.findById(req.user.id);
+    const isSubscribed = user.premiumUntil && user.premiumUntil > new Date();
+    const hasUnlocked = user.unlockedAssignments?.includes(assignment._id);
+    
+    if (user.role !== "admin" && !isSubscribed && !hasUnlocked) {
+      return res.status(403).json({ success: false, message: "Premium access required." });
+    }
+
+    // Generate PDF
+    const doc = new PDFDocument({ margin: 50 });
+    res.setHeader("Content-Type", "application/pdf");
+    res.setHeader("Content-Disposition", `attachment; filename=Assignment_${assignment._id}.pdf`);
+    doc.pipe(res);
+
+    doc.fontSize(20).text(assignment.title, { underline: true });
+    doc.fontSize(12).fillColor("gray").text(`Author: ${assignment.author?.fullName || "Unknown"} | Subject: ${assignment.subject}`);
+    doc.moveDown();
+    
+    doc.fontSize(14).fillColor("black").text("Question:", { underline: true });
+    doc.fontSize(12).text(assignment.message);
+    if (assignment.attachmentUrl) {
+      doc.moveDown().fillColor("blue").text(`Attachment Link: ${assignment.attachmentUrl}`, { link: assignment.attachmentUrl });
+    }
+    
+    doc.moveDown(2);
+    doc.fontSize(16).fillColor("black").text("Replies:", { underline: true });
+    doc.moveDown();
+
+    assignment.replies.forEach((reply, idx) => {
+      doc.fontSize(12).fillColor("gray").text(`#${idx + 1} from ${reply.author?.fullName || "Unknown"} at ${new Date(reply.createdAt).toLocaleString()}`);
+      doc.fontSize(12).fillColor("black").text(reply.message);
+      if (reply.attachmentUrl) {
+        doc.fillColor("blue").text(`Solution Attachment: ${reply.attachmentUrl}`, { link: reply.attachmentUrl });
+      }
+      doc.moveDown();
+    });
+
+    doc.end();
   } catch (error) {
     next(error);
   }

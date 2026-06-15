@@ -30,6 +30,8 @@ export function AssignmentThreadPage() {
   const [uploadingFile, setUploadingFile] = useState(false);
   const [replyAttachmentUrl, setReplyAttachmentUrl] = useState("");
   const [replyAttachmentName, setReplyAttachmentName] = useState("");
+  const [showPremiumModal, setShowPremiumModal] = useState(false);
+  const [processingPayment, setProcessingPayment] = useState(false);
 
   useEffect(() => {
     async function loadAssignment() {
@@ -112,6 +114,70 @@ export function AssignmentThreadPage() {
     }
   }
 
+  async function handleDownloadPdf() {
+    try {
+      const response = await apiClient.get(`/assignments/${id}/download`, { responseType: "blob" });
+      const url = window.URL.createObjectURL(new Blob([response.data]));
+      const link = document.createElement("a");
+      link.href = url;
+      link.setAttribute("download", `Assignment_${id}.pdf`);
+      document.body.appendChild(link);
+      link.click();
+      link.parentNode.removeChild(link);
+      showSuccess("PDF Downloaded successfully!");
+    } catch (error) {
+      if (error.response?.status === 403 || error.message.includes("403")) {
+        setShowPremiumModal(true);
+      } else {
+        showError("Failed to download PDF.");
+      }
+    }
+  }
+
+  async function handlePayment(type) {
+    setProcessingPayment(true);
+    try {
+      // Create order
+      const orderRes = await apiClient.post("/payments/create-order", { paymentType: type, targetId: id });
+      const orderData = orderRes.data.data;
+
+      const options = {
+        key: orderData.key,
+        amount: orderData.amount,
+        currency: orderData.currency,
+        name: "Campus Knowledge Hub",
+        description: type === "subscription" ? "Monthly Unlimited Downloads" : "Single Assignment Unlock",
+        order_id: orderData.orderId,
+        handler: async function (response) {
+          try {
+            await apiClient.post("/payments/verify", response);
+            showSuccess("Payment successful! You can now download.");
+            setShowPremiumModal(false);
+            // Auto trigger download after successful payment
+            handleDownloadPdf();
+          } catch (err) {
+            showError("Payment verification failed.");
+          }
+        },
+        prefill: {
+          name: user?.fullName || "",
+          email: user?.email || "",
+        },
+        theme: { color: "#f59e0b" },
+      };
+
+      const rzp = new window.Razorpay(options);
+      rzp.on("payment.failed", function (response) {
+        showError("Payment failed or cancelled.");
+      });
+      rzp.open();
+    } catch (err) {
+      showError(err.response?.data?.message || "Could not initiate payment.");
+    } finally {
+      setProcessingPayment(false);
+    }
+  }
+
   if (loading) {
     return <div className="page-stack"><p className="muted">Loading assignment...</p></div>;
   }
@@ -135,16 +201,25 @@ export function AssignmentThreadPage() {
             <h1 style={{ marginTop: "0.5rem", marginBottom: "0.25rem" }}>{assignment.title}</h1>
             <p className="muted" style={{ margin: 0 }}>This assignment will auto-delete 6 hours after posting.</p>
           </div>
-          {(user?.role === "admin" || user?.id === assignment.author?._id) && (
+          <div style={{ display: "flex", gap: "1rem" }}>
             <button 
-              onClick={handleDelete}
-              disabled={deleting}
-              className="action-button reject"
-              style={{ padding: "0.5rem 1rem" }}
+              onClick={handleDownloadPdf}
+              className="action-button approve"
+              style={{ padding: "0.5rem 1rem", background: "#f59e0b", color: "black", borderColor: "#f59e0b" }}
             >
-              {deleting ? "Deleting..." : "Delete Assignment"}
+              💾 Save Discussion as PDF
             </button>
-          )}
+            {(user?.role === "admin" || user?.id === assignment.author?._id) && (
+              <button 
+                onClick={handleDelete}
+                disabled={deleting}
+                className="action-button reject"
+                style={{ padding: "0.5rem 1rem" }}
+              >
+                {deleting ? "Deleting..." : "Delete Assignment"}
+              </button>
+            )}
+          </div>
         </div>
 
         <div style={{ 
@@ -247,6 +322,56 @@ export function AssignmentThreadPage() {
         </form>
 
       </SectionCard>
+
+      {showPremiumModal && (
+        <div style={{
+          position: "fixed", top: 0, left: 0, right: 0, bottom: 0,
+          background: "rgba(0, 0, 0, 0.7)", backdropFilter: "blur(4px)",
+          display: "flex", justifyContent: "center", alignItems: "center", zIndex: 9999, padding: "1rem"
+        }}>
+          <div style={{
+            width: "100%", maxWidth: "500px", background: "rgba(30, 41, 59, 1)",
+            border: "1px solid rgba(255, 255, 255, 0.1)", borderRadius: "16px", overflow: "hidden"
+          }}>
+            <div style={{ padding: "1.5rem", borderBottom: "1px solid rgba(255, 255, 255, 0.05)", display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+              <h2 style={{ margin: 0, fontSize: "1.25rem", color: "#f8fafc" }}>Premium Access Required</h2>
+              <button onClick={() => setShowPremiumModal(false)} style={{ background: "none", border: "none", color: "var(--color-slate-400-adaptive)", cursor: "pointer", fontSize: "1.5rem" }}>&times;</button>
+            </div>
+            
+            <div style={{ padding: "1.5rem" }}>
+              <p style={{ marginBottom: "1.5rem", lineHeight: 1.5 }}>
+                This thread will self-destruct soon. To permanently save this discussion and its solutions to your computer as a PDF, please unlock premium.
+              </p>
+
+              <div style={{ display: "flex", flexDirection: "column", gap: "1rem" }}>
+                <button 
+                  onClick={() => handlePayment("single_unlock")}
+                  disabled={processingPayment}
+                  style={{ background: "var(--color-bg-primary)", border: "1px solid #f59e0b", padding: "1rem", borderRadius: "8px", cursor: "pointer", display: "flex", justifyContent: "space-between", alignItems: "center" }}
+                >
+                  <div style={{ textAlign: "left" }}>
+                    <strong style={{ display: "block", color: "#f59e0b", fontSize: "1.1rem" }}>Single Unlock</strong>
+                    <span className="muted" style={{ fontSize: "0.85rem" }}>Download just this specific assignment forever.</span>
+                  </div>
+                  <strong style={{ fontSize: "1.2rem" }}>₹2</strong>
+                </button>
+
+                <button 
+                  onClick={() => handlePayment("subscription")}
+                  disabled={processingPayment}
+                  style={{ background: "var(--color-bg-primary)", border: "1px solid #3b82f6", padding: "1rem", borderRadius: "8px", cursor: "pointer", display: "flex", justifyContent: "space-between", alignItems: "center" }}
+                >
+                  <div style={{ textAlign: "left" }}>
+                    <strong style={{ display: "block", color: "#3b82f6", fontSize: "1.1rem" }}>Monthly Premium</strong>
+                    <span className="muted" style={{ fontSize: "0.85rem" }}>Unlimited downloads of any assignment.</span>
+                  </div>
+                  <strong style={{ fontSize: "1.2rem" }}>₹69<span style={{ fontSize: "0.8rem", color: "gray" }}>/mo</span></strong>
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
