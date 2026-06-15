@@ -18,6 +18,7 @@ import { QuizArrangementPage } from "../pages/QuizArrangementPage";
 import { QuizResultsPage } from "../pages/QuizResultsPage";
 import { AiStudioPage } from "../pages/AiStudioPage";
 import { CommunityPage } from "../pages/CommunityPage";
+import { CommunityThreadPage } from "../pages/CommunityThreadPage";
 import { MarketplacePage } from "../pages/MarketplacePage";
 import { IntegrityPage } from "../pages/IntegrityPage";
 import { PanelHomePage } from "../pages/PanelHomePage";
@@ -95,6 +96,7 @@ export function AppRoutes() {
         <Route path="integrity" element={<IntegrityPage />} />
         <Route path="marketplace" element={<MarketplacePage />} />
         <Route path="community" element={<CommunityPage />} />
+        <Route path="community/:id" element={<CommunityThreadPage />} />
         <Route path="panel" element={<ProtectedRoute><PanelHomePage /></ProtectedRoute>} />
         <Route
           path="panel/admin"
