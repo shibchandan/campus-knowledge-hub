@@ -181,7 +181,7 @@ export function CommunityPage() {
               </div>
               <div className="auth-field">
                 <label>Message</label>
-                <textarea required rows={4} value={newThreadForm.message} onChange={e => setNewThreadForm({...newThreadForm, message: e.target.value})} placeholder="What's on your mind?"></textarea>
+                <textarea required rows={4} value={newThreadForm.message} onChange={e => setNewThreadForm({...newThreadForm, message: e.target.value})} placeholder="What's on your mind?" style={{ width: "100%", padding: "0.75rem", borderRadius: "8px", border: "1px solid var(--color-border)", background: "var(--color-bg-primary)", color: "var(--color-text-primary)", resize: "vertical" }}></textarea>
               </div>
               <button type="submit" disabled={creating} className="auth-submit">
                 {creating ? "Creating..." : "Post Discussion"}
