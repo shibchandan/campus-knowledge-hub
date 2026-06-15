@@ -151,3 +151,81 @@ export async function reactToMessage(req, res, next) {
     next(error);
   }
 }
+
+export async function getGroupMembers(req, res, next) {
+  try {
+    const { id: groupId } = req.params;
+    const group = await CommunityGroup.findById(groupId).populate("members", "fullName email").populate("createdBy", "fullName email");
+    if (!group) return res.status(404).json({ success: false, message: "Group not found" });
+    if (!group.members.some(m => m._id.toString() === req.user.id)) {
+      return res.status(403).json({ success: false, message: "Not a member" });
+    }
+    res.json({ success: true, data: { members: group.members, createdBy: group.createdBy } });
+  } catch (error) {
+    next(error);
+  }
+}
+
+export async function leaveGroup(req, res, next) {
+  try {
+    const { id: groupId } = req.params;
+    const group = await CommunityGroup.findById(groupId);
+    if (!group) return res.status(404).json({ success: false, message: "Group not found" });
+
+    if (group.createdBy.toString() === req.user.id) {
+      return res.status(400).json({ success: false, message: "Admin must transfer ownership before leaving, or delete the group." });
+    }
+
+    group.members = group.members.filter(m => m.toString() !== req.user.id);
+    await group.save();
+
+    res.json({ success: true, message: "Left group successfully" });
+  } catch (error) {
+    next(error);
+  }
+}
+
+export async function deleteGroup(req, res, next) {
+  try {
+    const { id: groupId } = req.params;
+    const group = await CommunityGroup.findById(groupId);
+    if (!group) return res.status(404).json({ success: false, message: "Group not found" });
+
+    if (group.createdBy.toString() !== req.user.id && req.user.role !== "admin") {
+      return res.status(403).json({ success: false, message: "Only the group creator can delete this group." });
+    }
+
+    await CommunityMessage.deleteMany({ groupId });
+    await group.deleteOne();
+
+    res.json({ success: true, message: "Group deleted successfully" });
+  } catch (error) {
+    next(error);
+  }
+}
+
+export async function transferAdmin(req, res, next) {
+  try {
+    const { id: groupId } = req.params;
+    const { newAdminId } = req.body;
+    
+    const group = await CommunityGroup.findById(groupId);
+    if (!group) return res.status(404).json({ success: false, message: "Group not found" });
+
+    if (group.createdBy.toString() !== req.user.id) {
+      return res.status(403).json({ success: false, message: "Only the current admin can transfer ownership." });
+    }
+
+    if (!group.members.includes(newAdminId)) {
+      return res.status(400).json({ success: false, message: "New admin must be a member of the group." });
+    }
+
+    group.createdBy = newAdminId;
+    await group.save();
+
+    res.json({ success: true, message: "Ownership transferred successfully." });
+  } catch (error) {
+    next(error);
+  }
+}
+

@@ -6,7 +6,11 @@ import {
   joinGroup, 
   getMessages, 
   sendMessage, 
-  reactToMessage 
+  reactToMessage,
+  getGroupMembers,
+  leaveGroup,
+  deleteGroup,
+  transferAdmin
 } from "./community.controller.js";
 
 export const communityRouter = Router();
@@ -15,6 +19,10 @@ export const communityRouter = Router();
 communityRouter.post("/groups", protect, createGroup);
 communityRouter.get("/groups", protect, getGroups);
 communityRouter.post("/groups/join", protect, joinGroup);
+communityRouter.get("/groups/:id/members", protect, getGroupMembers);
+communityRouter.post("/groups/:id/leave", protect, leaveGroup);
+communityRouter.delete("/groups/:id", protect, deleteGroup);
+communityRouter.put("/groups/:id/transfer", protect, transferAdmin);
 
 // Messaging
 communityRouter.get("/groups/:id/messages", protect, getMessages);

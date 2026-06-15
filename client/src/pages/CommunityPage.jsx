@@ -28,6 +28,9 @@ export function CommunityPage() {
   const [showUpgradeModal, setShowUpgradeModal] = useState(false);
   const [upgradeSlots, setUpgradeSlots] = useState(100);
 
+  const [showSettingsModal, setShowSettingsModal] = useState(false);
+  const [groupMembers, setGroupMembers] = useState([]);
+
   const chatEndRef = useRef(null);
 
   // Poll interval reference
@@ -57,6 +60,21 @@ export function CommunityPage() {
   useEffect(() => {
     chatEndRef.current?.scrollIntoView({ behavior: "smooth" });
   }, [messages]);
+
+  async function fetchGroupMembers() {
+    try {
+      const res = await apiClient.get(`/community/groups/${activeGroup._id}/members`);
+      setGroupMembers(res.data.data.members || []);
+    } catch (err) {
+      showError("Failed to fetch members");
+    }
+  }
+
+  useEffect(() => {
+    if (showSettingsModal && activeGroup) {
+      fetchGroupMembers();
+    }
+  }, [showSettingsModal, activeGroup]);
 
   async function fetchGroups() {
     setLoadingGroups(true);
@@ -181,6 +199,45 @@ export function CommunityPage() {
     }
   }
 
+  async function handleLeaveGroup() {
+    if (!window.confirm("Are you sure you want to leave this group?")) return;
+    try {
+      await apiClient.post(`/community/groups/${activeGroup._id}/leave`);
+      showSuccess("Left group");
+      setShowSettingsModal(false);
+      setActiveGroup(null);
+      fetchGroups();
+    } catch (err) {
+      showError(err.response?.data?.message || "Failed to leave");
+    }
+  }
+
+  async function handleDeleteGroup() {
+    if (!window.confirm("Delete this group permanently? This cannot be undone.")) return;
+    try {
+      await apiClient.delete(`/community/groups/${activeGroup._id}`);
+      showSuccess("Group deleted");
+      setShowSettingsModal(false);
+      setActiveGroup(null);
+      fetchGroups();
+    } catch (err) {
+      showError(err.response?.data?.message || "Failed to delete group");
+    }
+  }
+
+  async function handleTransferAdmin(newAdminId) {
+    if (!window.confirm("Transfer admin rights? You will no longer be the owner.")) return;
+    try {
+      await apiClient.put(`/community/groups/${activeGroup._id}/transfer`, { newAdminId });
+      showSuccess("Admin transferred");
+      fetchGroups(); 
+      setActiveGroup(null); 
+      setShowSettingsModal(false);
+    } catch (err) {
+      showError(err.response?.data?.message || "Failed to transfer");
+    }
+  }
+
   return (
     <div className="page-stack" style={{ height: "calc(100vh - 100px)", display: "flex", flexDirection: "column" }}>
       <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "1rem" }}>
@@ -266,6 +323,9 @@ export function CommunityPage() {
                     <span className="muted" style={{ fontSize: "0.8rem", marginRight: "0.5rem" }}>Invite Code:</span>
                     <strong style={{ color: "#f59e0b", letterSpacing: "1px" }}>{activeGroup.inviteCode}</strong>
                   </div>
+                  <button onClick={() => setShowSettingsModal(true)} style={{ background: "transparent", color: "var(--color-text-primary)", border: "1px solid var(--color-border)", padding: "0.5rem", borderRadius: "8px", cursor: "pointer" }}>
+                    ⚙️
+                  </button>
                 </div>
               </div>
 
@@ -430,6 +490,52 @@ export function CommunityPage() {
                 <button type="submit" style={{ flex: 1, padding: "0.75rem", background: "#10b981", border: "none", color: "white", borderRadius: "8px", cursor: "pointer", fontWeight: "bold" }}>Pay ₹{ (upgradeSlots / 100) * 25 }</button>
               </div>
             </form>
+          </div>
+        </div>
+      )}
+
+      {/* SETTINGS MODAL */}
+      {showSettingsModal && (
+        <div style={{ position: "fixed", top: 0, left: 0, right: 0, bottom: 0, background: "rgba(0,0,0,0.7)", zIndex: 9999, display: "flex", alignItems: "center", justifyContent: "center" }}>
+          <div style={{ width: "100%", maxWidth: "450px", background: "var(--color-bg-primary)", padding: "2rem", borderRadius: "12px", maxHeight: "80vh", overflowY: "auto" }}>
+            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+              <h2 style={{ marginTop: 0 }}>Group Settings</h2>
+              <button onClick={() => setShowSettingsModal(false)} style={{ background: "transparent", border: "none", color: "white", cursor: "pointer", fontSize: "1.2rem" }}>✖</button>
+            </div>
+            
+            <div style={{ marginTop: "1rem", marginBottom: "1rem", padding: "1rem", background: "var(--color-bg-secondary)", borderRadius: "8px" }}>
+              <h3 style={{ marginTop: 0, fontSize: "1rem" }}>Members ({groupMembers.length})</h3>
+              <div style={{ display: "flex", flexDirection: "column", gap: "0.5rem", maxHeight: "200px", overflowY: "auto" }}>
+                {groupMembers.map(m => (
+                  <div key={m._id} style={{ display: "flex", justifyContent: "space-between", alignItems: "center", padding: "0.5rem", borderBottom: "1px solid var(--color-border)" }}>
+                    <div>
+                      <span style={{ display: "block", fontSize: "0.9rem" }}>{m.fullName} {m._id === user?.id && "(You)"}</span>
+                      <span className="muted" style={{ fontSize: "0.75rem" }}>{m.email}</span>
+                    </div>
+                    {user?.id === activeGroup.createdBy && m._id !== user?.id && (
+                      <button onClick={() => handleTransferAdmin(m._id)} style={{ background: "transparent", border: "1px solid #3b82f6", color: "#3b82f6", borderRadius: "4px", padding: "0.2rem 0.5rem", fontSize: "0.75rem", cursor: "pointer" }}>
+                        Make Admin
+                      </button>
+                    )}
+                    {m._id === activeGroup.createdBy && (
+                      <span style={{ fontSize: "0.75rem", background: "#f59e0b", color: "black", padding: "0.1rem 0.4rem", borderRadius: "4px", fontWeight: "bold" }}>Admin</span>
+                    )}
+                  </div>
+                ))}
+              </div>
+            </div>
+
+            <div style={{ display: "flex", gap: "1rem", marginTop: "2rem" }}>
+              {user?.id === activeGroup.createdBy ? (
+                <button onClick={handleDeleteGroup} style={{ flex: 1, padding: "0.75rem", background: "#ef4444", border: "none", color: "white", borderRadius: "8px", cursor: "pointer", fontWeight: "bold" }}>
+                  Delete Group
+                </button>
+              ) : (
+                <button onClick={handleLeaveGroup} style={{ flex: 1, padding: "0.75rem", background: "#ef4444", border: "none", color: "white", borderRadius: "8px", cursor: "pointer", fontWeight: "bold" }}>
+                  Leave Group
+                </button>
+              )}
+            </div>
           </div>
         </div>
       )}
