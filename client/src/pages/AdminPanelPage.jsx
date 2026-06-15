@@ -9,6 +9,7 @@ import { StructureForm } from "../components/forms/StructureForm";
 import { SubjectForm } from "../components/forms/SubjectForm";
 import { NoticeForm } from "../components/forms/NoticeForm";
 import { SkeletonCard, Spinner } from "../components/LoadingStates";
+import { ChartCard, CustomPieChart, CustomBarChart } from "../components/charts/DataCharts";
 
 const initialUserForm = {
   fullName: "",
@@ -728,68 +729,78 @@ export function AdminPanelPage() {
         
         {analytics ? (
           <div className="analytics-dashboard">
-            <div className="analytics-section">
-              <h4 className="analytics-section-title">User Demographics</h4>
-              <div className="analytics-cards">
-                <article className="analytics-card gradient-primary">
-                  <div className="analytics-card-icon">👥</div>
-                  <div className="analytics-card-content">
-                    <p className="analytics-label">Total Users</p>
-                    <h3 className="analytics-value">{analytics.totalUsers}</h3>
-                    <p className="analytics-note">{analytics.activeUsers} Active</p>
-                  </div>
-                </article>
-                <article className="analytics-card">
-                  <div className="analytics-card-icon">🎓</div>
-                  <div className="analytics-card-content">
-                    <p className="analytics-label">Students</p>
-                    <h3 className="analytics-value">{analytics.roleDistribution.students}</h3>
-                  </div>
-                </article>
-                <article className="analytics-card">
-                  <div className="analytics-card-icon">🏛️</div>
-                  <div className="analytics-card-content">
-                    <p className="analytics-label">Representatives</p>
-                    <h3 className="analytics-value">{analytics.roleDistribution.representatives}</h3>
-                    {analytics.pendingRequests > 0 && (
-                      <p className="analytics-note warning">{analytics.pendingRequests} Pending Req</p>
-                    )}
-                  </div>
-                </article>
-              </div>
-            </div>
+            <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(350px, 1fr))", gap: "1.5rem", marginBottom: "2rem" }}>
+              <ChartCard 
+                title="User Demographics" 
+                subtitle={`${analytics.totalUsers} Total Users (${analytics.activeUsers} Active)`}
+                icon="👥"
+              >
+                <CustomPieChart 
+                  data={[
+                    { name: 'Students', value: analytics.roleDistribution?.students || 0 },
+                    { name: 'Representatives', value: analytics.roleDistribution?.representatives || 0 }
+                  ]} 
+                />
+              </ChartCard>
 
-            <div className="analytics-section">
-              <h4 className="analytics-section-title">Platform Engagement</h4>
-              <div className="analytics-cards">
-                <article className="analytics-card gradient-success">
-                  <div className="analytics-card-icon">📚</div>
-                  <div className="analytics-card-content">
-                    <p className="analytics-label">Total Resources</p>
-                    <h3 className="analytics-value">{analytics.totalResources}</h3>
-                    <p className="analytics-note">+{analytics.resourcesThisWeek} this week</p>
-                  </div>
-                </article>
-                <article className="analytics-card">
-                  <div className="analytics-card-icon">🏫</div>
-                  <div className="analytics-card-content">
-                    <p className="analytics-label">Approved Colleges</p>
-                    <h3 className="analytics-value">{analytics.totalColleges}</h3>
-                  </div>
-                </article>
-                <article className="analytics-card">
-                  <div className="analytics-card-icon">⚠️</div>
-                  <div className="analytics-card-content">
-                    <p className="analytics-label">Active Reports</p>
-                    <h3 className="analytics-value">{analytics.activeReports}</h3>
-                    {analytics.activeReports > 0 ? (
-                      <p className="analytics-note danger">Needs Review</p>
-                    ) : (
-                      <p className="analytics-note success">All clear</p>
-                    )}
-                  </div>
-                </article>
-              </div>
+              <ChartCard 
+                title="Platform Activity" 
+                subtitle={`Total resources and active operations`}
+                icon="⚡"
+              >
+                <CustomBarChart 
+                  data={[
+                    { name: 'Resources', total: analytics.totalResources, new: analytics.resourcesThisWeek },
+                    { name: 'Colleges', total: analytics.totalColleges, new: 0 },
+                    { name: 'Reports', total: analytics.activeReports, new: 0 }
+                  ]}
+                  bars={[
+                    { dataKey: "total", name: "Total Count", color: "#6366f1" },
+                    { dataKey: "new", name: "New This Week", color: "#10b981" }
+                  ]}
+                />
+              </ChartCard>
+            </div>
+            
+            <div className="analytics-cards">
+              <article className="analytics-card gradient-primary">
+                <div className="analytics-card-icon">👥</div>
+                <div className="analytics-card-content">
+                  <p className="analytics-label">Total Users</p>
+                  <h3 className="analytics-value">{analytics.totalUsers}</h3>
+                  <p className="analytics-note">{analytics.activeUsers} Active</p>
+                </div>
+              </article>
+              <article className="analytics-card">
+                <div className="analytics-card-icon">🎓</div>
+                <div className="analytics-card-content">
+                  <p className="analytics-label">Pending Requests</p>
+                  <h3 className="analytics-value">{analytics.pendingRequests || 0}</h3>
+                  {analytics.pendingRequests > 0 && (
+                    <p className="analytics-note warning">Requires Admin Review</p>
+                  )}
+                </div>
+              </article>
+              <article className="analytics-card gradient-success">
+                <div className="analytics-card-icon">📚</div>
+                <div className="analytics-card-content">
+                  <p className="analytics-label">Total Resources</p>
+                  <h3 className="analytics-value">{analytics.totalResources}</h3>
+                  <p className="analytics-note">+{analytics.resourcesThisWeek} this week</p>
+                </div>
+              </article>
+              <article className="analytics-card">
+                <div className="analytics-card-icon">⚠️</div>
+                <div className="analytics-card-content">
+                  <p className="analytics-label">Active Reports</p>
+                  <h3 className="analytics-value">{analytics.activeReports}</h3>
+                  {analytics.activeReports > 0 ? (
+                    <p className="analytics-note danger">Needs Review</p>
+                  ) : (
+                    <p className="analytics-note success">All clear</p>
+                  )}
+                </div>
+              </article>
             </div>
           </div>
         ) : (
