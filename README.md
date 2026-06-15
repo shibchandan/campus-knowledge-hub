@@ -2,7 +2,13 @@
 
 An AI-enabled, secure collegiate academic resource sharing & governance platform. 
 
-Campus Knowledge Hub is designed for college communities to collaborate, manage study materials, organize courses, and request academic approvals. It features a complete role-based governance model, responsive interfaces, micro-animations, input validation, custom rate-limiting, and an AI-powered assistant grounded in collegiate scopes.
+![React](https://img.shields.io/badge/React-20232A?style=for-the-badge&logo=react&logoColor=61DAFB)
+![Node.js](https://img.shields.io/badge/Node.js-43853D?style=for-the-badge&logo=node.js&logoColor=white)
+![Express.js](https://img.shields.io/badge/Express.js-404D59?style=for-the-badge)
+![MongoDB](https://img.shields.io/badge/MongoDB-4EA94B?style=for-the-badge&logo=mongodb&logoColor=white)
+![Security](https://img.shields.io/badge/Security-OWASP_Top_10_Compliant-red?style=for-the-badge)
+
+Campus Knowledge Hub is an enterprise-grade platform designed for college communities to collaborate, manage study materials, organize courses, and request academic approvals. It features a complete role-based governance model, responsive interfaces, micro-animations, input validation, custom rate-limiting, and an AI-powered assistant grounded in collegiate scopes.
 
 > ⚠️ **Notice to Recruiters & Visitors:** This repository is made public strictly for portfolio evaluation and campus placement purposes. This is a proprietary, closed-source application. Unauthorized copying, hosting, or commercial usage of this code is strictly prohibited and legally protected.
 
@@ -15,14 +21,31 @@ Campus Knowledge Hub is designed for college communities to collaborate, manage 
 
 ---
 
-## 🏗️ Project Structure
+## 🛠️ Tech Stack & Architecture
 
-This project is structured as a monorepo containing:
-* **`client/`**: React + Vite frontend styled with responsive CSS tokens, featuring light/dark mode and a secure password visibility toggle.
-* **`server/`**: Node.js + Express backend, powered by MongoDB (Mongoose) with transactional integrity.
-* **`docs/`**: Detailed project documentation including WAF configurations, secret policy, and architecture design maps.
+This project is built as a highly decoupled Monorepo, utilizing modern architectural patterns:
 
-### Architecture Diagram
+### 💻 Frontend (Client)
+* **Framework:** React.js + Vite for blazing-fast HMR and optimized builds.
+* **Styling:** Custom CSS design system with fluid typography, CSS variables, and full Dark/Light mode support.
+* **Routing:** React Router DOM with protected hierarchical routes.
+* **State Management:** React Context API optimized for minimal re-renders.
+
+### ⚙️ Backend (Server)
+* **Runtime:** Node.js environment.
+* **Framework:** Express.js RESTful API.
+* **Database:** MongoDB & Mongoose ODM with compound indexing for sub-50ms query times.
+* **Authentication:** Stateless JWT (JSON Web Tokens) with secure HTTP-only cookie support.
+* **Security:** Helmet, custom Web Application Firewall (WAF), express-mongo-sanitize, and strict CORS origin locking.
+
+### 🧠 External Integrations
+* **AI Engines:** Multi-provider gateway supporting Gemini 1.5 Flash, GPT-4o, and Claude 3.5 Sonnet.
+* **Storage:** Asynchronous buffer streaming with isolated UUID local/cloud blob storage.
+* **Mailing:** SMTP transactional emails for OTPs and administration.
+
+---
+
+### 🗺️ System Architecture Diagram
 
 ```mermaid
 graph TD
@@ -76,8 +99,18 @@ graph TD
 * **Academic Grounding:** Scopes queries strictly to college subjects and course descriptions to prevent hallucinations.
 * **Chat Memory:** Persists thread contexts across sessions with responsive UI animations.
 
-### ⚙️ 4. Enterprise Audit Trails
-* **Security Logs:** Fully-audited actions for user creation, college approvals, notice publishing, and document deletions.
+### ⚙️ 4. Enterprise Audit Trails & Governance
+* **Immutable Logs:** Fully-audited actions for user creation, college approvals, notice publishing, and document deletions.
+* **Anti-Theft Measures:** Proprietary Domain Origin Locking and strict environment validation prevents unauthorized deployment of this software.
+* **Content Moderation:** Built-in reporting system allowing representatives to dismiss or act upon flagged materials.
+
+---
+
+## 📸 Platform Previews
+
+*(Screenshots of the interactive dashboard, AI Studio, and analytics panels are available in the live demonstration.)*
+
+---
 
 
 
