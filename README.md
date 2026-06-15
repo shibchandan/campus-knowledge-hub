@@ -6,6 +6,8 @@ An AI-enabled, secure collegiate academic resource sharing & governance platform
 ![Node.js](https://img.shields.io/badge/Node.js-43853D?style=for-the-badge&logo=node.js&logoColor=white)
 ![Express.js](https://img.shields.io/badge/Express.js-404D59?style=for-the-badge)
 ![MongoDB](https://img.shields.io/badge/MongoDB-4EA94B?style=for-the-badge&logo=mongodb&logoColor=white)
+![Cloudflare R2](https://img.shields.io/badge/Cloudflare_R2-F38020?style=for-the-badge&logo=cloudflare&logoColor=white)
+![Razorpay](https://img.shields.io/badge/Razorpay-02042B?style=for-the-badge&logo=razorpay&logoColor=white)
 ![Security](https://img.shields.io/badge/Security-OWASP_Top_10_Compliant-red?style=for-the-badge)
 
 Campus Knowledge Hub is an enterprise-grade platform designed for college communities to collaborate, manage study materials, organize courses, and request academic approvals. It features a complete role-based governance model, responsive interfaces, micro-animations, input validation, custom rate-limiting, and an AI-powered assistant grounded in collegiate scopes.
@@ -40,7 +42,8 @@ This project is built as a highly decoupled Monorepo, utilizing modern architect
 
 ### 🧠 External Integrations
 * **AI Engines:** Multi-provider gateway supporting Gemini 1.5 Flash, GPT-4o, and Claude 3.5 Sonnet.
-* **Storage:** Asynchronous buffer streaming with isolated UUID local/cloud blob storage.
+* **Storage (Cloudflare R2):** High-performance, highly available S3-compatible object storage via Cloudflare R2 for secure academic asset management.
+* **Payment Gateway (Razorpay):** Integrated Razorpay Test Mode for securely simulating premium subscription unlocks and marketplace transactions with webhook verification.
 * **Mailing:** SMTP transactional emails for OTPs and administration.
 
 ---
