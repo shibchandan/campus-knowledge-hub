@@ -1,5 +1,38 @@
 # Application Flow & User Journeys
 
+## High-Level Application Flowchart
+```mermaid
+flowchart TD
+    Start([User Visits Platform]) --> Auth{Has Account?}
+    Auth -- No --> Register[Register Account]
+    Auth -- Yes --> Login[Login]
+    Register --> Role[Select Role]
+    Role --> |Student| VerifyStudent[Select College/Branch]
+    Role --> |Representative| VerifyRep[Submit Verification Docs]
+    
+    Login --> SplitRole{User Role?}
+    VerifyStudent --> SplitRole
+    VerifyRep --> SplitRole
+    
+    SplitRole -- Student --> StudentDash[Student Dashboard]
+    SplitRole -- Representative --> RepDash[Representative Panel]
+    SplitRole -- Admin --> AdminDash[Super Admin Panel]
+    
+    StudentDash --> Explore[Browse Academic Hierarchy]
+    Explore --> Subjects[Access Subject Resources]
+    Explore --> Quizzes[Take Gamified Quizzes]
+    
+    StudentDash --> Chat[Open Community Tab]
+    Chat --> JoinGroup[Join via Invite Code]
+    Chat --> CreateGroup[Create New Group]
+    CreateGroup --> ChatManage[Admin Chat Features]
+    ChatManage --> Upgrade[Pay Razorpay to Upgrade Slots]
+    
+    RepDash --> Struct[Build College Taxonomy]
+    RepDash --> Upload[Upload Official Resources]
+    RepDash --> Analytics[View Student Analytics]
+```
+
 ## 1. Authentication & Onboarding Flow
 1. **Registration/Login**: User enters email and password.
 2. **Role Selection**: User chooses between `Student` and `College Representative`. (Admins are created manually via DB/Scripts).
