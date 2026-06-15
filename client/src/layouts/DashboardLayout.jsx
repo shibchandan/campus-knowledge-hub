@@ -20,7 +20,8 @@ const navSections = [
       { to: "/dashboard", label: "Overview", icon: "📊" },
       { to: "/lectures", label: "Lectures", icon: "🎬" },
       { to: "/notes", label: "Notes & PYQs", icon: "📝" },
-      { to: "/quizzes", label: "Quizzes", icon: "✅" }
+      { to: "/quizzes", label: "Quizzes", icon: "✅" },
+      { to: "/assignments", label: "Live Assignments", icon: "⏳" }
     ]
   },
   {

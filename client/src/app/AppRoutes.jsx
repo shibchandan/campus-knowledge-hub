@@ -19,6 +19,8 @@ import { QuizResultsPage } from "../pages/QuizResultsPage";
 import { AiStudioPage } from "../pages/AiStudioPage";
 import { CommunityPage } from "../pages/CommunityPage";
 import { CommunityThreadPage } from "../pages/CommunityThreadPage";
+import { AssignmentsPage } from "../pages/AssignmentsPage";
+import { AssignmentThreadPage } from "../pages/AssignmentThreadPage";
 import { MarketplacePage } from "../pages/MarketplacePage";
 import { IntegrityPage } from "../pages/IntegrityPage";
 import { PanelHomePage } from "../pages/PanelHomePage";
@@ -97,6 +99,8 @@ export function AppRoutes() {
         <Route path="marketplace" element={<MarketplacePage />} />
         <Route path="community" element={<CommunityPage />} />
         <Route path="community/:id" element={<CommunityThreadPage />} />
+        <Route path="assignments" element={<AssignmentsPage />} />
+        <Route path="assignments/:id" element={<AssignmentThreadPage />} />
         <Route path="panel" element={<ProtectedRoute><PanelHomePage /></ProtectedRoute>} />
         <Route
           path="panel/admin"
