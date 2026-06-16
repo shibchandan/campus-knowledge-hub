@@ -5,7 +5,7 @@ import { createApp } from "../src/app.js";
 
 test("GET / returns API info", async () => {
   const app = createApp();
-  const response = await request(app).get("/").set("User-Agent", "test-agent");
+  const response = await request(app).get("/").set("User-Agent", "test-agent").set("Origin", "http://localhost:5173");
 
   assert.equal(response.status, 200);
   assert.equal(response.body.success, true);
@@ -15,7 +15,7 @@ test("GET / returns API info", async () => {
 
 test("GET /health returns healthy status", async () => {
   const app = createApp();
-  const response = await request(app).get("/health").set("User-Agent", "test-agent");
+  const response = await request(app).get("/health").set("User-Agent", "test-agent").set("Origin", "http://localhost:5173");
 
   assert.equal(response.status, 200);
   assert.equal(response.body.success, true);
@@ -24,7 +24,7 @@ test("GET /health returns healthy status", async () => {
 
 test("GET /ready returns not ready status when database is disconnected", async () => {
   const app = createApp();
-  const response = await request(app).get("/ready").set("User-Agent", "test-agent");
+  const response = await request(app).get("/ready").set("User-Agent", "test-agent").set("Origin", "http://localhost:5173");
 
   assert.equal(response.status, 503);
   assert.equal(response.body.success, false);

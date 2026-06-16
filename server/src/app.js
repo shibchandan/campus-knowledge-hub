@@ -21,7 +21,7 @@ export function createApp() {
     cors({
       origin: (origin, callback) => {
         if (!origin) {
-          return callback(null, true);
+          return callback(new Error("Missing origin header"));
         }
 
         const cleanOrigin = origin.replace(/\/$/, "").toLowerCase();
