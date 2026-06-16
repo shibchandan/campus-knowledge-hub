@@ -35,15 +35,22 @@ const authRateLimiter = createRateLimiter({
 });
 
 const uploadRateLimiter = createRateLimiter({
-  windowMs: 60 * 1000,
+  windowMs: 60 * 60 * 1000,
   maxRequests: 5,
   message: "Too many file upload requests. Please wait a minute.",
   keyPrefix: "upload"
 });
 
+const otpRateLimiter = createRateLimiter({
+  windowMs: 60 * 60 * 1000, // 1 hour
+  maxRequests: 3,
+  message: "Too many OTP generation requests. Please try again later.",
+  keyPrefix: "otp"
+});
+
 authRouter.post("/register", authRateLimiter, uploadRateLimiter, upload.single("studentProof"), validateUploadedFile, register);
 authRouter.post("/login", authRateLimiter, login);
-authRouter.post("/forgot-password", authRateLimiter, forgotPassword);
+authRouter.post("/forgot-password", otpRateLimiter, forgotPassword);
 authRouter.post("/reset-password", authRateLimiter, resetPassword);
 authRouter.get("/me", protect, getCurrentUser);
 authRouter.patch("/me", protect, updateProfile);
@@ -57,7 +64,7 @@ authRouter.post(
   validateUploadedFile,
   submitStudentVerification
 );
-authRouter.post("/student-verification/send-college-email-otp", protect, authRateLimiter, sendCollegeEmailOtp);
+authRouter.post("/student-verification/send-college-email-otp", protect, otpRateLimiter, sendCollegeEmailOtp);
 authRouter.post("/student-verification/verify-college-email-otp", protect, authRateLimiter, verifyCollegeEmailOtp);
 authRouter.get("/student-proof/:userId", protect, downloadStudentProof);
 authRouter.get("/admin/users", protect, authorize("admin"), listUsers);
