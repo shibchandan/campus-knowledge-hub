@@ -46,6 +46,7 @@ const userSchema = new mongoose.Schema(
     twoFactorEnabled: { type: Boolean, default: false },
     twoFactorSecret: { type: String, default: "", select: false },
     twoFactorTempSecret: { type: String, default: "", select: false },
+    twoFactorSetupStartedAt: { type: Date, default: null, select: false },
     premiumUntil: { type: Date, default: null },
     unlockedAssignments: [{ type: mongoose.Schema.Types.ObjectId, ref: "Assignment" }],
     pendingEmailMigration: { type: String, default: "", trim: true, lowercase: true },

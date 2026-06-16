@@ -966,10 +966,18 @@ export async function downloadStudentProof(req, res, next) {
       throw error;
     }
 
+    const safeFilename = path.basename(targetUser.studentProofOriginalName || "student-proof").replace(/[^a-zA-Z0-9._-]/g, "_");
     const proofPath = path.resolve(uploadDirectory, targetUser.studentProofStoredName);
+    
+    if (!proofPath.startsWith(path.resolve(uploadDirectory))) {
+      const error = new Error("Invalid file path");
+      error.statusCode = 400;
+      throw error;
+    }
+
     res.sendFile(proofPath, {
       headers: {
-        "Content-Disposition": `inline; filename="${targetUser.studentProofOriginalName || "student-proof"}"`
+        "Content-Disposition": `inline; filename="${safeFilename}"`
       }
     });
   } catch (error) {
@@ -994,14 +1002,25 @@ export async function testSmtp(req, res, next) {
 
 export async function setup2fa(req, res, next) {
   try {
-    const user = await User.findById(req.user.id);
+    const user = await User.findById(req.user.id).select("+twoFactorTempSecret +twoFactorSetupStartedAt");
     if (!user) {
       const error = new Error("User not found");
       error.statusCode = 404;
       throw error;
     }
+
+    if (user.twoFactorTempSecret && user.twoFactorSetupStartedAt) {
+      const age = Date.now() - user.twoFactorSetupStartedAt.getTime();
+      if (age < 5 * 60 * 1000) {
+        const error = new Error("2FA setup already in progress. Please wait 5 minutes before generating a new secret.");
+        error.statusCode = 429;
+        throw error;
+      }
+    }
+
     const secret = generateSecret();
     user.twoFactorTempSecret = secret;
+    user.twoFactorSetupStartedAt = new Date();
     await user.save();
     
     const emailEncoded = encodeURIComponent(user.email);
@@ -1127,15 +1146,10 @@ export async function login2fa(req, res, next) {
     }
     
     const user = await User.findById(userId).select("+twoFactorSecret");
-    if (!user) {
-      const error = new Error("User not found.");
-      error.statusCode = 404;
-      throw error;
-    }
-    
-    if (!user.twoFactorEnabled || !user.twoFactorSecret) {
-      const error = new Error("2FA is not enabled for this user.");
-      error.statusCode = 400;
+    if (!user || !user.twoFactorEnabled || !user.twoFactorSecret) {
+      // Don't distinguish between "User not found" and "2FA not enabled" to prevent enumeration
+      const error = new Error("Invalid 2FA code or 2FA is not enabled.");
+      error.statusCode = 401;
       throw error;
     }
     
