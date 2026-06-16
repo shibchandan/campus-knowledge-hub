@@ -10,6 +10,18 @@ function createHttpError(message, statusCode = 400) {
   return error;
 }
 
+function validatePasswordStrength(password) {
+  if (password.length < 8) {
+    throw createHttpError("Password must be at least 8 characters long.");
+  }
+  if (!/[a-zA-Z]/.test(password)) {
+    throw createHttpError("Password must contain at least one letter.");
+  }
+  if (!/[0-9]/.test(password)) {
+    throw createHttpError("Password must contain at least one number.");
+  }
+}
+
 function readOptionalCollegeName(value) {
   if (typeof value !== "string") {
     return "";
@@ -93,9 +105,10 @@ export function validateRegisterPayload(payload) {
     throw createHttpError("Enter a valid email address.");
   }
 
-  if (!password || password.length < 6) {
-    throw createHttpError("Password must be at least 6 characters long.");
+  if (!password) {
+    throw createHttpError("Password is required.");
   }
+  validatePasswordStrength(password);
 
   if (!validRegisterRoles.has(role)) {
     throw createHttpError("Only student and representative self-registration is allowed.");
@@ -167,9 +180,7 @@ export function validateChangePasswordPayload(payload) {
     throw createHttpError("Current password and new password are required.");
   }
 
-  if (newPassword.length < 6) {
-    throw createHttpError("New password must be at least 6 characters long.");
-  }
+  validatePasswordStrength(newPassword);
 
   if (currentPassword === newPassword) {
     throw createHttpError("New password must be different from your current password.");
@@ -196,9 +207,10 @@ export function validateAdminCreateUserPayload(payload) {
     throw createHttpError("Enter a valid email address.");
   }
 
-  if (!password || password.length < 6) {
-    throw createHttpError("Password must be at least 6 characters long.");
+  if (!password) {
+    throw createHttpError("Password is required.");
   }
+  validatePasswordStrength(password);
 
   if (!validAdminRoles.has(role)) {
     throw createHttpError("Invalid role selected.");
@@ -291,9 +303,7 @@ export function validateAdminUpdateUserPayload(payload) {
   if (typeof payload.password === "string" && payload.password.trim()) {
     const password = payload.password.trim();
 
-    if (password.length < 6) {
-      throw createHttpError("Password must be at least 6 characters long.");
-    }
+    validatePasswordStrength(password);
 
     updates.password = password;
   }
@@ -324,9 +334,10 @@ export function validateResetPasswordPayload(payload) {
     throw createHttpError("OTP must be a 6-digit code.");
   }
 
-  if (!newPassword || newPassword.length < 6) {
-    throw createHttpError("New password must be at least 6 characters long.");
+  if (!newPassword) {
+    throw createHttpError("New password is required.");
   }
+  validatePasswordStrength(newPassword);
 
   return { email, otp, newPassword };
 }
