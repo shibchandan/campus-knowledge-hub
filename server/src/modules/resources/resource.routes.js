@@ -1,7 +1,7 @@
 import { Router } from "express";
 import { authorize, optionalProtect, protect } from "../../middleware/authMiddleware.js";
 import { createRateLimiter } from "../../middleware/rateLimit.js";
-import { upload } from "../../middleware/uploadMiddleware.js";
+import { upload, validateUploadedFile } from "../../middleware/uploadMiddleware.js";
 import {
   deleteResource,
   downloadResource,
@@ -42,5 +42,6 @@ resourceRouter.post(
   protect,
   uploadRateLimiter,
   upload.single("file"),
+  validateUploadedFile,
   uploadResource
 );

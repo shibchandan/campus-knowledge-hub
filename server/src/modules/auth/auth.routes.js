@@ -23,7 +23,7 @@ import {
 } from "./auth.controller.js";
 import { authorize, protect } from "../../middleware/authMiddleware.js";
 import { createRateLimiter } from "../../middleware/rateLimit.js";
-import { upload } from "../../middleware/uploadMiddleware.js";
+import { upload, validateUploadedFile } from "../../middleware/uploadMiddleware.js";
 
 export const authRouter = Router();
 
@@ -41,7 +41,7 @@ const uploadRateLimiter = createRateLimiter({
   keyPrefix: "upload"
 });
 
-authRouter.post("/register", authRateLimiter, uploadRateLimiter, upload.single("studentProof"), register);
+authRouter.post("/register", authRateLimiter, uploadRateLimiter, upload.single("studentProof"), validateUploadedFile, register);
 authRouter.post("/login", authRateLimiter, login);
 authRouter.post("/forgot-password", authRateLimiter, forgotPassword);
 authRouter.post("/reset-password", authRateLimiter, resetPassword);
@@ -54,6 +54,7 @@ authRouter.post(
   authRateLimiter,
   uploadRateLimiter,
   upload.single("studentProof"),
+  validateUploadedFile,
   submitStudentVerification
 );
 authRouter.post("/student-verification/send-college-email-otp", protect, authRateLimiter, sendCollegeEmailOtp);
