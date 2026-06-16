@@ -1007,6 +1007,29 @@ h3 {
   box-shadow: 0 22px 54px rgba(24, 33, 47, 0.08);
 }
 
+.hero-card {
+  border-radius: 28px;
+  border: 1px solid rgba(255, 255, 255, 0.4);
+  background: 
+    radial-gradient(circle at 100% 0%, rgba(59, 130, 246, 0.15) 0%, transparent 40%),
+    radial-gradient(circle at 0% 100%, rgba(139, 92, 246, 0.15) 0%, transparent 40%),
+    linear-gradient(135deg, rgba(255, 255, 255, 0.9), rgba(248, 250, 253, 0.7));
+  backdrop-filter: blur(24px);
+  -webkit-backdrop-filter: blur(24px);
+  box-shadow: 0 24px 64px -12px rgba(24, 33, 47, 0.12), inset 0 1px 0 rgba(255, 255, 255, 0.8);
+  position: relative;
+  overflow: hidden;
+}
+
+.hero-card::before {
+  content: "";
+  position: absolute;
+  top: 0; left: 0; right: 0; bottom: 0;
+  background: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noiseFilter'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noiseFilter)'/%3E%3C/svg%3E");
+  opacity: 0.04;
+  pointer-events: none;
+}
+
 .card-header {
   margin-bottom: 22px;
   padding-bottom: 18px;
@@ -1913,7 +1936,8 @@ h3 {
   border-bottom-color: rgba(131, 148, 173, 0.16);
 }
 
-[data-theme="dark"] .overview-hero-band {
+[data-theme="dark"] .overview-hero-band,
+[data-theme="dark"] .hero-card {
   border-color: rgba(139, 92, 246, 0.3);
   background:
     radial-gradient(circle at 100% 0%, rgba(139, 92, 246, 0.2) 0%, transparent 40%),
@@ -4005,21 +4029,47 @@ h3 {
 }
 
 .notes-stat-card {
-  padding: 16px;
-  border-radius: 14px;
-  background: rgba(255, 255, 255, 0.5);
-  border: 1px solid rgba(24, 33, 47, 0.06);
-  transition: transform 0.2s ease, box-shadow 0.2s ease;
+  padding: 20px;
+  border-radius: 20px;
+  background: rgba(255, 255, 255, 0.6);
+  border: 1px solid rgba(255, 255, 255, 0.8);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  box-shadow: 0 8px 24px -6px rgba(24, 33, 47, 0.08), inset 0 1px 0 rgba(255, 255, 255, 0.9);
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  position: relative;
+  overflow: hidden;
+}
+
+.notes-stat-card::after {
+  content: "";
+  position: absolute;
+  top: 0; right: 0; bottom: 0; left: 0;
+  background: linear-gradient(135deg, rgba(255,255,255,0.4) 0%, transparent 100%);
+  opacity: 0;
+  transition: opacity 0.3s ease;
 }
 
 [data-theme="dark"] .notes-stat-card {
-  background: rgba(18, 28, 43, 0.3);
-  border-color: rgba(255, 255, 255, 0.05);
+  background: rgba(15, 23, 42, 0.5);
+  border-color: rgba(139, 92, 246, 0.2);
+  box-shadow: 0 8px 24px -6px rgba(0, 0, 0, 0.4), inset 0 1px 0 rgba(255, 255, 255, 0.05);
 }
 
 .notes-stat-card:hover {
-  transform: translateY(-2px);
-  box-shadow: 0 6px 16px rgba(0, 0, 0, 0.06);
+  transform: translateY(-4px) scale(1.02);
+  box-shadow: 0 20px 40px -12px rgba(24, 33, 47, 0.15), inset 0 1px 0 rgba(255, 255, 255, 1);
+  border-color: rgba(255, 255, 255, 0.9);
+}
+
+.notes-stat-card:hover::after {
+  opacity: 1;
+}
+
+[data-theme="dark"] .notes-stat-card:hover {
+  background: rgba(30, 41, 59, 0.8);
+  border-color: rgba(139, 92, 246, 0.5);
+  box-shadow: 0 0 20px rgba(139, 92, 246, 0.2), inset 0 1px 0 rgba(255, 255, 255, 0.1);
 }
 
 .notes-stat-header {

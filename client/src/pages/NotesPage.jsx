@@ -177,6 +177,7 @@ export function NotesPage() {
       <SectionCard
         title="Notes, Books & PYQs"
         description="A guided study shelf with revision-ready notes, solved PYQs, and curated academic resources."
+        variant="hero"
       >
         <div className="panel-actions">
           <Link className="action-button neutral" to="/quizzes">

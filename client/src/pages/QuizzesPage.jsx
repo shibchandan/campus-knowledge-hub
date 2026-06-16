@@ -61,6 +61,7 @@ export function QuizzesPage() {
       <SectionCard
         title="Quiz Arena"
         description="Representative-created quizzes for the selected college only."
+        variant="hero"
       >
         <p className="muted">
           Showing quiz arrangements for <strong>{selectedCollege.name}</strong>.

@@ -73,6 +73,7 @@ export function LecturesPage() {
       <SectionCard
         title="Lecture Library"
         description="Secure professor-uploaded video lectures with subject, topic, semester, and date metadata."
+        variant="hero"
       >
         <div className="list-toolbar">
           <input

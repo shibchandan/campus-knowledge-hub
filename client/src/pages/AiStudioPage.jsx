@@ -115,6 +115,7 @@ export function AiStudioPage() {
       <SectionCard
         title="AI Learning Engine"
         description={`Ask academic questions and get clean, category-wise answers grounded on ${selectedCollege?.name || "your selected college"} resources.`}
+        variant="hero"
       >
         <form className="panel-form" onSubmit={handleAsk}>
           <div className="panel-form-grid">

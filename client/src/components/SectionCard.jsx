@@ -1,6 +1,7 @@
-export function SectionCard({ title, description, children }) {
+export function SectionCard({ title, description, children, variant = "default" }) {
+  const cardClass = variant === "hero" ? "card hero-card" : "card";
   return (
-    <section className="card">
+    <section className={cardClass}>
       <div className="card-header">
         <div>
           <p className="card-kicker">Workspace Section</p>
