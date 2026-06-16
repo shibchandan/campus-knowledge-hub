@@ -9,6 +9,15 @@
 
 It serves as a comprehensive bridge between students and college administrations, offering verified resources, gamified quizzes, AI assistance, and scalable real-time chat communities.
 
+---
+
+## 🔗 Live Application Links
+
+* **Live Demo (Client):** [campus-knowledge-hub-client.vercel.app](https://campus-knowledge-hub-client.vercel.app)
+* **Backend API (Server):** [campus-knowledge-hub-1.onrender.com](https://campus-knowledge-hub-1.onrender.com)
+
+---
+
 ## 📚 Project Documentation
 
 To understand the architecture, business logic, and database schemas powering this platform, please refer to the comprehensive engineering documentation:
