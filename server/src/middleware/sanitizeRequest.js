@@ -15,9 +15,15 @@ function sanitizeValue(value) {
   }
 
   if (value && typeof value === "object") {
-    return Object.fromEntries(
-      Object.entries(value).map(([key, nestedValue]) => [key, sanitizeValue(nestedValue)])
-    );
+    const sanitizedObj = {};
+    for (const [key, nestedValue] of Object.entries(value)) {
+      let sanitizedKey = key;
+      if (typeof key === "string") {
+        sanitizedKey = key.replace(/^\$/, "").replace(/\./g, "");
+      }
+      sanitizedObj[sanitizedKey] = sanitizeValue(nestedValue);
+    }
+    return sanitizedObj;
   }
 
   return value;
