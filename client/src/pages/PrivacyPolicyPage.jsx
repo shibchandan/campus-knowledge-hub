@@ -257,7 +257,7 @@ export function PrivacyPolicyPage() {
               7. Contact Us
             </h2>
             <p style={{ color: "#cbd5e1" }}>
-              If you have any questions about this privacy policy, please contact the platform administrator at <strong>support@campushub.com</strong>.
+              If you have any questions about this privacy policy, please contact the platform administrator at <strong>shibchandan11@gmail.com</strong>.
             </p>
           </div>
 
