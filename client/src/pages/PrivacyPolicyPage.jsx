@@ -237,7 +237,7 @@ export function PrivacyPolicyPage() {
               Depending on your location (e.g., under GDPR or the DPDP Act), you have the right to access, correct, or request deletion of your personal data. 
             </p>
             <p style={{ color: "#cbd5e1" }}>
-              You can delete your account and all associated personal data directly from the <Link to="/panel/student/account" style={{ color: "#60a5fa", textDecoration: "none" }}>Account Settings</Link> page inside the application.
+              You can delete your account and all associated personal data directly from the <Link to="/account" style={{ color: "#60a5fa", textDecoration: "none" }}>Account Settings</Link> page inside the application.
             </p>
           </div>
 
