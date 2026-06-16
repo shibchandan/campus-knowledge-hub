@@ -4,10 +4,16 @@ import { Payment } from "./payment.model.js";
 import { User } from "../auth/auth.model.js";
 import { CommunityGroup } from "../community/community.model.js";
 
-// Initialize razorpay securely. Fallback to mock keys if env variables are missing to prevent crashes.
+import { env } from "../../config/env.js";
+
+// Initialize razorpay securely. Throw an error if keys are missing during initialization to fail fast.
+if (!env.razorpayKeyId || !env.razorpayKeySecret) {
+  console.warn("Payment gateway keys are missing. Payments will fail.");
+}
+
 const razorpay = new Razorpay({
-  key_id: process.env.RAZORPAY_KEY_ID || "rzp_test_mockkeyid123456",
-  key_secret: process.env.RAZORPAY_KEY_SECRET || "mockkeysecret1234567890",
+  key_id: env.razorpayKeyId || "placeholder",
+  key_secret: env.razorpayKeySecret || "placeholder",
 });
 
 export async function createOrder(req, res, next) {
@@ -42,7 +48,7 @@ export async function createOrder(req, res, next) {
         orderId: order.id,
         amount: order.amount,
         currency: order.currency,
-        key: process.env.RAZORPAY_KEY_ID || "rzp_test_mockkeyid123456" // Send key_id to client
+        key: env.razorpayKeyId
       }
     });
   } catch (error) {
@@ -59,7 +65,7 @@ export async function verifyPayment(req, res, next) {
       return res.status(404).json({ success: false, message: "Order not found." });
     }
 
-    const secret = process.env.RAZORPAY_KEY_SECRET || "mockkeysecret1234567890";
+    const secret = env.razorpayKeySecret;
     const body = razorpay_order_id + "|" + razorpay_payment_id;
     const expectedSignature = crypto.createHmac("sha256", secret).update(body.toString()).digest("hex");
 
@@ -67,6 +73,20 @@ export async function verifyPayment(req, res, next) {
       payment.status = "failed";
       await payment.save();
       return res.status(400).json({ success: false, message: "Invalid payment signature." });
+    }
+
+    const order = await razorpay.orders.fetch(razorpay_order_id);
+
+    if (order.amount !== payment.amount) {
+      return res.status(400).json({ success: false, message: "Payment amount mismatch." });
+    }
+
+    if (order.currency !== "INR") {
+      return res.status(400).json({ success: false, message: "Currency mismatch." });
+    }
+
+    if (order.status !== "paid") {
+      return res.status(400).json({ success: false, message: "Order not completed." });
     }
 
     payment.status = "paid";
