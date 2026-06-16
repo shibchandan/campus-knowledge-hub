@@ -664,13 +664,27 @@ h3 {
   display: grid;
   gap: 18px;
   grid-template-columns: minmax(0, 1.8fr) minmax(280px, 0.95fr);
-  padding: 28px;
+  padding: 32px;
   border-radius: 28px;
-  border: 1px solid rgba(24, 33, 47, 0.08);
-  background:
-    radial-gradient(circle at top right, rgba(242, 166, 90, 0.16), transparent 24%),
-    linear-gradient(180deg, rgba(255, 255, 255, 0.88), rgba(248, 250, 253, 0.92));
-  box-shadow: 0 22px 54px rgba(24, 33, 47, 0.08);
+  border: 1px solid rgba(255, 255, 255, 0.4);
+  background: 
+    radial-gradient(circle at 100% 0%, rgba(59, 130, 246, 0.15) 0%, transparent 40%),
+    radial-gradient(circle at 0% 100%, rgba(139, 92, 246, 0.15) 0%, transparent 40%),
+    linear-gradient(135deg, rgba(255, 255, 255, 0.9), rgba(248, 250, 253, 0.7));
+  backdrop-filter: blur(24px);
+  -webkit-backdrop-filter: blur(24px);
+  box-shadow: 0 24px 64px -12px rgba(24, 33, 47, 0.12), inset 0 1px 0 rgba(255, 255, 255, 0.8);
+  position: relative;
+  overflow: hidden;
+}
+
+.overview-hero-band::before {
+  content: "";
+  position: absolute;
+  top: 0; left: 0; right: 0; bottom: 0;
+  background: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noiseFilter'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noiseFilter)'/%3E%3C/svg%3E");
+  opacity: 0.04;
+  pointer-events: none;
 }
 
 .overview-hero-main {
@@ -700,16 +714,27 @@ h3 {
   display: inline-flex;
   align-items: center;
   gap: 8px;
-  padding: 10px 14px;
+  padding: 8px 16px;
   border-radius: 999px;
-  background: rgba(24, 33, 47, 0.06);
-  border: 1px solid rgba(24, 33, 47, 0.08);
+  background: rgba(255, 255, 255, 0.6);
+  border: 1px solid rgba(24, 33, 47, 0.05);
+  box-shadow: 0 4px 12px rgba(24, 33, 47, 0.04);
   color: #314257;
-  font-size: 0.9rem;
+  font-size: 0.85rem;
+  font-weight: 500;
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.overview-status-pill:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 6px 16px rgba(24, 33, 47, 0.08);
 }
 
 .overview-status-pill strong {
-  color: #18212f;
+  color: #0f172a;
+  font-weight: 700;
 }
 
 .overview-stat-strip {
@@ -719,16 +744,35 @@ h3 {
 }
 
 .overview-stat-tile {
-  padding: 16px;
-  border-radius: 18px;
-  background: rgba(255, 255, 255, 0.72);
-  border: 1px solid rgba(24, 33, 47, 0.08);
-  transition: transform 0.2s ease, box-shadow 0.2s ease;
+  padding: 20px;
+  border-radius: 20px;
+  background: rgba(255, 255, 255, 0.6);
+  border: 1px solid rgba(255, 255, 255, 0.8);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  box-shadow: 0 8px 24px -6px rgba(24, 33, 47, 0.08), inset 0 1px 0 rgba(255, 255, 255, 0.9);
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  position: relative;
+  overflow: hidden;
+}
+
+.overview-stat-tile::after {
+  content: "";
+  position: absolute;
+  top: 0; right: 0; bottom: 0; left: 0;
+  background: linear-gradient(135deg, rgba(255,255,255,0.4) 0%, transparent 100%);
+  opacity: 0;
+  transition: opacity 0.3s ease;
 }
 
 .overview-stat-tile:hover {
-  transform: translateY(-2px);
-  box-shadow: 0 8px 24px rgba(24, 33, 47, 0.1);
+  transform: translateY(-4px) scale(1.02);
+  box-shadow: 0 20px 40px -12px rgba(24, 33, 47, 0.15), inset 0 1px 0 rgba(255, 255, 255, 1);
+  border-color: rgba(255, 255, 255, 0.9);
+}
+
+.overview-stat-tile:hover::after {
+  opacity: 1;
 }
 
 .stat-tile-header {
@@ -772,10 +816,18 @@ h3 {
 }
 
 .overview-side-block {
-  padding: 18px;
-  border-radius: 18px;
-  background: rgba(255, 255, 255, 0.76);
-  border: 1px solid rgba(24, 33, 47, 0.08);
+  padding: 20px;
+  border-radius: 20px;
+  background: rgba(255, 255, 255, 0.5);
+  border: 1px solid rgba(255, 255, 255, 0.6);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  box-shadow: 0 8px 32px -8px rgba(24, 33, 47, 0.06);
+  transition: background 0.3s ease;
+}
+
+.overview-side-block:hover {
+  background: rgba(255, 255, 255, 0.7);
 }
 
 .overview-side-label {
@@ -1862,9 +1914,12 @@ h3 {
 }
 
 [data-theme="dark"] .overview-hero-band {
+  border-color: rgba(139, 92, 246, 0.3);
   background:
-    radial-gradient(circle at top right, rgba(216, 178, 119, 0.16), transparent 24%),
-    linear-gradient(180deg, rgba(17, 26, 40, 0.94), rgba(12, 19, 31, 0.96));
+    radial-gradient(circle at 100% 0%, rgba(139, 92, 246, 0.2) 0%, transparent 40%),
+    radial-gradient(circle at 0% 100%, rgba(59, 130, 246, 0.15) 0%, transparent 40%),
+    linear-gradient(135deg, rgba(15, 23, 42, 0.8), rgba(8, 15, 28, 0.9));
+  box-shadow: 0 24px 64px -12px rgba(0, 0, 0, 0.5), inset 0 1px 0 rgba(255, 255, 255, 0.1);
 }
 
 [data-theme="dark"] .card-kicker {
@@ -1900,14 +1955,31 @@ h3 {
 }
 
 [data-theme="dark"] .overview-status-pill,
-[data-theme="dark"] .overview-side-block,
+[data-theme="dark"] .overview-side-block {
+  background: rgba(15, 23, 42, 0.6);
+  border-color: rgba(59, 130, 246, 0.2);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.05);
+}
+
+[data-theme="dark"] .overview-stat-tile {
+  background: rgba(15, 23, 42, 0.5);
+  border-color: rgba(139, 92, 246, 0.2);
+  box-shadow: 0 8px 24px -6px rgba(0, 0, 0, 0.4), inset 0 1px 0 rgba(255, 255, 255, 0.05);
+}
+
+[data-theme="dark"] .overview-stat-tile:hover {
+  background: rgba(30, 41, 59, 0.8);
+  border-color: rgba(139, 92, 246, 0.5);
+  box-shadow: 0 0 20px rgba(139, 92, 246, 0.2), inset 0 1px 0 rgba(255, 255, 255, 0.1);
+}
+
+[data-theme="dark"] .overview-status-pill strong,
+[data-theme="dark"] .overview-side-block h3,
 [data-theme="dark"] .overview-highlight-row,
 [data-theme="dark"] .overview-profile-notes article,
 [data-theme="dark"] .overview-directory-item,
 [data-theme="dark"] .overview-notice-item,
-[data-theme="dark"] .overview-course-item,
-[data-theme="dark"] .overview-created-subject,
-[data-theme="dark"] .overview-stat-tile {
+[data-theme="dark"] .overview-course-item {
   background: rgba(17, 26, 40, 0.9);
   border-color: rgba(131, 148, 173, 0.2);
   color: #d8e1ef;
