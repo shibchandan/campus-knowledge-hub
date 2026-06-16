@@ -76,11 +76,22 @@ export function readMongoId(value, { field = "id", required = true } = {}) {
   return id;
 }
 
-export function normalizeCollegeName(value) {
-  return String(value || "")
+export function normalizeCollegeName(college) {
+  return String(college || "")
     .trim()
     .toLowerCase()
     .replace(/\s+/g, " ");
+}
+
+export function escapeHtml(text) {
+  const map = {
+    '&': '&amp;',
+    '<': '&lt;',
+    '>': '&gt;',
+    '"': '&quot;',
+    "'": '&#039;'
+  };
+  return String(text || "").replace(/[&<>"']/g, m => map[m]);
 }
 
 export function readPagination(query, { defaultLimit = 12, maxLimit = 50 } = {}) {

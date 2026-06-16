@@ -16,8 +16,10 @@ import {
 } from "./governance.validation.js";
 import {
   createHttpError,
+  escapeHtml,
   normalizeCollegeName,
   readMongoId,
+  readPagination,
   readString
 } from "../../utils/requestValidation.js";
 import { requirePasswordConfirmation } from "../../utils/passwordConfirmation.js";
@@ -363,7 +365,7 @@ export async function decideCollegeRequest(req, res, next) {
           to: result.request.representative.email,
           subject: "Your Representative Request has been rejected",
           text: `Hello ${result.request.representative.fullName},\n\nYour request to be the representative for ${result.request.collegeName} has been rejected by an administrator.\n\nNote: ${decisionNote || "No note provided."}\n\nBest regards,\nCampus Knowledge Hub`,
-          html: `<p>Hello ${result.request.representative.fullName},</p><p>Your request to be the representative for <strong>${result.request.collegeName}</strong> has been rejected by an administrator.</p><p><strong>Note:</strong> ${decisionNote || "No note provided."}</p><p>Best regards,<br/>Campus Knowledge Hub</p>`
+          html: `<p>Hello ${escapeHtml(result.request.representative.fullName)},</p><p>Your request to be the representative for <strong>${escapeHtml(result.request.collegeName)}</strong> has been rejected by an administrator.</p><p><strong>Note:</strong> ${escapeHtml(decisionNote || "No note provided.")}</p><p>Best regards,<br/>Campus Knowledge Hub</p>`
         });
       }
 
@@ -384,7 +386,7 @@ export async function decideCollegeRequest(req, res, next) {
         to: result.request.representative.email,
         subject: "Your Representative Request has been approved!",
         text: `Hello ${result.request.representative.fullName},\n\nCongratulations! Your request to be the representative for ${result.request.collegeName} has been approved by an administrator.\n\nYou can now log in to the Representative Panel to manage resources, structures, notices, and quizzes for your college.\n\nNote: ${decisionNote || "No note provided."}\n\nBest regards,\nCampus Knowledge Hub`,
-        html: `<p>Hello ${result.request.representative.fullName},</p><p>Congratulations! Your request to be the representative for <strong>${result.request.collegeName}</strong> has been approved by an administrator.</p><p>You can now log in to the Representative Panel to manage resources, structures, notices, and quizzes for your college.</p><p><strong>Note:</strong> ${decisionNote || "No note provided."}</p><p>Best regards,<br/>Campus Knowledge Hub</p>`
+        html: `<p>Hello ${escapeHtml(result.request.representative.fullName)},</p><p>Congratulations! Your request to be the representative for <strong>${escapeHtml(result.request.collegeName)}</strong> has been approved by an administrator.</p><p>You can now log in to the Representative Panel to manage resources, structures, notices, and quizzes for your college.</p><p><strong>Note:</strong> ${escapeHtml(decisionNote || "No note provided.")}</p><p>Best regards,<br/>Campus Knowledge Hub</p>`
       });
     }
 

@@ -17,9 +17,12 @@ import {
 import { PaymentOrder } from "../payments/payment.model.js";
 import {
   createHttpError,
-  readMongoId,
+  escapeHtml,
+  normalizeCollegeName,
   readEnum,
+  readMongoId,
   readPagination,
+  readPositiveInt,
   readSearchPattern,
   readString
 } from "../../utils/requestValidation.js";
@@ -1151,18 +1154,18 @@ Please review the resource on the platform database and take appropriate action.
       
       <h4>Resource Details:</h4>
       <ul>
-        <li><strong>Title:</strong> ${resource.title}</li>
-        <li><strong>ID:</strong> ${resource._id}</li>
-        <li><strong>Category:</strong> ${resource.categoryId}</li>
-        <li><strong>College:</strong> ${resource.collegeName}</li>
-        <li><strong>Uploaded By:</strong> ${uploaderName} (${uploaderEmail})</li>
+        <li><strong>Title:</strong> ${escapeHtml(resource.title)}</li>
+        <li><strong>ID:</strong> ${escapeHtml(resource._id.toString())}</li>
+        <li><strong>Category:</strong> ${escapeHtml(resource.categoryId)}</li>
+        <li><strong>College:</strong> ${escapeHtml(resource.collegeName)}</li>
+        <li><strong>Uploaded By:</strong> ${escapeHtml(uploaderName)} (${escapeHtml(uploaderEmail)})</li>
       </ul>
       
       <h4>Report Details:</h4>
       <ul>
-        <li><strong>Reported By:</strong> ${reporterName} (${reporterEmail}, Role: ${reporterRole})</li>
-        <li><strong>Reason:</strong> ${reason.toUpperCase()}</li>
-        <li><strong>Comments:</strong> ${comments || "None provided"}</li>
+        <li><strong>Reported By:</strong> ${escapeHtml(reporterName)} (${escapeHtml(reporterEmail)}, Role: ${escapeHtml(reporterRole)})</li>
+        <li><strong>Reason:</strong> ${escapeHtml(reason.toUpperCase())}</li>
+        <li><strong>Comments:</strong> ${escapeHtml(comments || "None provided")}</li>
       </ul>
       
       <p>Please review the resource on the platform database and take appropriate action.</p>

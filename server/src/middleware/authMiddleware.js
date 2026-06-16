@@ -19,22 +19,14 @@ function getTokenFromCookies(req) {
   return decodeURIComponent(match.substring(env.authCookieName.length + 1));
 }
 
-function getTokenFromQuery(req) {
-  if (req.method !== "GET") {
-    return "";
-  }
 
-  const raw = req.query?.accessToken;
-  return typeof raw === "string" ? raw.trim() : "";
-}
 
 export async function protect(req, _res, next) {
   const authHeader = req.headers.authorization;
   const tokenFromHeader =
     authHeader && authHeader.startsWith("Bearer ") ? authHeader.split(" ")[1] : "";
   const tokenFromCookie = getTokenFromCookies(req);
-  const tokenFromQuery = getTokenFromQuery(req);
-  const token = tokenFromHeader || tokenFromCookie || tokenFromQuery;
+  const token = tokenFromHeader || tokenFromCookie;
 
   if (!token) {
     const error = new Error("Unauthorized");
@@ -94,8 +86,7 @@ export async function optionalProtect(req, _res, next) {
   const tokenFromHeader =
     authHeader && authHeader.startsWith("Bearer ") ? authHeader.split(" ")[1] : "";
   const tokenFromCookie = getTokenFromCookies(req);
-  const tokenFromQuery = getTokenFromQuery(req);
-  const token = tokenFromHeader || tokenFromCookie || tokenFromQuery;
+  const token = tokenFromHeader || tokenFromCookie;
 
   if (!token) {
     return next();

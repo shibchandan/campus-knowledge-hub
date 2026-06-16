@@ -22,7 +22,7 @@ import {
   validateResetPasswordPayload,
   validateStudentVerificationSubmissionPayload
 } from "./auth.validation.js";
-import { normalizeCollegeName } from "../../utils/requestValidation.js";
+import { normalizeCollegeName, escapeHtml } from "../../utils/requestValidation.js";
 
 const OTP_LENGTH = 6;
 const OTP_EXPIRY_MINUTES = 10;
@@ -131,12 +131,12 @@ async function notifyAdminsAboutStudentVerification(user) {
   ].join("\n");
 
   const html = `
-    <p><strong>${user.fullName}</strong> has submitted student verification details for admin review.</p>
+    <p><strong>${escapeHtml(user.fullName)}</strong> has submitted student verification details for admin review.</p>
     <ul>
-      <li><strong>Email:</strong> ${user.email}</li>
-      <li><strong>College:</strong> ${user.collegeName || "Not submitted"}</li>
-      <li><strong>College ID:</strong> ${user.collegeStudentId || "Not submitted"}</li>
-      <li><strong>Official college email:</strong> ${user.officialCollegeEmail || "Not provided"}</li>
+      <li><strong>Email:</strong> ${escapeHtml(user.email)}</li>
+      <li><strong>College:</strong> ${escapeHtml(user.collegeName || "Not submitted")}</li>
+      <li><strong>College ID:</strong> ${escapeHtml(user.collegeStudentId || "Not submitted")}</li>
+      <li><strong>Official college email:</strong> ${escapeHtml(user.officialCollegeEmail || "Not provided")}</li>
     </ul>
     <p>Open the Admin Panel to review and verify this student.</p>
   `;
@@ -157,10 +157,10 @@ async function notifyAdminsAboutRepresentativeRequest(user) {
   ].join("\n");
 
   const html = `
-    <p><strong>${user.fullName}</strong> has requested representative access and is waiting for admin approval.</p>
+    <p><strong>${escapeHtml(user.fullName)}</strong> has requested representative access and is waiting for admin approval.</p>
     <ul>
-      <li><strong>Email:</strong> ${user.email}</li>
-      <li><strong>Requested college:</strong> ${user.collegeName || "Not submitted"}</li>
+      <li><strong>Email:</strong> ${escapeHtml(user.email)}</li>
+      <li><strong>Requested college:</strong> ${escapeHtml(user.collegeName || "Not submitted")}</li>
     </ul>
     <p>Open the Admin Panel to approve or reject this representative request.</p>
   `;
@@ -1185,10 +1185,10 @@ export async function contactAdmin(req, res, next) {
     
     const text = `Contact Admin form submitted:\nFrom: ${email}\nSubject: ${subject}\nMessage:\n${message}`;
     const html = `<h3>Contact Admin Inquiry</h3>
-                  <p><strong>From:</strong> ${email}</p>
-                  <p><strong>Subject:</strong> ${subject}</p>
+                  <p><strong>From:</strong> ${escapeHtml(email)}</p>
+                  <p><strong>Subject:</strong> ${escapeHtml(subject)}</p>
                   <p><strong>Message:</strong></p>
-                  <p>${message.replace(/\\n/g, "<br/>")}</p>`;
+                  <p>${escapeHtml(message).replace(/\\n/g, "<br/>")}</p>`;
                   
     await sendAdminNotification({
       subject: `[Contact Admin] ${subject}`,
