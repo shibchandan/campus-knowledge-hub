@@ -14,6 +14,14 @@ export async function connectDatabase() {
     throw new Error("Missing MONGODB_URI");
   }
 
+  if (!/^mongodb(?:\+srv)?:\/\//.test(env.mongodbUri)) {
+    throw new Error("Invalid MONGODB_URI format. Must start with mongodb:// or mongodb+srv://");
+  }
+
+  if (env.nodeEnv === "production" && !env.mongodbUri.includes("@")) {
+    throw new Error("FATAL ERROR: Production MONGODB_URI must include authentication credentials.");
+  }
+
   await mongoose.connect(env.mongodbUri);
   console.log("MongoDB connected");
   logAppEvent("info", "mongodb_connected");
