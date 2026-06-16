@@ -1475,7 +1475,28 @@ export function RepresentativePanelPage() {
             </label>
           </div>
           <div className="auth-field" style={{ display: "flex", flexDirection: "column", gap: "0.5rem" }}>
-            <span style={{ fontSize: "0.9rem", fontWeight: "600", color: "#f8fafc" }}>Cut Off Summary (Branch-wise Mapping)</span>
+            <span style={{ fontSize: "0.9rem", fontWeight: "600", color: "#f8fafc" }}>Cut Off Summary (Text / General Details)</span>
+            <textarea
+              onChange={(event) =>
+                setProfileForm((current) => ({ ...current, cutOffSummary: event.target.value }))
+              }
+              placeholder="Provide a general summary of the cut-off trends or additional details here..."
+              value={profileForm.cutOffSummary}
+              rows={4}
+              style={{
+                width: "100%",
+                padding: "0.75rem",
+                borderRadius: "8px",
+                background: "rgba(255, 255, 255, 0.05)",
+                border: "1px solid rgba(255, 255, 255, 0.1)",
+                color: "#f8fafc",
+                fontSize: "0.9rem",
+                resize: "vertical"
+              }}
+            />
+          </div>
+          <div className="auth-field" style={{ display: "flex", flexDirection: "column", gap: "0.5rem", marginTop: "1rem" }}>
+            <span style={{ fontSize: "0.9rem", fontWeight: "600", color: "#f8fafc" }}>Cut Off Mapping (Branch-wise List)</span>
             <div style={{
               background: "rgba(255, 255, 255, 0.02)",
               border: "1px solid rgba(255, 255, 255, 0.05)",
@@ -1545,7 +1566,28 @@ export function RepresentativePanelPage() {
           </div>
 
           <div className="auth-field" style={{ display: "flex", flexDirection: "column", gap: "0.5rem", marginTop: "1rem" }}>
-            <span style={{ fontSize: "0.9rem", fontWeight: "600", color: "#f8fafc" }}>Placement Report Summary (Branch-wise Mapping)</span>
+            <span style={{ fontSize: "0.9rem", fontWeight: "600", color: "#f8fafc" }}>Placement Report Summary (Text / General Details)</span>
+            <textarea
+              onChange={(event) =>
+                setProfileForm((current) => ({ ...current, placementReport: event.target.value }))
+              }
+              placeholder="Provide a general summary of the placements, highlights, and top recruiters..."
+              value={profileForm.placementReport}
+              rows={4}
+              style={{
+                width: "100%",
+                padding: "0.75rem",
+                borderRadius: "8px",
+                background: "rgba(255, 255, 255, 0.05)",
+                border: "1px solid rgba(255, 255, 255, 0.1)",
+                color: "#f8fafc",
+                fontSize: "0.9rem",
+                resize: "vertical"
+              }}
+            />
+          </div>
+          <div className="auth-field" style={{ display: "flex", flexDirection: "column", gap: "0.5rem", marginTop: "1rem" }}>
+            <span style={{ fontSize: "0.9rem", fontWeight: "600", color: "#f8fafc" }}>Placement Mapping (Branch-wise List)</span>
             <div style={{
               background: "rgba(255, 255, 255, 0.02)",
               border: "1px solid rgba(255, 255, 255, 0.05)",

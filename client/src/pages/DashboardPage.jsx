@@ -1241,7 +1241,9 @@ export function DashboardPage() {
                     }}>
                       <span className="overview-side-label" style={{ fontSize: "0.875rem", fontWeight: "600", display: "block", marginBottom: "0.5rem" }}>Placement Report Summary</span>
                       <div style={{ margin: 0, fontSize: "0.95rem", lineHeight: "1.6" }}>
-                        {profile.placementList && profile.placementList.length > 0 ? (
+                      <div style={{ margin: 0, fontSize: "0.95rem", lineHeight: "1.6" }}>
+                        {profile.placementReport && renderRichText(profile.placementReport)}
+                        {profile.placementList && profile.placementList.length > 0 && (
                           <div className="table-responsive" style={{ overflowX: "auto", margin: "0.5rem 0" }}>
                             <table style={{
                               width: "100%",
@@ -1267,9 +1269,11 @@ export function DashboardPage() {
                               </tbody>
                             </table>
                           </div>
-                        ) : (
-                          renderRichText(profile.placementReport) || <p className="muted" style={{ margin: 0 }}>Not provided</p>
                         )}
+                        {!profile.placementReport && (!profile.placementList || profile.placementList.length === 0) && (
+                          <p className="muted" style={{ margin: 0 }}>Not provided</p>
+                        )}
+                      </div>
                       </div>
                       {profile.placementReportUrl ? (
                         <div style={{ marginTop: "1rem" }}>
@@ -1306,7 +1310,8 @@ export function DashboardPage() {
                     }}>
                       <span className="overview-side-label" style={{ fontSize: "0.875rem", fontWeight: "600", display: "block", marginBottom: "0.5rem" }}>Cut Off Summary</span>
                       <div style={{ margin: 0, fontSize: "0.95rem", lineHeight: "1.6" }}>
-                        {profile.cutOffList && profile.cutOffList.length > 0 ? (
+                        {profile.cutOffSummary && renderRichText(profile.cutOffSummary)}
+                        {profile.cutOffList && profile.cutOffList.length > 0 && (
                           <div className="table-responsive" style={{ overflowX: "auto", margin: "0.5rem 0" }}>
                             <table style={{
                               width: "100%",
@@ -1319,7 +1324,7 @@ export function DashboardPage() {
                               <thead>
                                 <tr style={{ background: "rgba(255, 255, 255, 0.04)" }}>
                                   <th style={{ padding: "8px 10px", textAlign: "left", fontWeight: "600", color: "#f8fafc", borderBottom: "1px solid rgba(255, 255, 255, 0.08)" }}>Branch</th>
-                                  <th style={{ padding: "8px 10px", textAlign: "left", fontWeight: "600", color: "#f8fafc", borderBottom: "1px solid rgba(255, 255, 255, 0.08)" }}>Cut-off</th>
+                                  <th style={{ padding: "8px 10px", textAlign: "left", fontWeight: "600", color: "#f8fafc", borderBottom: "1px solid rgba(255, 255, 255, 0.08)" }}>Closing Rank/Score</th>
                                 </tr>
                               </thead>
                               <tbody>
@@ -1332,8 +1337,9 @@ export function DashboardPage() {
                               </tbody>
                             </table>
                           </div>
-                        ) : (
-                          renderRichText(profile.cutOffSummary) || <p className="muted" style={{ margin: 0 }}>Not provided</p>
+                        )}
+                        {!profile.cutOffSummary && (!profile.cutOffList || profile.cutOffList.length === 0) && (
+                          <p className="muted" style={{ margin: 0 }}>Not provided</p>
                         )}
                       </div>
                     </article>
