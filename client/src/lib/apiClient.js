@@ -3,7 +3,39 @@ import axios from "axios";
 const AUTH_STORAGE_KEY = "campus-knowledge-hub-auth";
 
 export const apiClient = axios.create({
-  baseURL: import.meta.env.VITE_API_URL || "http://localhost:5000/api"
+  baseURL: import.meta.env.VITE_API_URL || "http://localhost:5000/api",
+  withCredentials: true
+});
+
+let csrfToken = "";
+
+export async function fetchCsrfToken() {
+  if (csrfToken) return csrfToken;
+  try {
+    const response = await axios.get(`${apiClient.defaults.baseURL}/csrf-token`, { 
+      withCredentials: true 
+    });
+    if (response.data?.success && response.data?.csrfToken) {
+      csrfToken = response.data.csrfToken;
+      apiClient.defaults.headers.common["x-csrf-token"] = csrfToken;
+    }
+  } catch (error) {
+    console.warn("Failed to fetch CSRF token", error);
+  }
+  return csrfToken;
+}
+
+apiClient.interceptors.request.use(async (config) => {
+  const method = config.method?.toLowerCase();
+  if (["post", "put", "delete", "patch"].includes(method)) {
+    if (!csrfToken) {
+      await fetchCsrfToken();
+    }
+    if (csrfToken) {
+      config.headers["x-csrf-token"] = csrfToken;
+    }
+  }
+  return config;
 });
 
 export function getStoredAuthToken() {

@@ -8,6 +8,7 @@ import { errorHandler } from "./middleware/errorHandler.js";
 import { notFoundHandler } from "./middleware/notFoundHandler.js";
 import { sanitizeRequest } from "./middleware/sanitizeRequest.js";
 import { securityHeaders } from "./middleware/securityHeaders.js";
+import { csrfMiddleware } from "./middleware/csrfMiddleware.js";
 import { createRateLimiter } from "./middleware/rateLimit.js";
 import { apiRouter } from "./routes/index.js";
 import { requestLogStream } from "./services/logger.service.js";
@@ -50,6 +51,7 @@ export function createApp() {
   app.use(express.urlencoded({ extended: true, limit: "10mb" }));
   app.use(abuseProtection);
   app.use(sanitizeRequest);
+  app.use(csrfMiddleware);
 
   app.get("/", (_req, res) => {
     res.json({

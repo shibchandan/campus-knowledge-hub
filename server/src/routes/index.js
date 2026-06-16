@@ -1,4 +1,6 @@
 import { Router } from "express";
+import crypto from "crypto";
+import { env } from "../config/env.js";
 import { authRouter } from "../modules/auth/auth.routes.js";
 import { lectureRouter } from "../modules/lectures/lecture.routes.js";
 import { noteRouter } from "../modules/notes/note.routes.js";
@@ -19,6 +21,15 @@ import { assignmentRouter } from "../modules/assignments/assignment.routes.js";
 import { paymentRouter } from "../modules/payments/payment.routes.js";
 
 export const apiRouter = Router();
+
+apiRouter.get("/csrf-token", (req, res) => {
+  const token = crypto.randomBytes(32).toString("hex");
+  res.setHeader(
+    "Set-Cookie",
+    `csrf_token=${token}; HttpOnly; Path=/; SameSite=${env.cookieSameSite}${env.cookieSecure ? "; Secure" : ""}`
+  );
+  res.json({ success: true, csrfToken: token });
+});
 
 apiRouter.use("/auth", authRouter);
 apiRouter.use("/lectures", lectureRouter);
