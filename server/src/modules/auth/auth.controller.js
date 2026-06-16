@@ -1,4 +1,5 @@
-import { User } from "./auth.model.js";
+import jwt from "jsonwebtoken";
+import { User, TokenBlacklist } from "./auth.model.js";
 import { createToken } from "../../utils/createToken.js";
 import { generateSecret, verifyToken } from "../../utils/totp.js";
 import crypto from "crypto";
@@ -376,6 +377,37 @@ export async function login(req, res, next) {
     const token = createToken({ id: user._id, role: user.role, email: user.email });
     setAuthCookie(res, token);
     res.json({ success: true, data: { token, user: serializeUserForClient(user, req) } });
+  } catch (error) {
+    next(error);
+  }
+}
+
+export async function logout(req, res, next) {
+  try {
+    if (req.token) {
+      const decoded = jwt.decode(req.token);
+      if (decoded && decoded.exp) {
+        await TokenBlacklist.create({
+          token: req.token,
+          expiresAt: new Date(decoded.exp * 1000)
+        }).catch((err) => {
+          // Ignore duplicate key error if token already blacklisted
+          if (err.code !== 11000) throw err;
+        });
+      }
+    }
+
+    const sameSite = getCookieSameSite();
+    const secure = env.cookieSecure || sameSite === "none";
+
+    res.clearCookie(env.authCookieName, {
+      httpOnly: true,
+      secure,
+      sameSite,
+      path: "/"
+    });
+
+    res.json({ success: true, message: "Logged out successfully." });
   } catch (error) {
     next(error);
   }

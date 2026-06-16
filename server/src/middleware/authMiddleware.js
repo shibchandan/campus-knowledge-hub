@@ -1,5 +1,5 @@
 import { env } from "../config/env.js";
-import { User } from "../modules/auth/auth.model.js";
+import { User, TokenBlacklist } from "../modules/auth/auth.model.js";
 import { verifyTokenWithRotation } from "../utils/verifyToken.js";
 
 function getTokenFromCookies(req) {
@@ -43,6 +43,13 @@ export async function protect(req, _res, next) {
   }
 
   try {
+    const isBlacklisted = await TokenBlacklist.exists({ token });
+    if (isBlacklisted) {
+      const error = new Error("Token has been revoked");
+      error.statusCode = 401;
+      return next(error);
+    }
+
     const decoded = verifyTokenWithRotation(token);
     const user = await User.findById(decoded.id);
 
@@ -64,6 +71,7 @@ export async function protect(req, _res, next) {
       return next(error);
     }
 
+    req.token = token;
     req.user = {
       id: user._id.toString(),
       role: user.role,
@@ -94,6 +102,11 @@ export async function optionalProtect(req, _res, next) {
   }
 
   try {
+    const isBlacklisted = await TokenBlacklist.exists({ token });
+    if (isBlacklisted) {
+      return next();
+    }
+
     const decoded = verifyTokenWithRotation(token);
     const user = await User.findById(decoded.id);
 
@@ -106,6 +119,7 @@ export async function optionalProtect(req, _res, next) {
       return next();
     }
 
+    req.token = token;
     req.user = {
       id: user._id.toString(),
       role: user.role,

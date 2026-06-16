@@ -38,7 +38,12 @@ export const env = {
     String(process.env.AUTH_TOKEN_IN_COOKIE || "false").trim().toLowerCase() === "true",
   cookieSameSite: (process.env.COOKIE_SAMESITE || "lax").trim().toLowerCase(),
   cookieSecure: true,
-  malwareScanMode: (process.env.MALWARE_SCAN_MODE || "on").trim().toLowerCase(),
+  malwareScanMode: (
+    process.env.MALWARE_SCAN_MODE ||
+    ((process.env.NODE_ENV || "").trim().toLowerCase() === "production" ? "on" : "off")
+  )
+    .trim()
+    .toLowerCase(),
   malwareScanCommand: process.env.MALWARE_SCAN_COMMAND || "clamscan",
   malwareScanArgs: String(process.env.MALWARE_SCAN_ARGS || "--no-summary")
     .trim()

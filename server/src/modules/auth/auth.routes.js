@@ -7,6 +7,7 @@ import {
   forgotPassword,
   getCurrentUser,
   login,
+  logout,
   listUsers,
   register,
   resetPassword,
@@ -50,6 +51,7 @@ const otpRateLimiter = createRateLimiter({
 
 authRouter.post("/register", authRateLimiter, uploadRateLimiter, upload.single("studentProof"), validateUploadedFile, register);
 authRouter.post("/login", authRateLimiter, login);
+authRouter.post("/logout", protect, logout);
 authRouter.post("/forgot-password", otpRateLimiter, forgotPassword);
 authRouter.post("/reset-password", authRateLimiter, resetPassword);
 authRouter.get("/me", protect, getCurrentUser);

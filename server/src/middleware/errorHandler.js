@@ -19,7 +19,7 @@ export function errorHandler(error, req, res, _next) {
     })
   );
 
-  const message =
+  let message =
     error.code === "LIMIT_FILE_SIZE"
       ? "Uploaded file is too large for this category."
       : error?.code === 11000
@@ -28,8 +28,25 @@ export function errorHandler(error, req, res, _next) {
         ? "Something went wrong"
       : error.message || "Something went wrong";
 
-  res.status(statusCode).json({
+  if (process.env.NODE_ENV === "production") {
+    if (
+      message.toLowerCase().includes("mongo") ||
+      message.toLowerCase().includes("cast to") ||
+      message.toLowerCase().includes("validation failed") ||
+      message.toLowerCase().includes("e11000")
+    ) {
+      message = "A processing error occurred with the provided input.";
+    }
+  }
+
+  const responsePayload = {
     success: false,
     message
-  });
+  };
+
+  if (process.env.NODE_ENV !== "production") {
+    responsePayload.stack = error.stack;
+  }
+
+  res.status(statusCode).json(responsePayload);
 }

@@ -1,4 +1,5 @@
 import cors from "cors";
+import "./config/mongooseGlobalPlugin.js";
 import express from "express";
 import morgan from "morgan";
 import { getDeploymentReadiness } from "./config/deployment.js";
@@ -47,8 +48,8 @@ export function createApp() {
   });
   app.use(securityHeaders);
   app.use(morgan("combined", { stream: requestLogStream }));
-  app.use(express.json({ limit: "10mb" }));
-  app.use(express.urlencoded({ extended: true, limit: "10mb" }));
+  app.use(express.json({ limit: "1mb" }));
+  app.use(express.urlencoded({ extended: true, limit: "1mb" }));
   app.use(abuseProtection);
   app.use(sanitizeRequest);
   app.use(csrfMiddleware);
