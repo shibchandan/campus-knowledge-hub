@@ -1,10 +1,22 @@
 import os from "os";
 import dotenv from "dotenv";
+import crypto from "crypto";
 import { readConfigValue, readListValue } from "./secretLoader.js";
 
 dotenv.config();
 
-const resolvedJwtSecret = readConfigValue("JWT_SECRET", "development-secret");
+const envNodeEnv = (process.env.NODE_ENV || "development").trim().toLowerCase();
+let resolvedJwtSecret = readConfigValue("JWT_SECRET", "");
+
+if (!resolvedJwtSecret) {
+  if (envNodeEnv === "production") {
+    throw new Error("FATAL ERROR: JWT_SECRET is not defined in production environment.");
+  }
+  // Fallback for development only: strong random string
+  resolvedJwtSecret = crypto.randomBytes(32).toString("hex");
+  console.warn("WARNING: JWT_SECRET not set. Using a random generated secret for development.");
+}
+
 const resolvedJwtPreviousSecrets = readListValue("JWT_PREVIOUS_SECRETS").filter(
   (secret) => secret !== resolvedJwtSecret
 );
