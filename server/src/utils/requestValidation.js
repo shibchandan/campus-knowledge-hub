@@ -7,6 +7,9 @@ export function createHttpError(message, statusCode = 400) {
 }
 
 export function readString(value, { field, min = 0, max = 500, required = true } = {}) {
+  if (typeof value === "object" && value !== null) {
+    throw createHttpError(`${field || "Value"} must be a string, not an object.`);
+  }
   const text = String(value || "").trim();
 
   if (!text) {
@@ -28,6 +31,9 @@ export function readString(value, { field, min = 0, max = 500, required = true }
 }
 
 export function readEnum(value, { field, allowed, defaultValue = "" } = {}) {
+  if (typeof value === "object" && value !== null) {
+    throw createHttpError(`${field || "Value"} must be a valid option, not an object.`);
+  }
   const text = String(value || defaultValue).trim().toLowerCase();
 
   if (!allowed?.includes(text)) {
@@ -38,6 +44,9 @@ export function readEnum(value, { field, allowed, defaultValue = "" } = {}) {
 }
 
 export function readPositiveInt(value, { field, min = 1, max = 100, defaultValue = min } = {}) {
+  if (typeof value === "object" && value !== null) {
+    throw createHttpError(`${field || "Value"} must be a number, not an object.`);
+  }
   const parsed = Number(value ?? defaultValue);
 
   if (!Number.isInteger(parsed) || parsed < min || parsed > max) {
@@ -48,6 +57,9 @@ export function readPositiveInt(value, { field, min = 1, max = 100, defaultValue
 }
 
 export function readMongoId(value, { field = "id", required = true } = {}) {
+  if (typeof value === "object" && value !== null && !mongoose.Types.ObjectId.isValid(value)) {
+    throw createHttpError(`${field} must be a valid ID, not an object.`);
+  }
   const id = String(value || "").trim();
 
   if (!id) {
@@ -88,6 +100,9 @@ export function readPagination(query, { defaultLimit = 12, maxLimit = 50 } = {})
 }
 
 export function readSearchPattern(value, { max = 100 } = {}) {
+  if (typeof value === "object" && value !== null) {
+    return "";
+  }
   const text = String(value || "").trim();
 
   if (!text) {

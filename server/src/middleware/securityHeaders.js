@@ -1,4 +1,5 @@
 import { env } from "../config/env.js";
+import crypto from "crypto";
 
 export function securityHeaders(req, res, next) {
   if (env.enforceHttps) {
@@ -12,6 +13,9 @@ export function securityHeaders(req, res, next) {
     }
   }
 
+  const nonce = crypto.randomBytes(16).toString("base64");
+  res.locals.nonce = nonce;
+
   res.setHeader("X-Content-Type-Options", "nosniff");
   res.setHeader("X-Frame-Options", "DENY");
   res.setHeader("Referrer-Policy", "strict-origin-when-cross-origin");
@@ -19,8 +23,9 @@ export function securityHeaders(req, res, next) {
   res.setHeader("Permissions-Policy", "camera=(), microphone=(), geolocation=()");
   res.setHeader(
     "Content-Security-Policy",
-    "default-src 'self'; script-src 'self'; style-src 'self'; img-src 'self' data:; connect-src 'self';"
+    `default-src 'self'; script-src 'self' 'nonce-${nonce}'; style-src 'self'; img-src 'self' data:; connect-src 'self'; upgrade-insecure-requests; frame-ancestors 'none';`
   );
+  res.setHeader("Expect-CT", "max-age=86400, enforce");
 
   if (env.nodeEnv === "production") {
     res.setHeader("Strict-Transport-Security", "max-age=31536000; includeSubDomains");

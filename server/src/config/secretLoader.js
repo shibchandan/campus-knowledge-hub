@@ -27,6 +27,23 @@ export function readConfigValue(key, fallback = "") {
   return fileValue || fallback;
 }
 
+export function readSecretValue(key, fallback = "") {
+  const isProd = (process.env.NODE_ENV || "").trim().toLowerCase() === "production";
+
+  if (isProd) {
+    if (process.env[key]) {
+      console.warn(`SECURITY WARNING: ${key} was passed as a direct environment variable in production. To prevent key leakage in process dumps, only ${key}_FILE is allowed.`);
+    }
+    const fileValue = readFromFile(String(process.env[`${key}_FILE`] || "").trim());
+    if (!fileValue && process.env[key]) {
+      throw new Error(`FATAL ERROR: ${key} must be securely provided via ${key}_FILE in production.`);
+    }
+    return fileValue || fallback;
+  }
+
+  return readConfigValue(key, fallback);
+}
+
 export function readListValue(key) {
   const value = readConfigValue(key, "");
   if (!value) {

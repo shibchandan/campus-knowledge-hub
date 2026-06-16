@@ -1,12 +1,12 @@
 import os from "os";
 import dotenv from "dotenv";
 import crypto from "crypto";
-import { readConfigValue, readListValue } from "./secretLoader.js";
+import { readConfigValue, readListValue, readSecretValue } from "./secretLoader.js";
 
 dotenv.config();
 
 const envNodeEnv = (process.env.NODE_ENV || "development").trim().toLowerCase();
-let resolvedJwtSecret = readConfigValue("JWT_SECRET", "");
+let resolvedJwtSecret = readSecretValue("JWT_SECRET", "");
 
 if (!resolvedJwtSecret) {
   if (envNodeEnv === "production") {
@@ -53,33 +53,33 @@ export const env = {
   malwareScanBlockOnError:
     String(process.env.MALWARE_SCAN_BLOCK_ON_ERROR || "true").trim().toLowerCase() === "true",
   aiProvider: (process.env.AI_PROVIDER || "").trim().toLowerCase(),
-  openAiApiKey: readConfigValue("OPENAI_API_KEY", ""),
+  openAiApiKey: readSecretValue("OPENAI_API_KEY", ""),
   openAiModel: process.env.OPENAI_MODEL || "gpt-4o-mini",
-  geminiApiKey: readConfigValue("GEMINI_API_KEY", ""),
+  geminiApiKey: readSecretValue("GEMINI_API_KEY", ""),
   geminiModel: process.env.GEMINI_MODEL || "gemini-1.5-flash",
-  anthropicApiKey: readConfigValue("ANTHROPIC_API_KEY", ""),
+  anthropicApiKey: readSecretValue("ANTHROPIC_API_KEY", ""),
   anthropicModel: process.env.ANTHROPIC_MODEL || "claude-3-5-sonnet-20241022",
   smtpHost: process.env.SMTP_HOST || "",
   smtpPort: Number(process.env.SMTP_PORT || 587),
   smtpSecure: String(process.env.SMTP_SECURE || "false").trim().toLowerCase() === "true",
   smtpUser: process.env.SMTP_USER || "",
-  smtpPass: readConfigValue("SMTP_PASS", ""),
+  smtpPass: readSecretValue("SMTP_PASS", ""),
   smtpFrom: process.env.SMTP_FROM || "no-reply@campus-knowledge-hub.local",
   adminNotificationEmails: readListValue("ADMIN_NOTIFICATION_EMAILS"),
   r2Endpoint: process.env.R2_ENDPOINT || "",
   r2BucketName: process.env.R2_BUCKET_NAME || "",
   r2AccessKeyId: process.env.R2_ACCESS_KEY_ID || "",
-  r2SecretAccessKey: readConfigValue("R2_SECRET_ACCESS_KEY", ""),
+  r2SecretAccessKey: readSecretValue("R2_SECRET_ACCESS_KEY", ""),
   r2PublicBaseUrl: process.env.R2_PUBLIC_BASE_URL || "",
   r2Folder: process.env.R2_FOLDER || "campus-knowledge-hub",
-  cloudinaryCloudName: process.env.CLOUDINARY_CLOUD_NAME || "",
-  cloudinaryApiKey: process.env.CLOUDINARY_API_KEY || "",
-  cloudinaryApiSecret: readConfigValue("CLOUDINARY_API_SECRET", ""),
+  cloudinaryCloudName: readConfigValue("CLOUDINARY_CLOUD_NAME", ""),
+  cloudinaryApiKey: readSecretValue("CLOUDINARY_API_KEY", ""),
+  cloudinaryApiSecret: readSecretValue("CLOUDINARY_API_SECRET", ""),
   marketplacePlatformFeePercent: Number(process.env.MARKETPLACE_PLATFORM_FEE_PERCENT || 5),
   marketplaceGstPercent: Number(process.env.MARKETPLACE_GST_PERCENT || 18),
   marketplaceBasicSubscriptionDays: Number(process.env.MARKETPLACE_BASIC_SUBSCRIPTION_DAYS || 30),
-  razorpayKeyId: process.env.RAZORPAY_KEY_ID || "",
-  razorpayKeySecret: readConfigValue("RAZORPAY_KEY_SECRET", ""),
+  razorpayKeyId: readSecretValue("RAZORPAY_KEY_ID", ""),
+  razorpayKeySecret: readSecretValue("RAZORPAY_KEY_SECRET", ""),
   abuseProtectionEnabled:
     String(process.env.ABUSE_PROTECTION_ENABLED || "true").trim().toLowerCase() === "true",
   abuseRequireUserAgent:

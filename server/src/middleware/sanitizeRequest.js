@@ -1,8 +1,19 @@
+import xss from "xss";
+
+// Use xss library with a strict default configuration
+// This completely mitigates XSS vectors in user input
+const xssFilter = new xss.FilterXSS({
+  whiteList: {}, // Empty whitelist strips ALL HTML tags. Change if rich-text is needed.
+  stripIgnoreTag: true,
+  stripIgnoreTagBody: ["script", "style"]
+});
+
 function sanitizeString(value) {
-  return value
-    .replace(/[\u0000-\u0008\u000B\u000C\u000E-\u001F\u007F]/g, "")
-    .replace(/<script\b[^<]*(?:(?!<\/script>)<[^<]*)*<\/script>/gi, "")
-    .trim();
+  // Strip control characters
+  let clean = value.replace(/[\u0000-\u0008\u000B\u000C\u000E-\u001F\u007F]/g, "");
+  // Pass through robust XSS filter
+  clean = xssFilter.process(clean);
+  return clean.trim();
 }
 
 function sanitizeValue(value) {
