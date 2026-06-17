@@ -23,5 +23,7 @@ const auditLogSchema = new mongoose.Schema(
 auditLogSchema.index({ actorUserId: 1, createdAt: -1 }, { name: "idx_audit_actor_created" });
 auditLogSchema.index({ entityType: 1, entityId: 1, createdAt: -1 }, { name: "idx_audit_entity_created" });
 auditLogSchema.index({ action: 1, createdAt: -1 }, { name: "idx_audit_action_created" });
+// TTL Index: Automatically delete audit logs after 1 year (31536000 seconds)
+auditLogSchema.index({ createdAt: 1 }, { expireAfterSeconds: 31536000, name: "ttl_audit_created" });
 
 export const AuditLog = mongoose.model("AuditLog", auditLogSchema);

@@ -31,5 +31,7 @@ const aiHistorySchema = new mongoose.Schema(
 );
 
 aiHistorySchema.index({ user: 1, createdAt: -1 }, { name: "idx_ai_history_user_created" });
+// TTL Index: Automatically delete AI histories after 1 year (31536000 seconds)
+aiHistorySchema.index({ createdAt: 1 }, { expireAfterSeconds: 31536000, name: "ttl_ai_history_created" });
 
 export const AiHistory = mongoose.model("AiHistory", aiHistorySchema);
