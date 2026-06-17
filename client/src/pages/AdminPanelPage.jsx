@@ -725,9 +725,12 @@ export function AdminPanelPage() {
       >
         {error ? <p className="auth-error">{error}</p> : null}
         {success ? <p className="success-note">{success}</p> : null}
-        {loading ? <p className="muted">Loading admin control data...</p> : null}
-        
-        {analytics ? (
+        {loading ? (
+          <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(350px, 1fr))", gap: "1.5rem", marginTop: "1rem" }}>
+            <SkeletonCard count={1} style={{ height: "300px" }} />
+            <SkeletonCard count={1} style={{ height: "300px" }} />
+          </div>
+        ) : analytics ? (
           <div className="analytics-dashboard">
             <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(350px, 1fr))", gap: "1.5rem", marginBottom: "2rem" }}>
               <ChartCard 
