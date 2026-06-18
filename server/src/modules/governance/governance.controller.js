@@ -440,7 +440,7 @@ export async function getApprovedCollegeCourses(req, res, next) {
                 $expr: {
                   $and: [
                     { $eq: ["$collegeNameNormalized", "$$collegeNameNorm"] },
-                    { $in: ["$courseId", ["$$courseNameNorm", "overall"]] }
+                    { $in: ["$courseId", ["$$courseNameNorm", "overall", "", null]] }
                   ]
                 }
               }
