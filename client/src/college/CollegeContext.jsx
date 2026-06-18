@@ -1,4 +1,4 @@
-import { createContext, useContext, useEffect, useMemo, useState } from "react";
+import { createContext, useCallback, useContext, useEffect, useMemo, useState } from "react";
 import { apiClient } from "../lib/apiClient";
 import { useAuth } from "../auth/AuthContext";
 import { colleges } from "./collegeData";
@@ -41,36 +41,36 @@ export function CollegeProvider({ children }) {
     );
   }, [availableColleges, lockedCollegeName]);
 
-  useEffect(() => {
-    async function loadApprovedColleges() {
-      try {
-        const response = await apiClient.get("/governance/approved-courses");
-        const approvedColleges = Array.from(
-          new Map(
-            response.data.data.map((item) => [
-              item.collegeName.toLowerCase(),
-              {
-                id: item.collegeName.toLowerCase().replace(/[^a-z0-9]+/g, "-"),
-                name: item.collegeName,
-                shortName: item.collegeName,
-                location: item.profile?.location || "Campus location not added yet"
-              }
-            ])
-          ).values()
-        );
+  const refreshColleges = useCallback(async () => {
+    try {
+      const response = await apiClient.get("/governance/approved-courses");
+      const approvedColleges = Array.from(
+        new Map(
+          response.data.data.map((item) => [
+            item.collegeName.toLowerCase(),
+            {
+              id: item.collegeName.toLowerCase().replace(/[^a-z0-9]+/g, "-"),
+              name: item.collegeName,
+              shortName: item.collegeName,
+              location: item.profile?.location || "Campus location not added yet"
+            }
+          ])
+        ).values()
+      );
 
-        setAvailableColleges((current) =>
-          mergeColleges(current, colleges, approvedColleges)
-        );
-      } catch {
-        setAvailableColleges((current) =>
-          mergeColleges(current, colleges)
-        );
-      }
+      setAvailableColleges((current) =>
+        mergeColleges(current, colleges, approvedColleges)
+      );
+    } catch {
+      setAvailableColleges((current) =>
+        mergeColleges(current, colleges)
+      );
     }
-
-    loadApprovedColleges();
   }, []);
+
+  useEffect(() => {
+    refreshColleges();
+  }, [refreshColleges]);
 
   useEffect(() => {
     if (selectedCollege) {
@@ -145,9 +145,10 @@ export function CollegeProvider({ children }) {
       selectedCollege,
       lockedCollegeName,
       selectCollegeById,
-      clearCollege
+      clearCollege,
+      refreshColleges
     }),
-    [availableColleges, visibleColleges, lockedCollegeName, selectedCollege]
+    [availableColleges, visibleColleges, lockedCollegeName, selectedCollege, refreshColleges]
   );
 
   return <CollegeContext.Provider value={value}>{children}</CollegeContext.Provider>;

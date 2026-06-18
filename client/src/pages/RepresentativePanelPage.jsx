@@ -203,7 +203,7 @@ function mapSubjectToForm(subject) {
 
 export function RepresentativePanelPage() {
   const { user, refreshCurrentUser } = useAuth();
-  const { colleges: platformColleges } = useCollege();
+  const { colleges: platformColleges, refreshColleges } = useCollege();
   const { showError, showSuccess } = useToast();
   const [form, setForm] = useState(initialForm);
   const [profileForm, setProfileForm] = useState(initialProfileForm);
@@ -526,6 +526,7 @@ export function RepresentativePanelPage() {
       showSuccess(editingProfileId ? "College profile updated successfully." : "College profile saved successfully.");
       resetProfileForm();
       await loadRepresentativeData();
+      await refreshColleges();
     } catch (requestError) {
       const message = requestError.response?.data?.message || "Failed to save college profile.";
       setError(message);
