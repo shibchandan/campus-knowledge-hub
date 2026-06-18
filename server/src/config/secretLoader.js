@@ -31,14 +31,19 @@ export function readSecretValue(key, fallback = "") {
   const isProd = (process.env.NODE_ENV || "").trim().toLowerCase() === "production";
 
   if (isProd) {
-    if (process.env[key]) {
-      console.warn(`SECURITY WARNING: ${key} was passed as a direct environment variable in production. To prevent key leakage in process dumps, only ${key}_FILE is allowed.`);
-    }
+    // Prefer file-based secrets in production for security
     const fileValue = readFromFile(String(process.env[`${key}_FILE`] || "").trim());
-    if (!fileValue && process.env[key]) {
-      throw new Error(`FATAL ERROR: ${key} must be securely provided via ${key}_FILE in production.`);
+    if (fileValue) {
+      return fileValue;
     }
-    return fileValue || fallback;
+
+    // Fall back to direct env var (needed for platforms like Render that don't support secret files)
+    const directValue = String(process.env[key] || "").trim();
+    if (directValue) {
+      return directValue;
+    }
+
+    return fallback;
   }
 
   return readConfigValue(key, fallback);
