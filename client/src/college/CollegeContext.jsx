@@ -53,7 +53,7 @@ export function CollegeProvider({ children }) {
                 id: item.collegeName.toLowerCase().replace(/[^a-z0-9]+/g, "-"),
                 name: item.collegeName,
                 shortName: item.collegeName,
-                location: item.profile?.rankings?.other || "Campus location not added yet"
+                location: item.profile?.location || "Campus location not added yet"
               }
             ])
           ).values()

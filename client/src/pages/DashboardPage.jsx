@@ -668,6 +668,10 @@ export function DashboardPage() {
       profile
         ? [
             {
+              label: "Location",
+              value: profile.location || "Not provided"
+            },
+            {
               label: "Entrance Exams",
               value: profile.entranceExams?.join(", ") || "Not provided"
             },

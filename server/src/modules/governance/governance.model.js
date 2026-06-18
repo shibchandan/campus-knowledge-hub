@@ -90,6 +90,7 @@ const collegeProfileSchema = new mongoose.Schema(
     collegeName: { type: String, required: true, trim: true },
     collegeNameNormalized: { type: String, required: true },
     courseId: { type: String, default: "overall", trim: true },
+    location: { type: String, default: "", trim: true },
     enteredByRepresentative: {
       type: mongoose.Schema.Types.ObjectId,
       ref: "User",

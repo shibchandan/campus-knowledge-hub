@@ -21,6 +21,7 @@ const initialForm = {
 const initialProfileForm = {
   collegeName: "",
   courseId: "overall",
+  location: "",
   entranceExams: "",
   nirf: "",
   qs: "",
@@ -118,6 +119,7 @@ function mapProfileToForm(profile) {
   return {
     collegeName: profile.collegeName || "",
     courseId: profile.courseId || "overall",
+    location: profile.location || "",
     entranceExams: Array.isArray(profile.entranceExams) ? profile.entranceExams.join(", ") : "",
     nirf: profile.rankings?.nirf || "",
     qs: profile.rankings?.qs || "",
@@ -504,6 +506,7 @@ export function RepresentativePanelPage() {
       await apiClient.put("/governance/college-profile", {
         collegeName: profileForm.collegeName,
         courseId: profileForm.courseId,
+        location: profileForm.location,
         entranceExams: profileForm.entranceExams,
         rankings: {
           nirf: profileForm.nirf,
@@ -1431,6 +1434,17 @@ export function RepresentativePanelPage() {
               </select>
             </label>
           </div>
+          <label className="auth-field">
+            <span>Location / Address</span>
+            <input
+              onChange={(event) =>
+                setProfileForm((current) => ({ ...current, location: event.target.value }))
+              }
+              placeholder="e.g. City, State, or Full Campus Address"
+              type="text"
+              value={profileForm.location}
+            />
+          </label>
           <label className="auth-field">
             <span>Entrance Exams (comma separated)</span>
             <input
