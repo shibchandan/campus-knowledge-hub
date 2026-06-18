@@ -23,7 +23,7 @@ export function errorHandler(error, req, res, _next) {
     error.code === "LIMIT_FILE_SIZE"
       ? "Uploaded file is too large for this category."
       : error?.code === 11000
-        ? "A record with the same unique details already exists."
+        ? `A record with the same unique details already exists. (Index: ${JSON.stringify(error.keyValue)})`
       : statusCode >= 500
         ? "Something went wrong"
       : error.message || "Something went wrong";

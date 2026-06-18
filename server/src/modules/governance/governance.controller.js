@@ -1028,10 +1028,22 @@ export async function upsertCollegeProfile(req, res, next) {
   try {
     const payload = validateCollegeProfilePayload(req.body);
     const normalizedCollege = normalizeCollegeName(payload.collegeName);
-    const existingProfile = await CollegeProfile.findOne({
+    const courseIdQuery = payload.courseId === "overall" 
+      ? { $in: ["overall", "", null, undefined] } // Match legacy documents missing courseId
+      : payload.courseId;
+
+    let existingProfile = await CollegeProfile.findOne({
       collegeNameNormalized: normalizedCollege,
-      courseId: payload.courseId
+      courseId: courseIdQuery
     });
+    
+    // Fallback: If still not found, check if a legacy profile exists without courseId
+    if (!existingProfile && payload.courseId === "overall") {
+      existingProfile = await CollegeProfile.findOne({
+        collegeNameNormalized: normalizedCollege,
+        courseId: { $exists: false }
+      });
+    }
 
     if (req.user.role === "representative") {
       const hasApprovedCourse = await CollegeCourse.findOne({
