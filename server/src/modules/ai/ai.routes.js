@@ -11,6 +11,7 @@ import {
 } from "./ai.controller.js";
 import { protect } from "../../middleware/authMiddleware.js";
 import { createRateLimiter } from "../../middleware/rateLimit.js";
+import { llmFirewall } from "../../middleware/llmFirewall.js";
 
 export const aiRouter = Router();
 
@@ -22,7 +23,7 @@ const aiRateLimiter = createRateLimiter({
   keyGenerator: (req) => req.user?.id || req.ip
 });
 
-aiRouter.use(protect, aiRateLimiter);
+aiRouter.use(protect, aiRateLimiter, llmFirewall);
 
 aiRouter.get("/summary", summarizeLecture);
 aiRouter.get("/pyq-answer", generatePyqAnswer);
