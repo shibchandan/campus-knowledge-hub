@@ -7,15 +7,15 @@
 :root {
 
   /* Glassmorphism Design Tokens */
-  --glass-bg: rgba(220, 225, 255, 0.22);
-  --glass-bg-hover: rgba(210, 218, 255, 0.38);
-  --glass-border: rgba(255, 255, 255, 0.7);
-  --glass-border-subtle: rgba(99, 102, 241, 0.35);
-  --glass-blur: blur(18px);
-  --glass-blur-heavy: blur(28px);
-  --glass-shadow: 0 8px 32px rgba(99, 102, 241, 0.14), 0 2px 8px rgba(99,102,241,0.08), inset 0 1px 0 rgba(255,255,255,0.9);
-  --glass-shadow-hover: 0 20px 48px rgba(99, 102, 241, 0.28), 0 4px 16px rgba(99,102,241,0.14), inset 0 1px 0 rgba(255,255,255,1);
-  --glass-glow: 0 0 0 1px rgba(99, 102, 241, 0.2), 0 8px 32px rgba(99, 102, 241, 0.15);
+  --glass-bg: rgba(255, 255, 255, 0.18);
+  --glass-bg-hover: rgba(255, 255, 255, 0.32);
+  --glass-border: rgba(255, 255, 255, 0.6);
+  --glass-border-subtle: rgba(255, 255, 255, 0.8);
+  --glass-blur: blur(20px);
+  --glass-blur-heavy: blur(32px);
+  --glass-shadow: 0 8px 32px rgba(80, 50, 180, 0.18), 0 2px 8px rgba(80,50,180,0.1), inset 0 1px 0 rgba(255,255,255,0.85);
+  --glass-shadow-hover: 0 20px 48px rgba(80, 50, 180, 0.28), 0 4px 16px rgba(80,50,180,0.15), inset 0 1px 0 rgba(255,255,255,1);
+  --glass-glow: 0 0 0 1px rgba(255, 255, 255, 0.3), 0 8px 32px rgba(80, 50, 180, 0.2);
 
   /* Unified Button System Variables */
   --btn-padding: 10px 18px;
@@ -44,12 +44,12 @@
   font-family: "Outfit", "Inter", system-ui, -apple-system, sans-serif;
   color: #0f172a;
   background:
-    radial-gradient(ellipse at 5% 5%, rgba(139, 92, 246, 0.7) 0%, transparent 40%),
-    radial-gradient(ellipse at 95% 5%, rgba(99, 102, 241, 0.65) 0%, transparent 38%),
-    radial-gradient(ellipse at 95% 95%, rgba(59, 130, 246, 0.55) 0%, transparent 40%),
-    radial-gradient(ellipse at 5% 95%, rgba(236, 72, 153, 0.5) 0%, transparent 38%),
-    radial-gradient(ellipse at 50% 50%, rgba(168, 85, 247, 0.25) 0%, transparent 60%),
-    linear-gradient(135deg, #c4d0ff 0%, #d4c4ff 35%, #ffc4f0 65%, #c4d4ff 100%);
+    radial-gradient(ellipse at 10% 10%, rgba(120, 60, 255, 0.85) 0%, transparent 45%),
+    radial-gradient(ellipse at 90% 10%, rgba(80, 80, 255, 0.75) 0%, transparent 40%),
+    radial-gradient(ellipse at 90% 90%, rgba(40, 100, 255, 0.65) 0%, transparent 45%),
+    radial-gradient(ellipse at 10% 90%, rgba(220, 60, 180, 0.65) 0%, transparent 40%),
+    radial-gradient(ellipse at 50% 50%, rgba(140, 80, 255, 0.3) 0%, transparent 65%),
+    linear-gradient(135deg, #8b6fff 0%, #7070ff 35%, #e060c0 65%, #6090ff 100%);
   line-height: 1.5;
   font-weight: 400;
 }
@@ -1167,14 +1167,11 @@ h3 {
 
 .hero-card {
   border-radius: 24px;
-  border: 1px solid rgba(255, 255, 255, 0.55);
-  background:
-    radial-gradient(circle at 100% 0%, rgba(99, 102, 241, 0.18) 0%, transparent 50%),
-    radial-gradient(circle at 0% 100%, rgba(139, 92, 246, 0.18) 0%, transparent 50%),
-    rgba(200, 210, 255, 0.18);
-  backdrop-filter: blur(20px) saturate(2);
-  -webkit-backdrop-filter: blur(20px) saturate(2);
-  box-shadow: 0 8px 32px rgba(99, 102, 241, 0.14), inset 0 1px 0 rgba(255, 255, 255, 0.75);
+  border: 1px solid rgba(255, 255, 255, 0.5);
+  background: rgba(255, 255, 255, 0.15);
+  backdrop-filter: blur(24px) saturate(1.8);
+  -webkit-backdrop-filter: blur(24px) saturate(1.8);
+  box-shadow: 0 8px 32px rgba(80, 50, 180, 0.2), inset 0 1px 0 rgba(255, 255, 255, 0.8);
   position: relative;
 }
 
