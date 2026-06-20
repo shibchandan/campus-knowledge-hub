@@ -7,12 +7,12 @@
 :root {
 
   /* Glassmorphism Design Tokens */
-  --glass-bg: rgba(220, 225, 255, 0.38);
-  --glass-bg-hover: rgba(210, 218, 255, 0.55);
-  --glass-border: rgba(255, 255, 255, 0.65);
+  --glass-bg: rgba(220, 225, 255, 0.22);
+  --glass-bg-hover: rgba(210, 218, 255, 0.38);
+  --glass-border: rgba(255, 255, 255, 0.7);
   --glass-border-subtle: rgba(99, 102, 241, 0.35);
-  --glass-blur: blur(16px);
-  --glass-blur-heavy: blur(24px);
+  --glass-blur: blur(18px);
+  --glass-blur-heavy: blur(28px);
   --glass-shadow: 0 8px 32px rgba(99, 102, 241, 0.14), 0 2px 8px rgba(99,102,241,0.08), inset 0 1px 0 rgba(255,255,255,0.9);
   --glass-shadow-hover: 0 20px 48px rgba(99, 102, 241, 0.28), 0 4px 16px rgba(99,102,241,0.14), inset 0 1px 0 rgba(255,255,255,1);
   --glass-glow: 0 0 0 1px rgba(99, 102, 241, 0.2), 0 8px 32px rgba(99, 102, 241, 0.15);
@@ -1299,15 +1299,15 @@ h3 {
 }
 
 .program-card {
-  background: linear-gradient(160deg, rgba(255, 248, 232, 0.55), rgba(255, 255, 255, 0.45));
+  background: linear-gradient(160deg, rgba(255, 248, 232, 0.22), rgba(255, 255, 255, 0.18));
 }
 
 .college-card {
-  background: linear-gradient(160deg, rgba(220, 255, 245, 0.55), rgba(255, 255, 255, 0.45));
+  background: linear-gradient(160deg, rgba(220, 255, 245, 0.22), rgba(255, 255, 255, 0.18));
 }
 
 .branch-card {
-  background: linear-gradient(160deg, rgba(220, 240, 255, 0.55), rgba(255, 255, 255, 0.45));
+  background: linear-gradient(160deg, rgba(220, 240, 255, 0.22), rgba(255, 255, 255, 0.18));
 }
 
 .program-link {
