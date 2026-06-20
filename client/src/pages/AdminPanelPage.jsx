@@ -77,6 +77,7 @@ export function AdminPanelPage() {
   const [aiStatus, setAiStatus] = useState(null);
   const [aiStatusLoading, setAiStatusLoading] = useState(false);
   const [loading, setLoading] = useState(true);
+  const [secondaryLoading, setSecondaryLoading] = useState(true);
   const [error, setError] = useState("");
   const [success, setSuccess] = useState("");
 
@@ -109,51 +110,65 @@ export function AdminPanelPage() {
 
   async function loadAdminData() {
     setLoading(true);
+    setSecondaryLoading(true);
     setError("");
 
     try {
+      // ── Phase 1: Critical data (4 calls) — page renders immediately after ──
       const [
         usersResponse,
         approvedResponse,
-        noticesResponse,
-        structuresResponse,
-        subjectsResponse,
-        resourcesResponse,
-        syllabusResponse,
-        auditResponse,
         analyticsResponse,
         emailMigrationsResponse
       ] = await Promise.all([
         apiClient.get("/auth/admin/users"),
         apiClient.get("/governance/approved-courses"),
-        apiClient.get("/notices", { params: { includeUnpublished: true } }),
-        apiClient.get("/academic/structures"),
-        apiClient.get("/academic/subjects"),
-        apiClient.get("/resources", { params: { page: 1, limit: 50 } }),
-        apiClient.get("/resources", { params: { page: 1, limit: 20, categoryId: "syllabus" } }),
-        apiClient.get("/audit/logs", { params: { page: 1, limit: 20 } }),
         apiClient.get("/admin/analytics").catch(() => ({ data: { data: null } })),
         apiClient.get("/admin/email-migrations").catch(() => ({ data: { data: [] } }))
       ]);
 
       setPendingRequests([]);
       setUsers(usersResponse.data.data || []);
-      setPendingEmailMigrations(emailMigrationsResponse?.data?.data || []);
       setApprovedCourses(approvedResponse.data.data || []);
+      setAnalytics(analyticsResponse?.data?.data || null);
+      setPendingEmailMigrations(emailMigrationsResponse?.data?.data || []);
+    } catch (requestError) {
+      setError(requestError.response?.data?.message || "Failed to load admin control data.");
+    } finally {
+      setLoading(false); // ← Page renders here — user sees content fast
+    }
+
+    // ── Phase 2: Secondary data (6 calls) — loads silently in the background ──
+    try {
+      const [
+        noticesResponse,
+        structuresResponse,
+        subjectsResponse,
+        resourcesResponse,
+        syllabusResponse,
+        auditResponse
+      ] = await Promise.all([
+        apiClient.get("/notices", { params: { includeUnpublished: true } }),
+        apiClient.get("/academic/structures"),
+        apiClient.get("/academic/subjects"),
+        apiClient.get("/resources", { params: { page: 1, limit: 20 } }),
+        apiClient.get("/resources", { params: { page: 1, limit: 10, categoryId: "syllabus" } }),
+        apiClient.get("/audit/logs", { params: { page: 1, limit: 10 } })
+      ]);
+
       setNotices(noticesResponse.data.data || []);
       setStructures(structuresResponse.data.data || []);
       setSubjects(subjectsResponse.data.data || []);
       setResources(resourcesResponse.data.data?.items || []);
       setSyllabusResources(syllabusResponse.data.data?.items || []);
       setAuditLogs(auditResponse.data.data?.items || []);
-      setAnalytics(analyticsResponse?.data?.data || null);
-    } catch (requestError) {
-      setError(requestError.response?.data?.message || "Failed to load admin control data.");
+    } catch {
+      // Secondary data failure is non-critical — page already visible
     } finally {
-      setLoading(false);
+      setSecondaryLoading(false);
     }
 
-    // Load AI Status asynchronously in the background so it doesn't block loading of core data
+    // ── Phase 3: AI Status — lowest priority, fully background ──
     setAiStatusLoading(true);
     try {
       const aiStatusResponse = await apiClient.get("/ai/status");
