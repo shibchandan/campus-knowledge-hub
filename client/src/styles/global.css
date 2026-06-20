@@ -1506,11 +1506,11 @@ h3 {
 .panel-card {
   padding: 1.25rem;
   border-radius: 16px;
-  background: rgba(255, 255, 255, 0.03);
-  border: 1px solid rgba(255, 255, 255, 0.08);
-  backdrop-filter: blur(12px);
-  -webkit-backdrop-filter: blur(12px);
-  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+  background: var(--glass-bg);
+  border: 1px solid var(--glass-border);
+  backdrop-filter: var(--glass-blur) saturate(1.8);
+  -webkit-backdrop-filter: var(--glass-blur) saturate(1.8);
+  box-shadow: var(--glass-shadow);
   transition: transform 0.25s cubic-bezier(0.4, 0, 0.2, 1), box-shadow 0.25s cubic-bezier(0.4, 0, 0.2, 1), border-color 0.25s ease;
   display: flex;
   flex-direction: column;
@@ -1518,18 +1518,16 @@ h3 {
 
 .panel-card:hover {
   transform: translateY(-4px);
-  box-shadow: 0 16px 40px rgba(99, 102, 241, 0.15);
-  border-color: rgba(99, 102, 241, 0.4);
-  background: rgba(255, 255, 255, 0.05);
+  box-shadow: var(--glass-shadow-hover);
+  border-color: var(--glass-border-subtle);
+  background: var(--glass-bg-hover);
 }
 
 .panel-card h3 {
   margin-bottom: 0.5rem;
   font-size: 1.15rem;
   font-weight: 700;
-  background: linear-gradient(135deg, #f8fafc 0%, #cbd5e1 100%);
-  -webkit-background-clip: text;
-  -webkit-text-fill-color: transparent;
+  color: var(--color-text, #0f172a);
 }
 
 .panel-actions {
