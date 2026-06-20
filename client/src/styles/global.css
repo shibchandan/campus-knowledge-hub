@@ -6,16 +6,16 @@
 
 :root {
 
-  /* Glassmorphism Design Tokens */
-  --glass-bg: rgba(255, 255, 255, 0.18);
-  --glass-bg-hover: rgba(255, 255, 255, 0.32);
-  --glass-border: rgba(255, 255, 255, 0.6);
+  /* Glassmorphism Design Tokens (visionOS Style) */
+  --glass-bg: rgba(255, 255, 255, 0.45);
+  --glass-bg-hover: rgba(255, 255, 255, 0.6);
+  --glass-border: rgba(255, 255, 255, 0.5);
   --glass-border-subtle: rgba(255, 255, 255, 0.8);
-  --glass-blur: blur(20px);
-  --glass-blur-heavy: blur(32px);
-  --glass-shadow: 0 8px 32px rgba(80, 50, 180, 0.18), 0 2px 8px rgba(80,50,180,0.1), inset 0 1px 0 rgba(255,255,255,0.85);
-  --glass-shadow-hover: 0 20px 48px rgba(80, 50, 180, 0.28), 0 4px 16px rgba(80,50,180,0.15), inset 0 1px 0 rgba(255,255,255,1);
-  --glass-glow: 0 0 0 1px rgba(255, 255, 255, 0.3), 0 8px 32px rgba(80, 50, 180, 0.2);
+  --glass-blur: blur(40px);
+  --glass-blur-heavy: blur(60px);
+  --glass-shadow: 0 8px 32px rgba(0, 0, 0, 0.05), inset 0 0 0 1px rgba(255, 255, 255, 0.4), inset 0 1px 1px rgba(255, 255, 255, 0.8);
+  --glass-shadow-hover: 0 16px 48px rgba(0, 0, 0, 0.1), inset 0 0 0 1px rgba(255, 255, 255, 0.6), inset 0 1px 1px rgba(255, 255, 255, 1);
+  --glass-glow: 0 0 0 1px rgba(255, 255, 255, 0.4), 0 8px 32px rgba(0, 0, 0, 0.05);
 
   /* Unified Button System Variables */
   --btn-padding: 10px 18px;
@@ -44,25 +44,23 @@
   font-family: "Outfit", "Inter", system-ui, -apple-system, sans-serif;
   color: #0f172a;
   background:
-    radial-gradient(ellipse at 10% 10%, rgba(120, 60, 255, 0.85) 0%, transparent 45%),
-    radial-gradient(ellipse at 90% 10%, rgba(80, 80, 255, 0.75) 0%, transparent 40%),
-    radial-gradient(ellipse at 90% 90%, rgba(40, 100, 255, 0.65) 0%, transparent 45%),
-    radial-gradient(ellipse at 10% 90%, rgba(220, 60, 180, 0.65) 0%, transparent 40%),
-    radial-gradient(ellipse at 50% 50%, rgba(140, 80, 255, 0.3) 0%, transparent 65%),
-    linear-gradient(135deg, #8b6fff 0%, #7070ff 35%, #e060c0 65%, #6090ff 100%);
+    radial-gradient(ellipse at 15% 0%, rgba(99, 102, 241, 0.15) 0%, transparent 50%),
+    radial-gradient(ellipse at 85% 30%, rgba(168, 85, 247, 0.12) 0%, transparent 50%),
+    radial-gradient(ellipse at 50% 100%, rgba(56, 189, 248, 0.15) 0%, transparent 50%),
+    linear-gradient(135deg, #f0f4f8 0%, #e2e8f0 100%);
   line-height: 1.5;
   font-weight: 400;
 }
 
 [data-theme="dark"] {
 
-  --glass-bg: rgba(15, 23, 42, 0.45);
-  --glass-bg-hover: rgba(15, 23, 42, 0.62);
-  --glass-border: rgba(255, 255, 255, 0.08);
-  --glass-border-subtle: rgba(129, 140, 248, 0.2);
-  --glass-shadow: 0 8px 32px rgba(0, 0, 0, 0.35), 0 2px 8px rgba(0,0,0,0.25), inset 0 1px 0 rgba(255,255,255,0.06);
-  --glass-shadow-hover: 0 20px 48px rgba(0, 0, 0, 0.5), 0 4px 16px rgba(99,102,241,0.15), inset 0 1px 0 rgba(255,255,255,0.1);
-  --glass-glow: 0 0 0 1px rgba(129, 140, 248, 0.15), 0 8px 32px rgba(99, 102, 241, 0.12);
+  --glass-bg: rgba(20, 20, 25, 0.45);
+  --glass-bg-hover: rgba(30, 30, 35, 0.6);
+  --glass-border: rgba(255, 255, 255, 0.1);
+  --glass-border-subtle: rgba(255, 255, 255, 0.15);
+  --glass-shadow: 0 16px 40px rgba(0, 0, 0, 0.4), inset 0 0 0 1px rgba(255, 255, 255, 0.05), inset 0 1px 1px rgba(255, 255, 255, 0.15);
+  --glass-shadow-hover: 0 24px 48px rgba(0, 0, 0, 0.5), inset 0 0 0 1px rgba(255, 255, 255, 0.1), inset 0 1px 1px rgba(255, 255, 255, 0.25);
+  --glass-glow: 0 0 0 1px rgba(255, 255, 255, 0.1), 0 8px 32px rgba(0, 0, 0, 0.4);
 
   --btn-primary-bg: linear-gradient(135deg, #818cf8, #6366f1);
   --btn-primary-text: #ffffff;
@@ -84,11 +82,9 @@
 
   color: #f1f5f9;
   background:
-    radial-gradient(ellipse at 0% 0%, rgba(139, 92, 246, 0.25) 0%, transparent 50%),
-    radial-gradient(ellipse at 100% 0%, rgba(99, 102, 241, 0.2) 0%, transparent 45%),
-    radial-gradient(ellipse at 100% 100%, rgba(59, 130, 246, 0.15) 0%, transparent 45%),
-    radial-gradient(ellipse at 0% 100%, rgba(236, 72, 153, 0.12) 0%, transparent 40%),
-    linear-gradient(180deg, #060912 0%, #08091a 50%, #060812 100%);
+    radial-gradient(ellipse at 15% 0%, rgba(99, 102, 241, 0.15) 0%, transparent 50%),
+    radial-gradient(ellipse at 85% 30%, rgba(168, 85, 247, 0.12) 0%, transparent 50%),
+    linear-gradient(180deg, #09090b 0%, #0f111a 100%);
   background-attachment: fixed;
 }
 
@@ -100,6 +96,9 @@ body {
   margin: 0;
   min-width: 320px;
   min-height: 100vh;
+  letter-spacing: -0.015em;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
 }
 
 button,
@@ -1165,14 +1164,23 @@ h3 {
   transform: translateY(-2px);
 }
 
+.card:active {
+  transform: scale(0.98) translateY(0);
+}
+
 .hero-card {
   border-radius: 24px;
-  border: 1px solid rgba(255, 255, 255, 0.5);
-  background: rgba(255, 255, 255, 0.15);
-  backdrop-filter: blur(24px) saturate(1.8);
-  -webkit-backdrop-filter: blur(24px) saturate(1.8);
-  box-shadow: 0 8px 32px rgba(80, 50, 180, 0.2), inset 0 1px 0 rgba(255, 255, 255, 0.8);
+  border: 1px solid var(--glass-border);
+  background: var(--glass-bg);
+  backdrop-filter: var(--glass-blur-heavy) saturate(1.8);
+  -webkit-backdrop-filter: var(--glass-blur-heavy) saturate(1.8);
+  box-shadow: var(--glass-shadow);
   position: relative;
+  transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1), box-shadow 0.3s ease;
+}
+
+.hero-card:active {
+  transform: scale(0.99);
 }
 
 .hero-card::before {
@@ -1523,6 +1531,10 @@ h3 {
   background: var(--glass-bg-hover);
 }
 
+.panel-card:active {
+  transform: scale(0.98) translateY(0);
+}
+
 .panel-card h3 {
   margin-bottom: 0.5rem;
   font-size: 1.15rem;
@@ -1565,7 +1577,7 @@ h3 {
 }
 
 .action-button:active {
-  transform: translateY(0);
+  transform: scale(0.96) translateY(0);
 }
 
 .action-button.approve {
