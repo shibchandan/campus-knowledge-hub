@@ -6,6 +6,10 @@ const userSchema = new mongoose.Schema(
     fullName: { type: String, required: true, trim: true },
     email: { type: String, required: true, unique: true, lowercase: true, trim: true },
     password: { type: String, required: true, minlength: 6, select: false },
+    isEmailVerified: { type: Boolean, default: false },
+    emailVerificationOtpHash: { type: String, default: "", select: false },
+    emailVerificationOtpExpiresAt: { type: Date, default: null, select: false },
+    emailVerificationOtpSentAt: { type: Date, default: null, select: false },
     role: { type: String, enum: ["student", "representative", "admin"], default: "student" },
     representativeRequestStatus: {
       type: String,

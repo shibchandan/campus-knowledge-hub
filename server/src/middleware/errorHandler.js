@@ -44,6 +44,10 @@ export function errorHandler(error, req, res, _next) {
     message
   };
 
+  if (error.requiresVerification) {
+    responsePayload.requiresVerification = true;
+  }
+
   if (process.env.NODE_ENV !== "production") {
     responsePayload.stack = error.stack;
   }

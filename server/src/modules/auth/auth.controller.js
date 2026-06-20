@@ -204,6 +204,23 @@ async function issueCollegeEmailOtp(user) {
   });
 }
 
+async function issueRegistrationOtp(user) {
+  const otp = crypto.randomInt(0, 10 ** OTP_LENGTH).toString().padStart(OTP_LENGTH, "0");
+  user.emailVerificationOtpHash = hashOtp(otp);
+  user.emailVerificationOtpExpiresAt = new Date(Date.now() + 10 * 60 * 1000); // 10 mins
+  user.emailVerificationOtpSentAt = new Date();
+  await user.save();
+
+  sendEmail({
+    to: user.email,
+    subject: "Campus Knowledge Hub account verification",
+    text: `Your Campus Knowledge Hub verification code is ${otp}. It expires in 10 minutes.`,
+    html: `<p>Your Campus Knowledge Hub verification code is <strong>${otp}</strong>.</p><p>This code will expire in 10 minutes.</p>`
+  }).catch((error) => {
+    console.log(`[Registration OTP email error] ${error.message}`);
+  });
+}
+
 function isLocked(user) {
   return Boolean(user.passwordResetLockedUntil && user.passwordResetLockedUntil > new Date());
 }
@@ -296,17 +313,13 @@ export async function register(req, res, next) {
       await notifyAdminsAboutStudentVerification(user);
     }
 
-    const token = createToken({ id: user._id, role: user.role, email: user.email });
-    setAuthCookie(res, token);
+    await issueRegistrationOtp(user);
 
     res.status(201).json({
       success: true,
-      message: requestedRepresentative
-        ? "Representative request submitted to admin. Until approval, this account will continue as student access."
-        : payload.role === "student" && collegeEmailOtpSent
-          ? "Registration successful. A college email OTP has been sent to your official college email for verification."
-        : "Registration successful.",
-      data: { token, user: serializeUserForClient(user, req) }
+      requiresVerification: true,
+      email: user.email,
+      message: "Registration successful. A verification code has been sent to your email."
     });
   } catch (error) {
     if (req.file?.path) {
@@ -361,6 +374,13 @@ export async function login(req, res, next) {
           : "This account has been suspended by an administrator."
       );
       error.statusCode = 403;
+      throw error;
+    }
+
+    if (!user.isEmailVerified) {
+      const error = new Error("Please verify your email to log in.");
+      error.statusCode = 403;
+      error.requiresVerification = true;
       throw error;
     }
 
@@ -1211,6 +1231,103 @@ export async function contactAdmin(req, res, next) {
     });
     
     res.json({ success: true, message: "Your message has been sent to the administrators." });
+  } catch (error) {
+    next(error);
+  }
+}
+
+export async function verifyRegistrationOtp(req, res, next) {
+  try {
+    const { email, otp } = req.body;
+    if (!email || !otp) {
+      const error = new Error("Email and OTP are required.");
+      error.statusCode = 400;
+      throw error;
+    }
+
+    const user = await User.findOne({ email }).select("+emailVerificationOtpHash +emailVerificationOtpExpiresAt");
+    
+    if (!user) {
+      const error = new Error("User not found.");
+      error.statusCode = 404;
+      throw error;
+    }
+
+    if (user.isEmailVerified) {
+      const error = new Error("Email is already verified.");
+      error.statusCode = 400;
+      throw error;
+    }
+
+    if (!user.emailVerificationOtpExpiresAt || user.emailVerificationOtpExpiresAt < new Date()) {
+      const error = new Error("Verification code has expired. Please request a new one.");
+      error.statusCode = 400;
+      throw error;
+    }
+
+    if (!timingSafeOtpMatch(otp.toString().trim(), user.emailVerificationOtpHash)) {
+      const error = new Error("Invalid verification code.");
+      error.statusCode = 400;
+      throw error;
+    }
+
+    user.isEmailVerified = true;
+    user.emailVerificationOtpHash = "";
+    user.emailVerificationOtpExpiresAt = null;
+    user.emailVerificationOtpSentAt = null;
+    await user.save();
+
+    const token = createToken({ id: user._id, role: user.role, email: user.email });
+    setAuthCookie(res, token);
+
+    res.json({
+      success: true,
+      message: "Email verified successfully.",
+      data: { token, user: serializeUserForClient(user, req) }
+    });
+  } catch (error) {
+    next(error);
+  }
+}
+
+export async function resendRegistrationOtp(req, res, next) {
+  try {
+    const { email } = req.body;
+    if (!email) {
+      const error = new Error("Email is required.");
+      error.statusCode = 400;
+      throw error;
+    }
+
+    const user = await User.findOne({ email }).select("+emailVerificationOtpSentAt");
+    
+    if (!user) {
+      const error = new Error("User not found.");
+      error.statusCode = 404;
+      throw error;
+    }
+
+    if (user.isEmailVerified) {
+      const error = new Error("Email is already verified.");
+      error.statusCode = 400;
+      throw error;
+    }
+
+    if (
+      user.emailVerificationOtpSentAt &&
+      Date.now() - user.emailVerificationOtpSentAt.getTime() < OTP_COOLDOWN_SECONDS * 1000
+    ) {
+      const error = new Error(`Please wait ${OTP_COOLDOWN_SECONDS} seconds before requesting another code.`);
+      error.statusCode = 429;
+      throw error;
+    }
+
+    await issueRegistrationOtp(user);
+
+    res.json({
+      success: true,
+      message: "A new verification code has been sent."
+    });
   } catch (error) {
     next(error);
   }

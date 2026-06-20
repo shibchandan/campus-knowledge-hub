@@ -20,7 +20,9 @@ import {
   verifyAndEnable2fa,
   disable2fa,
   login2fa,
-  contactAdmin
+  contactAdmin,
+  verifyRegistrationOtp,
+  resendRegistrationOtp
 } from "./auth.controller.js";
 import { authorize, protect } from "../../middleware/authMiddleware.js";
 import { createRateLimiter } from "../../middleware/rateLimit.js";
@@ -50,6 +52,8 @@ const otpRateLimiter = createRateLimiter({
 });
 
 authRouter.post("/register", authRateLimiter, uploadRateLimiter, upload.single("studentProof"), validateUploadedFile, register);
+authRouter.post("/verify-registration-otp", authRateLimiter, verifyRegistrationOtp);
+authRouter.post("/resend-registration-otp", otpRateLimiter, resendRegistrationOtp);
 authRouter.post("/login", authRateLimiter, login);
 authRouter.post("/logout", protect, logout);
 authRouter.post("/forgot-password", otpRateLimiter, forgotPassword);

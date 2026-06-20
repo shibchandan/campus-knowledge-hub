@@ -84,6 +84,9 @@ export function AuthPage() {
   const [agreedToTerms, setAgreedToTerms] = useState(false);
   const [isNewCollege, setIsNewCollege] = useState(false);
   const [availableColleges, setAvailableColleges] = useState([]);
+  const [verificationEmail, setVerificationEmail] = useState("");
+  const [verificationOtp, setVerificationOtp] = useState("");
+  const [verificationCooldown, setVerificationCooldown] = useState(0);
 
   useEffect(() => {
     async function loadColleges() {
@@ -104,6 +107,14 @@ export function AuthPage() {
       setError("Your session has expired. Please log in again.");
     }
   }, [location.search]);
+
+  useEffect(() => {
+    let timer;
+    if (verificationCooldown > 0) {
+      timer = setInterval(() => setVerificationCooldown((c) => c - 1), 1000);
+    }
+    return () => clearInterval(timer);
+  }, [verificationCooldown]);
 
   if (isAuthenticated) {
     return <Navigate to="/colleges" replace />;
@@ -145,7 +156,13 @@ export function AuthPage() {
         navigate(redirectTo, { replace: true });
       }
     } catch (requestError) {
-      setError(getAuthErrorMessage(requestError, "Login failed. Check your email and password."));
+      if (requestError.response?.data?.requiresVerification) {
+        setVerificationEmail(loginForm.email);
+        setMode("verifyEmail");
+        setError("Please verify your email before logging in.");
+      } else {
+        setError(getAuthErrorMessage(requestError, "Login failed. Check your email and password."));
+      }
     } finally {
       setLoading(false);
     }
@@ -186,8 +203,15 @@ export function AuthPage() {
     }
 
     try {
-      const session = await register(registerForm);
-      if (session?.user?.representativeRequestStatus === "pending") {
+      const result = await register(registerForm);
+      if (result && result.requiresVerification) {
+        setVerificationEmail(result.email);
+        setMode("verifyEmail");
+        setSuccess(result.message);
+        return;
+      }
+      
+      if (result?.user?.representativeRequestStatus === "pending") {
         setSuccess(
           "Representative request sent to admin. You can log in and use student access until approval."
         );
@@ -242,6 +266,47 @@ export function AuthPage() {
       setMode("login");
     } catch (requestError) {
       setError(getAuthErrorMessage(requestError, "Failed to reset password."));
+    } finally {
+      setLoading(false);
+    }
+  }
+
+  async function handleVerifyRegistrationSubmit(event) {
+    event.preventDefault();
+    setLoading(true);
+    setError("");
+    setSuccess("");
+
+    try {
+      const { verifyRegistrationOtp } = await import("../auth/AuthContext"); // useAuth already has it but we destructured it above. Wait, let's just destructure verifyRegistrationOtp from useAuth.
+      // Wait, I can't import inside function like this if not needed, let's use apiClient instead if verifyRegistrationOtp is missing from destructuring at the top.
+      const response = await apiClient.post("/auth/verify-registration-otp", {
+        email: verificationEmail,
+        otp: verificationOtp
+      });
+      // Force reload or redirect after saving token
+      localStorage.removeItem("campus-knowledge-hub-college");
+      window.location.href = redirectTo; // quick reload to set session context
+    } catch (requestError) {
+      setError(getAuthErrorMessage(requestError, "Invalid verification code."));
+    } finally {
+      setLoading(false);
+    }
+  }
+
+  async function handleResendRegistrationOtp() {
+    setLoading(true);
+    setError("");
+    setSuccess("");
+
+    try {
+      const response = await apiClient.post("/auth/resend-registration-otp", {
+        email: verificationEmail
+      });
+      setSuccess(response.data.message);
+      setVerificationCooldown(60);
+    } catch (requestError) {
+      setError(getAuthErrorMessage(requestError, "Failed to resend verification code."));
     } finally {
       setLoading(false);
     }
@@ -321,6 +386,50 @@ export function AuthPage() {
                 setTwoFactorCode("");
                 setError("");
               }}
+              type="button"
+            >
+              Back to login
+            </button>
+          </form>
+        ) : mode === "verifyEmail" ? (
+          <form className="auth-form" onSubmit={handleVerifyRegistrationSubmit}>
+            <div className="auth-hero" style={{ padding: 0, marginBottom: "1.5rem" }}>
+              <h2>Verify Your Email</h2>
+              <p className="muted">
+                We've sent a 6-digit verification code to <strong>{verificationEmail}</strong>.
+              </p>
+            </div>
+            <label className="auth-field">
+              <span>Verification Code</span>
+              <input
+                type="text"
+                inputMode="numeric"
+                maxLength={6}
+                minLength={6}
+                value={verificationOtp}
+                onChange={(event) => setVerificationOtp(event.target.value)}
+                placeholder="6-digit code"
+                required
+                autoFocus
+              />
+            </label>
+            <button className="auth-submit" disabled={loading} type="submit">
+              {loading ? "Verifying..." : "Verify Account"}
+            </button>
+            <div style={{ display: 'flex', gap: '1rem', marginTop: '1rem' }}>
+              <button
+                className="auth-button secondary"
+                onClick={handleResendRegistrationOtp}
+                disabled={loading || verificationCooldown > 0}
+                type="button"
+                style={{ flex: 1, backgroundColor: 'transparent', color: 'var(--color-text)', border: '1px solid var(--glass-border)' }}
+              >
+                {verificationCooldown > 0 ? `Resend in ${verificationCooldown}s` : "Resend Code"}
+              </button>
+            </div>
+            <button
+              className="auth-link-button"
+              onClick={() => switchMode("login")}
               type="button"
             >
               Back to login

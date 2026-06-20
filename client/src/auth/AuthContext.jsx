@@ -89,6 +89,18 @@ export function AuthProvider({ children }) {
     const response = await apiClient.post("/auth/register", requestPayload, shouldUseFormData
       ? { headers: { "Content-Type": "multipart/form-data" } }
       : undefined);
+      
+    if (response.data.requiresVerification) {
+      return response.data;
+    }
+    
+    localStorage.removeItem(COLLEGE_STORAGE_KEY);
+    setSession(response.data.data);
+    return response.data.data;
+  }
+
+  async function verifyRegistrationOtp(email, otp) {
+    const response = await apiClient.post("/auth/verify-registration-otp", { email, otp });
     localStorage.removeItem(COLLEGE_STORAGE_KEY);
     setSession(response.data.data);
     return response.data.data;
@@ -130,6 +142,7 @@ export function AuthProvider({ children }) {
       login,
       verify2fa,
       register,
+      verifyRegistrationOtp,
       updateProfile,
       refreshCurrentUser,
       logout
