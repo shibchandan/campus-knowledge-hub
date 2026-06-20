@@ -44,12 +44,12 @@
   font-family: "Outfit", "Inter", system-ui, -apple-system, sans-serif;
   color: #0f172a;
   background:
-    radial-gradient(ellipse at 5% 5%, rgba(139, 92, 246, 0.45) 0%, transparent 40%),
-    radial-gradient(ellipse at 95% 5%, rgba(99, 102, 241, 0.38) 0%, transparent 38%),
-    radial-gradient(ellipse at 95% 95%, rgba(59, 130, 246, 0.32) 0%, transparent 40%),
-    radial-gradient(ellipse at 5% 95%, rgba(236, 72, 153, 0.28) 0%, transparent 38%),
-    radial-gradient(ellipse at 50% 50%, rgba(168, 85, 247, 0.12) 0%, transparent 60%),
-    linear-gradient(135deg, #dde4ff 0%, #e8e0ff 35%, #ffe0f7 65%, #dde8ff 100%);
+    radial-gradient(ellipse at 5% 5%, rgba(139, 92, 246, 0.7) 0%, transparent 40%),
+    radial-gradient(ellipse at 95% 5%, rgba(99, 102, 241, 0.65) 0%, transparent 38%),
+    radial-gradient(ellipse at 95% 95%, rgba(59, 130, 246, 0.55) 0%, transparent 40%),
+    radial-gradient(ellipse at 5% 95%, rgba(236, 72, 153, 0.5) 0%, transparent 38%),
+    radial-gradient(ellipse at 50% 50%, rgba(168, 85, 247, 0.25) 0%, transparent 60%),
+    linear-gradient(135deg, #c4d0ff 0%, #d4c4ff 35%, #ffc4f0 65%, #c4d4ff 100%);
   line-height: 1.5;
   font-weight: 400;
 }
