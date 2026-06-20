@@ -1140,15 +1140,14 @@ h3 {
 
 .card {
   background: var(--glass-bg);
-  backdrop-filter: var(--glass-blur) saturate(1.6);
-  -webkit-backdrop-filter: var(--glass-blur) saturate(1.6);
+  backdrop-filter: var(--glass-blur) saturate(1.8);
+  -webkit-backdrop-filter: var(--glass-blur) saturate(1.8);
   border: 1px solid var(--glass-border);
   border-radius: 20px;
   padding: 24px;
   box-shadow: var(--glass-shadow);
   transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
   position: relative;
-  overflow: hidden;
 }
 
 .card::before {
@@ -1167,17 +1166,16 @@ h3 {
 }
 
 .hero-card {
-  border-radius: 28px;
-  border: 1px solid rgba(255, 255, 255, 0.4);
-  background: 
-    radial-gradient(circle at 100% 0%, rgba(59, 130, 246, 0.15) 0%, transparent 40%),
-    radial-gradient(circle at 0% 100%, rgba(139, 92, 246, 0.15) 0%, transparent 40%),
-    linear-gradient(135deg, rgba(255, 255, 255, 0.9), rgba(248, 250, 253, 0.7));
-  backdrop-filter: blur(24px);
-  -webkit-backdrop-filter: blur(24px);
-  box-shadow: 0 24px 64px -12px rgba(24, 33, 47, 0.12), inset 0 1px 0 rgba(255, 255, 255, 0.8);
+  border-radius: 24px;
+  border: 1px solid rgba(255, 255, 255, 0.55);
+  background:
+    radial-gradient(circle at 100% 0%, rgba(99, 102, 241, 0.18) 0%, transparent 50%),
+    radial-gradient(circle at 0% 100%, rgba(139, 92, 246, 0.18) 0%, transparent 50%),
+    rgba(200, 210, 255, 0.18);
+  backdrop-filter: blur(20px) saturate(2);
+  -webkit-backdrop-filter: blur(20px) saturate(2);
+  box-shadow: 0 8px 32px rgba(99, 102, 241, 0.14), inset 0 1px 0 rgba(255, 255, 255, 0.75);
   position: relative;
-  overflow: hidden;
 }
 
 .hero-card::before {
