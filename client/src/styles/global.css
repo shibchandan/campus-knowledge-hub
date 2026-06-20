@@ -1582,13 +1582,16 @@ h3 {
 }
 
 .action-button.neutral {
-  background: rgba(255, 255, 255, 0.1);
-  color: #e2e8f0;
-  border: 1px solid rgba(255, 255, 255, 0.1);
+  background: var(--glass-bg);
+  color: var(--color-text, #0f172a);
+  border: 1px solid var(--glass-border-subtle);
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
 }
 
 .action-button.neutral:hover {
-  background: rgba(255, 255, 255, 0.15);
+  background: var(--glass-bg-hover);
+  border-color: var(--glass-border);
 }
 
 .status-chip {
