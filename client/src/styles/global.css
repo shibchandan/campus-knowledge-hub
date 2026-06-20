@@ -1271,22 +1271,40 @@ h3 {
 .semester-card,
 .resource-card {
   padding: 20px;
-  background: rgba(255, 255, 255, 0.88);
-  border: 1px solid rgba(24, 33, 47, 0.08);
+  background: var(--glass-bg);
+  backdrop-filter: var(--glass-blur) saturate(1.6);
+  -webkit-backdrop-filter: var(--glass-blur) saturate(1.6);
+  border: 1px solid var(--glass-border);
   border-radius: 20px;
-  box-shadow: 0 16px 40px rgba(24, 33, 47, 0.08);
+  box-shadow: var(--glass-shadow);
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  position: relative;
+  overflow: hidden;
+}
+
+.program-card::before,
+.college-card::before,
+.branch-card::before,
+.semester-card::before,
+.resource-card::before {
+  content: "";
+  position: absolute;
+  top: 0; left: 0; right: 0;
+  height: 1px;
+  background: linear-gradient(90deg, transparent, rgba(255,255,255,0.9), transparent);
+  pointer-events: none;
 }
 
 .program-card {
-  background: linear-gradient(180deg, rgba(255, 248, 232, 0.95), rgba(255, 255, 255, 0.88));
+  background: linear-gradient(160deg, rgba(255, 248, 232, 0.55), rgba(255, 255, 255, 0.45));
 }
 
 .college-card {
-  background: linear-gradient(180deg, rgba(234, 255, 247, 0.95), rgba(255, 255, 255, 0.9));
+  background: linear-gradient(160deg, rgba(220, 255, 245, 0.55), rgba(255, 255, 255, 0.45));
 }
 
 .branch-card {
-  background: linear-gradient(180deg, rgba(236, 246, 255, 0.95), rgba(255, 255, 255, 0.9));
+  background: linear-gradient(160deg, rgba(220, 240, 255, 0.55), rgba(255, 255, 255, 0.45));
 }
 
 .program-link {
@@ -2152,9 +2170,12 @@ h3 {
 [data-theme="dark"] .detail-card,
 [data-theme="dark"] .user-chip,
 [data-theme="dark"] .college-chip {
-  background: rgba(17, 26, 40, 0.92);
-  border-color: rgba(131, 148, 173, 0.2);
+  background: var(--glass-bg);
+  backdrop-filter: var(--glass-blur) saturate(1.6);
+  -webkit-backdrop-filter: var(--glass-blur) saturate(1.6);
+  border-color: var(--glass-border);
   color: #d8e1ef;
+  box-shadow: var(--glass-shadow);
 }
 
 [data-theme="dark"] .card-header {
@@ -3330,10 +3351,17 @@ h3 {
   transition: transform 0.25s ease, box-shadow 0.25s ease, border-color 0.25s ease;
   display: flex;
   flex-direction: column;
+  background: var(--glass-bg) !important;
+  backdrop-filter: var(--glass-blur) saturate(1.8) !important;
+  -webkit-backdrop-filter: var(--glass-blur) saturate(1.8) !important;
+  border: 1px solid var(--glass-border) !important;
+  box-shadow: var(--glass-shadow) !important;
 }
 
 .college-card-enhanced:hover {
-  transform: translateY(-5px);
+  transform: translateY(-6px);
+  box-shadow: var(--glass-shadow-hover) !important;
+  background: var(--glass-bg-hover) !important;
 }
 
 .college-card-accent {
