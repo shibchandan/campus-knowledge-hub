@@ -1218,7 +1218,7 @@ export function DashboardPage() {
                     {profileHighlights.map((item) => (
                       <div key={item.label} className="detail-card">
                         <span className="overview-side-label">{item.label}</span>
-                        <strong style={{ fontSize: "1.5rem", color: "#ffffff", fontWeight: "600", textShadow: "0 2px 10px rgba(255,255,255,0.1)" }}>{item.value}</strong>
+                        <strong>{item.value}</strong>
                       </div>
                     ))}
                   </div>
@@ -1230,7 +1230,7 @@ export function DashboardPage() {
                     gap: "1.5rem"
                   }}>
                     <article className="detail-card">
-                      <span className="overview-side-label" style={{ color: "var(--color-eyebrow)", fontSize: "0.875rem", fontWeight: "700", display: "block", marginBottom: "1rem", textTransform: "uppercase", letterSpacing: "0.5px" }}>Placement Report Summary</span>
+                      <span className="overview-side-label">Placement Report Summary</span>
                       <div style={{ margin: 0, fontSize: "0.95rem", lineHeight: "1.6" }}>
                         {profile.placementReport && renderRichText(profile.placementReport)}
                         {profile.placementList && profile.placementList.length > 0 && (
@@ -1292,7 +1292,7 @@ export function DashboardPage() {
                       ) : null}
                     </article>
                     <article className="detail-card">
-                      <span className="overview-side-label" style={{ color: "var(--color-eyebrow)", fontSize: "0.875rem", fontWeight: "700", display: "block", marginBottom: "1rem", textTransform: "uppercase", letterSpacing: "0.5px" }}>Cut Off Summary</span>
+                      <span className="overview-side-label">Cut Off Summary</span>
                       <div style={{ margin: 0, fontSize: "0.95rem", lineHeight: "1.6" }}>
                         {profile.cutOffSummary && renderRichText(profile.cutOffSummary)}
                         {profile.cutOffList && profile.cutOffList.length > 0 && (
@@ -1328,7 +1328,7 @@ export function DashboardPage() {
                       </div>
                     </article>
                     <article className="detail-card">
-                      <span className="overview-side-label" style={{ color: "var(--color-eyebrow)", fontSize: "0.875rem", fontWeight: "700", display: "block", marginBottom: "1rem", textTransform: "uppercase", letterSpacing: "0.5px" }}>Other Rankings & Info</span>
+                      <span className="overview-side-label">Other Rankings & Info</span>
                       <div style={{ margin: 0, fontSize: "0.95rem", lineHeight: "1.6" }}>{renderRichText(profile.rankings?.other) || <p className="muted" style={{ margin: 0 }}>Not provided</p>}</div>
                     </article>
                   </div>
