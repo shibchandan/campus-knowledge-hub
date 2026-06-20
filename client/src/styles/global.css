@@ -1670,10 +1670,19 @@ h3 {
 }
 
 .detail-card {
-  border: 1px solid rgba(24, 33, 47, 0.08);
   border-radius: 16px;
-  background: rgba(255, 255, 255, 0.9);
+  background: var(--glass-bg);
+  backdrop-filter: var(--glass-blur) saturate(1.8);
+  -webkit-backdrop-filter: var(--glass-blur) saturate(1.8);
+  border: 1px solid var(--glass-border);
   padding: 16px;
+  transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.detail-card:hover {
+  transform: translateY(-2px);
+  background: var(--glass-bg-hover);
+  box-shadow: var(--glass-shadow-hover);
 }
 
 .detail-card h3 {

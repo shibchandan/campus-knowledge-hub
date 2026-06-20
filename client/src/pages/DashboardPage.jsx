@@ -1216,17 +1216,9 @@ export function DashboardPage() {
                     marginBottom: "1.5rem"
                   }}>
                     {profileHighlights.map((item) => (
-                      <div key={item.label} className="detail-card" style={{
-                        padding: "1rem",
-                        borderRadius: "12px",
-                        background: "rgba(255, 255, 255, 0.03)",
-                        border: "1px solid rgba(255, 255, 255, 0.05)",
-                        display: "flex",
-                        flexDirection: "column",
-                        gap: "0.25rem"
-                      }}>
-                        <span className="overview-side-label" style={{ fontSize: "0.75rem", textTransform: "uppercase", letterSpacing: "0.5px" }}>{item.label}</span>
-                        <strong style={{ fontSize: "1.25rem", color: "#f8fafc" }}>{item.value}</strong>
+                      <div key={item.label} className="detail-card">
+                        <span className="overview-side-label">{item.label}</span>
+                        <strong style={{ fontSize: "1.5rem", color: "#ffffff", fontWeight: "600", textShadow: "0 2px 10px rgba(255,255,255,0.1)" }}>{item.value}</strong>
                       </div>
                     ))}
                   </div>
@@ -1237,14 +1229,8 @@ export function DashboardPage() {
                     gridTemplateColumns: "repeat(auto-fit, minmax(280px, 1fr))",
                     gap: "1.5rem"
                   }}>
-                    <article className="detail-card" style={{
-                      padding: "1.25rem",
-                      borderRadius: "12px",
-                      background: "rgba(255, 255, 255, 0.02)",
-                      border: "1px solid rgba(255, 255, 255, 0.05)"
-                    }}>
-                      <span className="overview-side-label" style={{ fontSize: "0.875rem", fontWeight: "600", display: "block", marginBottom: "0.5rem" }}>Placement Report Summary</span>
-                      <div style={{ margin: 0, fontSize: "0.95rem", lineHeight: "1.6" }}>
+                    <article className="detail-card">
+                      <span className="overview-side-label" style={{ color: "var(--color-eyebrow)", fontSize: "0.875rem", fontWeight: "700", display: "block", marginBottom: "1rem", textTransform: "uppercase", letterSpacing: "0.5px" }}>Placement Report Summary</span>
                       <div style={{ margin: 0, fontSize: "0.95rem", lineHeight: "1.6" }}>
                         {profile.placementReport && renderRichText(profile.placementReport)}
                         {profile.placementList && profile.placementList.length > 0 && (
@@ -1252,15 +1238,15 @@ export function DashboardPage() {
                             <table style={{
                               width: "100%",
                               borderCollapse: "collapse",
-                              background: "rgba(255, 255, 255, 0.02)",
-                              border: "1px solid rgba(255, 255, 255, 0.05)",
-                              borderRadius: "8px",
+                              background: "rgba(255, 255, 255, 0.03)",
+                              borderRadius: "12px",
+                              overflow: "hidden",
                               fontSize: "0.85rem"
                             }}>
                               <thead>
-                                <tr style={{ background: "rgba(255, 255, 255, 0.04)" }}>
-                                  <th style={{ padding: "8px 10px", textAlign: "left", fontWeight: "600", color: "#f8fafc", borderBottom: "1px solid rgba(255, 255, 255, 0.08)" }}>Branch</th>
-                                  <th style={{ padding: "8px 10px", textAlign: "left", fontWeight: "600", color: "#f8fafc", borderBottom: "1px solid rgba(255, 255, 255, 0.08)" }}>Avg/Highest Package</th>
+                                <tr style={{ background: "rgba(255, 255, 255, 0.06)" }}>
+                                  <th style={{ padding: "12px 14px", textAlign: "left", fontWeight: "600", color: "#ffffff", borderBottom: "1px solid rgba(255, 255, 255, 0.08)" }}>Branch</th>
+                                  <th style={{ padding: "12px 14px", textAlign: "left", fontWeight: "600", color: "#ffffff", borderBottom: "1px solid rgba(255, 255, 255, 0.08)" }}>Avg/Highest Package</th>
                                 </tr>
                               </thead>
                               <tbody>
@@ -1277,7 +1263,6 @@ export function DashboardPage() {
                         {!profile.placementReport && (!profile.placementList || profile.placementList.length === 0) && (
                           <p className="muted" style={{ margin: 0 }}>Not provided</p>
                         )}
-                      </div>
                       </div>
                       {profile.placementReportUrl ? (
                         <div style={{ marginTop: "1rem" }}>
@@ -1306,13 +1291,8 @@ export function DashboardPage() {
                         </div>
                       ) : null}
                     </article>
-                    <article className="detail-card" style={{
-                      padding: "1.25rem",
-                      borderRadius: "12px",
-                      background: "rgba(255, 255, 255, 0.02)",
-                      border: "1px solid rgba(255, 255, 255, 0.05)"
-                    }}>
-                      <span className="overview-side-label" style={{ fontSize: "0.875rem", fontWeight: "600", display: "block", marginBottom: "0.5rem" }}>Cut Off Summary</span>
+                    <article className="detail-card">
+                      <span className="overview-side-label" style={{ color: "var(--color-eyebrow)", fontSize: "0.875rem", fontWeight: "700", display: "block", marginBottom: "1rem", textTransform: "uppercase", letterSpacing: "0.5px" }}>Cut Off Summary</span>
                       <div style={{ margin: 0, fontSize: "0.95rem", lineHeight: "1.6" }}>
                         {profile.cutOffSummary && renderRichText(profile.cutOffSummary)}
                         {profile.cutOffList && profile.cutOffList.length > 0 && (
@@ -1320,15 +1300,15 @@ export function DashboardPage() {
                             <table style={{
                               width: "100%",
                               borderCollapse: "collapse",
-                              background: "rgba(255, 255, 255, 0.02)",
-                              border: "1px solid rgba(255, 255, 255, 0.05)",
-                              borderRadius: "8px",
+                              background: "rgba(255, 255, 255, 0.03)",
+                              borderRadius: "12px",
+                              overflow: "hidden",
                               fontSize: "0.85rem"
                             }}>
                               <thead>
-                                <tr style={{ background: "rgba(255, 255, 255, 0.04)" }}>
-                                  <th style={{ padding: "8px 10px", textAlign: "left", fontWeight: "600", color: "#f8fafc", borderBottom: "1px solid rgba(255, 255, 255, 0.08)" }}>Branch</th>
-                                  <th style={{ padding: "8px 10px", textAlign: "left", fontWeight: "600", color: "#f8fafc", borderBottom: "1px solid rgba(255, 255, 255, 0.08)" }}>Closing Rank/Score</th>
+                                <tr style={{ background: "rgba(255, 255, 255, 0.06)" }}>
+                                  <th style={{ padding: "12px 14px", textAlign: "left", fontWeight: "600", color: "#ffffff", borderBottom: "1px solid rgba(255, 255, 255, 0.08)" }}>Branch</th>
+                                  <th style={{ padding: "12px 14px", textAlign: "left", fontWeight: "600", color: "#ffffff", borderBottom: "1px solid rgba(255, 255, 255, 0.08)" }}>Closing Rank/Score</th>
                                 </tr>
                               </thead>
                               <tbody>
@@ -1347,13 +1327,8 @@ export function DashboardPage() {
                         )}
                       </div>
                     </article>
-                    <article className="detail-card" style={{
-                      padding: "1.25rem",
-                      borderRadius: "12px",
-                      background: "rgba(255, 255, 255, 0.02)",
-                      border: "1px solid rgba(255, 255, 255, 0.05)"
-                    }}>
-                      <span className="overview-side-label" style={{ fontSize: "0.875rem", fontWeight: "600", display: "block", marginBottom: "0.5rem" }}>Other Rankings & Info</span>
+                    <article className="detail-card">
+                      <span className="overview-side-label" style={{ color: "var(--color-eyebrow)", fontSize: "0.875rem", fontWeight: "700", display: "block", marginBottom: "1rem", textTransform: "uppercase", letterSpacing: "0.5px" }}>Other Rankings & Info</span>
                       <div style={{ margin: 0, fontSize: "0.95rem", lineHeight: "1.6" }}>{renderRichText(profile.rankings?.other) || <p className="muted" style={{ margin: 0 }}>Not provided</p>}</div>
                     </article>
                   </div>
