@@ -17,7 +17,7 @@ export const aiRouter = Router();
 
 const aiRateLimiter = createRateLimiter({
   windowMs: 60 * 60 * 1000, // 1 hour
-  maxRequests: 100, // Increased from 10 to 100 to allow more free usage
+  maxRequests: 10,
   message: "AI request limit reached. Please wait an hour and try again.",
   keyPrefix: "ai",
   keyGenerator: (req) => req.user?.id || req.ip
