@@ -136,10 +136,28 @@ async function callGemini(question, prompt) {
   }
 
   const payload = await response.json();
-  const text =
-    payload?.candidates?.[0]?.content?.parts?.map((part) => part.text || "").join("\n") || "";
 
-  return parseAiJson(text);
+  if (payload.error) {
+    throw new Error(`Gemini API Error: ${payload.error.message}`);
+  }
+
+  const candidate = payload?.candidates?.[0];
+  if (!candidate) {
+    throw new Error(`Gemini returned empty response. Payload: ${JSON.stringify(payload)}`);
+  }
+
+  if (candidate.finishReason !== "STOP" && candidate.finishReason !== undefined) {
+    throw new Error(`Gemini response stopped early: ${candidate.finishReason}`);
+  }
+
+  const text =
+    candidate?.content?.parts?.map((part) => part.text || "").join("\n") || "";
+
+  const parsed = parseAiJson(text);
+  if (!parsed) {
+    throw new Error(`Gemini returned invalid JSON: ${text.slice(0, 100)}`);
+  }
+  return parsed;
 }
 
 async function callAnthropic(question, prompt) {
