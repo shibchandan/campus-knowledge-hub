@@ -21,6 +21,7 @@ export function AiStudioPage() {
   const [historyBusyId, setHistoryBusyId] = useState("");
   const [historyLoading, setHistoryLoading] = useState(true);
   const [historyLimit, setHistoryLimit] = useState(3);
+  const [files, setFiles] = useState([]);
 
   async function loadMeta() {
     if (!user) {
@@ -56,16 +57,45 @@ export function AiStudioPage() {
       const response = await apiClient.post("/ai/ask", {
         question,
         intent,
-        collegeName: selectedCollege?.name || ""
+        collegeName: selectedCollege?.name || "",
+        files: files.map(f => ({ mimeType: f.mimeType, data: f.data }))
       });
       setAnswer(response.data.data);
       setQuestion("");
+      setFiles([]);
       await loadMeta();
     } catch (requestError) {
       setError(requestError.response?.data?.message || "Failed to get AI response.");
     } finally {
       setLoading(false);
     }
+  }
+
+  function handleFileChange(event) {
+    const selected = Array.from(event.target.files);
+    
+    const filesToProcess = selected.slice(0, 3);
+    
+    const readers = filesToProcess.map(file => {
+      return new Promise((resolve, reject) => {
+        const reader = new FileReader();
+        reader.onload = (e) => {
+          resolve({
+            name: file.name,
+            mimeType: file.type,
+            data: e.target.result
+          });
+        };
+        reader.onerror = reject;
+        reader.readAsDataURL(file);
+      });
+    });
+
+    Promise.all(readers).then(base64Files => {
+      setFiles(base64Files);
+    }).catch(() => {
+      setError("Failed to process attached files.");
+    });
   }
 
   async function handleDeleteHistoryItem(historyId) {
@@ -138,6 +168,26 @@ export function AiStudioPage() {
               rows={4}
               value={question}
             />
+          </label>
+
+          <label className="auth-field">
+            <span>Attach Screenshots / PDFs (Max 3)</span>
+            <input 
+              type="file" 
+              multiple 
+              accept="image/png,image/jpeg,application/pdf"
+              onChange={handleFileChange}
+              style={{ padding: '0.5rem 0' }}
+            />
+            {files.length > 0 && (
+              <div style={{ display: 'flex', gap: '0.5rem', flexWrap: 'wrap', marginTop: '0.5rem' }}>
+                {files.map((f, i) => (
+                  <span key={i} style={{ background: 'var(--glass-border)', padding: '0.25rem 0.75rem', borderRadius: '16px', fontSize: '0.8rem', color: 'var(--color-text)' }}>
+                    📎 {f.name}
+                  </span>
+                ))}
+              </div>
+            )}
           </label>
           <button className="auth-submit" disabled={loading} type={user ? "submit" : "button"} onClick={user ? undefined : handleAsk}>
             {loading ? (

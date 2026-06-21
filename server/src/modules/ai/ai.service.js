@@ -108,10 +108,24 @@ async function callOpenAI(question, prompt) {
   return parseAiJson(text);
 }
 
-async function callGemini(question, prompt) {
+async function callGemini(question, prompt, files = []) {
   const endpoint =
     `https://generativelanguage.googleapis.com/v1beta/models/${env.geminiModel}:generateContent` +
     `?key=${encodeURIComponent(env.geminiApiKey)}`;
+
+  const parts = [{ text: `${prompt}\n\nUser question: ${question}` }];
+  for (const file of files) {
+    if (file.mimeType && file.data) {
+      // Remove any data URL prefix if present
+      const base64Data = file.data.replace(/^data:.*?;base64,/, "");
+      parts.push({
+        inlineData: {
+          mimeType: file.mimeType,
+          data: base64Data
+        }
+      });
+    }
+  }
 
   const response = await fetch(endpoint, {
     method: "POST",
@@ -119,7 +133,7 @@ async function callGemini(question, prompt) {
     body: JSON.stringify({
       contents: [
         {
-          parts: [{ text: `${prompt}\n\nUser question: ${question}` }]
+          parts: parts
         }
       ],
       generationConfig: {
@@ -268,6 +282,7 @@ export async function generateStructuredAnswer({
   contextResources = [],
   historyItems = [],
   intent = "general",
+  files = [],
   userId = "anonymous"
 }) {
   const trimmedQuestion = question?.trim();
@@ -300,7 +315,7 @@ export async function generateStructuredAnswer({
     if (provider === "openai" && env.openAiApiKey) {
       rawAnswer = await callOpenAI(trimmedQuestion, prompt);
     } else if (provider === "gemini" && env.geminiApiKey) {
-      rawAnswer = await callGemini(trimmedQuestion, prompt);
+      rawAnswer = await callGemini(trimmedQuestion, prompt, files);
     } else if (provider === "anthropic" && env.anthropicApiKey) {
       rawAnswer = await callAnthropic(trimmedQuestion, prompt);
     }

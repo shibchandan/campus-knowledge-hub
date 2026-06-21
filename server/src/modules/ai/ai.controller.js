@@ -96,6 +96,7 @@ async function buildAiResponse({
   question,
   intent = "general",
   categoryId = "",
+  files = [],
   persist = true
 }) {
   const collegeScope = resolveStudentCollegeScope(
@@ -126,6 +127,7 @@ async function buildAiResponse({
     contextResources: sourceResources,
     historyItems,
     intent,
+    files,
     userId: req.user?.id
   });
 
@@ -233,6 +235,7 @@ export async function askAi(req, res, next) {
       req,
       question,
       intent,
+      files: req.body?.files || [],
       persist: true
     });
     res.json({ success: true, data: answer });
