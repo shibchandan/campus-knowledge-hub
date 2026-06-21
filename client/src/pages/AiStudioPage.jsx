@@ -255,11 +255,7 @@ export function AiStudioPage() {
                     Intent: {item.intent} | Provider: {item.provider || "fallback"} | {new Date(item.createdAt).toLocaleString()}
                   </p>
                   <p className="summary-text" title={item.answer?.summary}>{item.answer?.summary}</p>
-                  {item.sourceResources?.length ? (
-                    <p className="muted">
-                      Sources: {item.sourceResources.map((resource) => resource.title).join(" | ")}
-                    </p>
-                  ) : null}
+
                   <div className="panel-actions">
                     <button
                       className="action-button reject"
