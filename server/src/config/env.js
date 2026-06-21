@@ -56,7 +56,7 @@ export const env = {
   openAiApiKey: readSecretValue("OPENAI_API_KEY", ""),
   openAiModel: (process.env.OPENAI_MODEL || "gpt-4o-mini").trim(),
   geminiApiKey: readSecretValue("GEMINI_API_KEY", "").trim(),
-  geminiModel: "gemini-1.5-flash",
+  geminiModel: (process.env.GEMINI_MODEL || "gemini-3.5-flash").trim() || "gemini-3.5-flash",
   anthropicApiKey: readSecretValue("ANTHROPIC_API_KEY", "").trim(),
   anthropicModel: process.env.ANTHROPIC_MODEL || "claude-3-5-sonnet-20241022",
   smtpHost: process.env.SMTP_HOST || "",
