@@ -11,10 +11,7 @@ function buildSystemPrompt({ intent = "general", contextSummary = "", historySum
     "Return strict JSON with keys:",
     "title (string),",
     "summary (string),",
-    "categories (array of objects with heading and points array),",
-    "nextSteps (array of strings),",
-    "confidence (one of: high, medium, low),",
-    "sources (array of short source labels)."
+    "categories (array of objects with heading and points array)."
   ].join(" ");
 }
 
@@ -36,9 +33,6 @@ function normalizeAnswer(answer, { question, sources = [], debug = "", fallback 
       answer?.summary ||
       "Here is a structured study response based on the available academic resources.",
     categories: Array.isArray(answer?.categories) ? answer.categories : [],
-    nextSteps: Array.isArray(answer?.nextSteps) ? answer.nextSteps : [],
-    confidence: answer?.confidence || (fallback ? "low" : "medium"),
-    sources: Array.isArray(answer?.sources) && answer.sources.length ? answer.sources : sources,
     debug,
     usedFallback: fallback,
     question

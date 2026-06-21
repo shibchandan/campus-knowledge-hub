@@ -217,31 +217,9 @@ export function AiStudioPage() {
             ))}
           </div>
 
-          {(answer.nextSteps || []).length ? (
+          {answer.debug ? (
             <article className="panel-card">
-              <h3>Next Steps</h3>
-              <ul className="ai-points">
-                {answer.nextSteps.map((step) => (
-                  <li key={step}>{step}</li>
-                ))}
-              </ul>
-              <p className="muted">Confidence: {answer.confidence || "medium"}</p>
-              {answer.sources?.length ? (
-                <p className="muted">Sources: {answer.sources.join(" | ")}</p>
-              ) : null}
-              {answer.contextUsed?.length ? (
-                <div className="panel-subsection">
-                  <h3>Campus Context Used</h3>
-                  <ul className="ai-points">
-                    {answer.contextUsed.map((resource) => (
-                      <li key={resource.id}>
-                        {resource.categoryId}: {resource.title}
-                      </li>
-                    ))}
-                  </ul>
-                </div>
-              ) : null}
-              {answer.debug ? <p className="muted">Debug: {answer.debug}</p> : null}
+              <p className="muted">Debug: {answer.debug}</p>
             </article>
           ) : null}
         </SectionCard>
