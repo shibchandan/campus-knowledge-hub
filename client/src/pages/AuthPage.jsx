@@ -317,7 +317,7 @@ export function AuthPage() {
       <div className="auth-panel">
         <div className="auth-hero">
           <div className="auth-logo-box">
-            <img src="/logo.png" alt="Campus Knowledge Hub" className="auth-main-logo" />
+            <img src="/logo.png" alt="Campus Knowledge Hub" className="auth-main-logo" width="200" height="200" fetchpriority="high" />
           </div>
           <p className="eyebrow">Campus Knowledge Hub</p>
           <h1>Login To Your Academic Dashboard</h1>

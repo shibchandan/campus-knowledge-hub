@@ -1,35 +1,39 @@
 import { useEffect } from "react";
+import { lazy, Suspense } from "react";
 import { Navigate, Route, Routes } from "react-router-dom";
 import { ProtectedRoute } from "../components/ProtectedRoute";
 import { RoleRoute } from "../components/RoleRoute";
 import { DashboardLayout } from "../layouts/DashboardLayout";
-import { AuthPage } from "../pages/AuthPage";
-import { CollegeSelectorPage } from "../pages/CollegeSelectorPage";
+
+// Lazy-loaded pages
+const AuthPage = lazy(() => import("../pages/AuthPage").then(m => ({ default: m.AuthPage })));
+const CollegeSelectorPage = lazy(() => import("../pages/CollegeSelectorPage").then(m => ({ default: m.CollegeSelectorPage })));
+const DashboardPage = lazy(() => import("../pages/DashboardPage").then(m => ({ default: m.DashboardPage })));
+const ProgramDetailPage = lazy(() => import("../pages/ProgramDetailPage").then(m => ({ default: m.ProgramDetailPage })));
+const BranchSemesterPage = lazy(() => import("../pages/BranchSemesterPage").then(m => ({ default: m.BranchSemesterPage })));
+const SubjectResourcePage = lazy(() => import("../pages/SubjectResourcePage").then(m => ({ default: m.SubjectResourcePage })));
+const SubjectCategoryPage = lazy(() => import("../pages/SubjectCategoryPage").then(m => ({ default: m.SubjectCategoryPage })));
+const LecturesPage = lazy(() => import("../pages/LecturesPage").then(m => ({ default: m.LecturesPage })));
+const NotesPage = lazy(() => import("../pages/NotesPage").then(m => ({ default: m.NotesPage })));
+const QuizzesPage = lazy(() => import("../pages/QuizzesPage").then(m => ({ default: m.QuizzesPage })));
+const QuizArrangementPage = lazy(() => import("../pages/QuizArrangementPage").then(m => ({ default: m.QuizArrangementPage })));
+const QuizResultsPage = lazy(() => import("../pages/QuizResultsPage").then(m => ({ default: m.QuizResultsPage })));
+const AiStudioPage = lazy(() => import("../pages/AiStudioPage").then(m => ({ default: m.AiStudioPage })));
+const CommunityPage = lazy(() => import("../pages/CommunityPage").then(m => ({ default: m.CommunityPage })));
+const AssignmentsPage = lazy(() => import("../pages/AssignmentsPage").then(m => ({ default: m.AssignmentsPage })));
+const AssignmentThreadPage = lazy(() => import("../pages/AssignmentThreadPage").then(m => ({ default: m.AssignmentThreadPage })));
+const MarketplacePage = lazy(() => import("../pages/MarketplacePage").then(m => ({ default: m.MarketplacePage })));
+const IntegrityPage = lazy(() => import("../pages/IntegrityPage").then(m => ({ default: m.IntegrityPage })));
+const PanelHomePage = lazy(() => import("../pages/PanelHomePage").then(m => ({ default: m.PanelHomePage })));
+const AdminPanelPage = lazy(() => import("../pages/AdminPanelPage").then(m => ({ default: m.AdminPanelPage })));
+const RepresentativePanelPage = lazy(() => import("../pages/RepresentativePanelPage").then(m => ({ default: m.RepresentativePanelPage })));
+const StudentPanelPage = lazy(() => import("../pages/StudentPanelPage").then(m => ({ default: m.StudentPanelPage })));
+const AccountSettingsPage = lazy(() => import("../pages/AccountSettingsPage").then(m => ({ default: m.AccountSettingsPage })));
+const PrivacyPolicyPage = lazy(() => import("../pages/PrivacyPolicyPage").then(m => ({ default: m.PrivacyPolicyPage })));
+const TermsOfServicePage = lazy(() => import("../pages/TermsOfServicePage").then(m => ({ default: m.TermsOfServicePage })));
+const SitemapPage = lazy(() => import("../pages/SitemapPage").then(m => ({ default: m.SitemapPage })));
+
 import { useToast } from "../ui/ToastContext";
-import { DashboardPage } from "../pages/DashboardPage";
-import { ProgramDetailPage } from "../pages/ProgramDetailPage";
-import { BranchSemesterPage } from "../pages/BranchSemesterPage";
-import { SubjectResourcePage } from "../pages/SubjectResourcePage";
-import { SubjectCategoryPage } from "../pages/SubjectCategoryPage";
-import { LecturesPage } from "../pages/LecturesPage";
-import { NotesPage } from "../pages/NotesPage";
-import { QuizzesPage } from "../pages/QuizzesPage";
-import { QuizArrangementPage } from "../pages/QuizArrangementPage";
-import { QuizResultsPage } from "../pages/QuizResultsPage";
-import { AiStudioPage } from "../pages/AiStudioPage";
-import { CommunityPage } from "../pages/CommunityPage";
-import { AssignmentsPage } from "../pages/AssignmentsPage";
-import { AssignmentThreadPage } from "../pages/AssignmentThreadPage";
-import { MarketplacePage } from "../pages/MarketplacePage";
-import { IntegrityPage } from "../pages/IntegrityPage";
-import { PanelHomePage } from "../pages/PanelHomePage";
-import { AdminPanelPage } from "../pages/AdminPanelPage";
-import { RepresentativePanelPage } from "../pages/RepresentativePanelPage";
-import { StudentPanelPage } from "../pages/StudentPanelPage";
-import { AccountSettingsPage } from "../pages/AccountSettingsPage";
-import { PrivacyPolicyPage } from "../pages/PrivacyPolicyPage";
-import { TermsOfServicePage } from "../pages/TermsOfServicePage";
-import { SitemapPage } from "../pages/SitemapPage";
 
 export function AppRoutes() {
   const { showError } = useToast();
@@ -53,7 +57,13 @@ export function AppRoutes() {
   }, [showError]);
 
   return (
-    <Routes>
+    <Suspense fallback={
+      <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '100vh', background: 'var(--bg-main)' }}>
+        <div style={{ width: '40px', height: '40px', borderRadius: '50%', border: '3px solid rgba(255,255,255,0.1)', borderTopColor: 'var(--color-primary)', animation: 'spin 1s ease-in-out infinite' }} />
+        <style>{`@keyframes spin { to { transform: rotate(360deg); } }`}</style>
+      </div>
+    }>
+      <Routes>
       <Route path="/login" element={<AuthPage />} />
       <Route path="/privacy" element={<PrivacyPolicyPage />} />
       <Route path="/terms" element={<TermsOfServicePage />} />
@@ -131,6 +141,7 @@ export function AppRoutes() {
           }
         />
       </Route>
-    </Routes>
+      </Routes>
+    </Suspense>
   );
 }
