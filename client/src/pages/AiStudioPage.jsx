@@ -114,25 +114,19 @@ export function AiStudioPage() {
 
       <SectionCard
         title="AI Learning Engine"
-        description={`Ask academic questions and get clean, category-wise answers grounded on ${selectedCollege?.name || "your selected college"} resources.`}
+        description="Ask academic questions and get clean, category-wise answers."
         variant="hero"
       >
         <form className="panel-form" onSubmit={handleAsk}>
-          <div className="panel-form-grid">
-            <label className="auth-field">
-              <span>Intent</span>
-              <select value={intent} onChange={(event) => setIntent(event.target.value)}>
-                <option value="general">General Q&A</option>
-                <option value="lecture-summary">Lecture Summary</option>
-                <option value="pyq-answer">PYQ Answering</option>
-                <option value="study-recommendations">Study Recommendations</option>
-              </select>
-            </label>
-            <label className="auth-field">
-              <span>Selected College</span>
-              <input disabled type="text" value={selectedCollege?.name || "No college selected"} />
-            </label>
-          </div>
+          <label className="auth-field">
+            <span>Intent</span>
+            <select value={intent} onChange={(event) => setIntent(event.target.value)}>
+              <option value="general">General Q&A</option>
+              <option value="lecture-summary">Lecture Summary</option>
+              <option value="pyq-answer">PYQ Answering</option>
+              <option value="study-recommendations">Study Recommendations</option>
+            </select>
+          </label>
 
           <label className="auth-field">
             <span>Ask your question</span>

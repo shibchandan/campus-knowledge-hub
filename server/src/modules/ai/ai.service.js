@@ -14,8 +14,7 @@ function buildSystemPrompt({ intent = "general", contextSummary = "", historySum
     "categories (array of objects with heading and points array),",
     "nextSteps (array of strings),",
     "confidence (one of: high, medium, low),",
-    "sources (array of short source labels).",
-    "If the campus sources are weak, say so briefly in the summary."
+    "sources (array of short source labels)."
   ].join(" ");
 }
 
