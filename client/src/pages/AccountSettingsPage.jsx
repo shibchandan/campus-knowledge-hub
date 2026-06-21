@@ -783,7 +783,7 @@ export function AccountSettingsPage() {
                   <p className="muted">
                     Provider: {item.provider || "fallback"} | Intent: {item.intent || "general"}
                   </p>
-                  <p>{item.answer?.slice(0, 180) || "No answer saved."}</p>
+                  <p className="summary-text">{item.answer?.summary || (typeof item.answer === "string" ? item.answer : "No answer saved.")}</p>
                 </article>
               ))}
             </div>

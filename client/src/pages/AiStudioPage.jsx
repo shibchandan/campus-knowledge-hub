@@ -232,7 +232,7 @@ export function AiStudioPage() {
                   <p className="muted">
                     Intent: {item.intent} | Provider: {item.provider || "fallback"} | {new Date(item.createdAt).toLocaleString()}
                   </p>
-                  <p>{item.answer?.summary}</p>
+                  <p className="summary-text" title={item.answer?.summary}>{item.answer?.summary}</p>
                   {item.sourceResources?.length ? (
                     <p className="muted">
                       Sources: {item.sourceResources.map((resource) => resource.title).join(" | ")}

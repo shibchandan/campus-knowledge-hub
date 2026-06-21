@@ -1547,6 +1547,13 @@ h3 {
   word-break: break-word;
 }
 
+.panel-card .summary-text {
+  display: -webkit-box;
+  -webkit-line-clamp: 3;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
 .panel-actions {
   display: flex;
   gap: 0.75rem;
