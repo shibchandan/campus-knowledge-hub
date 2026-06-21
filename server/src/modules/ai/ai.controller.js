@@ -136,7 +136,9 @@ async function buildAiResponse({
     id: resource._id,
     title: resource.title,
     categoryId: resource.categoryId,
-    subjectId: resource.subjectId
+    subjectId: resource.subjectId,
+    fileUrl: resource.fileUrl || null,
+    route: `/dashboard/${resource.programId}/branch/${resource.branchId}/${resource.semesterId}/${resource.subjectId}/${resource.categoryId}`
   }));
 
   if (answer.isIrrelevant) {

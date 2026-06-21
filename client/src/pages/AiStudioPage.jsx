@@ -4,7 +4,7 @@ import { useCollege } from "../college/CollegeContext";
 import { apiClient } from "../lib/apiClient";
 import { Spinner, SkeletonCard } from "../components/LoadingStates";
 import { useAuth } from "../auth/AuthContext";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, Link } from "react-router-dom";
 import { useToast } from "../ui/ToastContext";
 
 export function AiStudioPage() {
@@ -220,6 +220,27 @@ export function AiStudioPage() {
           {answer.debug ? (
             <article className="panel-card">
               <p className="muted">Debug: {answer.debug}</p>
+            </article>
+          ) : null}
+
+          {answer.contextUsed && answer.contextUsed.length > 0 ? (
+            <article className="panel-card" style={{ marginTop: '16px' }}>
+              <h3 style={{ marginBottom: '12px' }}>Sources Used</h3>
+              <ul className="ai-points" style={{ listStyle: 'none', paddingLeft: 0 }}>
+                {answer.contextUsed.map((resource) => (
+                  <li key={resource.id} style={{ marginBottom: '8px' }}>
+                    {resource.fileUrl ? (
+                      <a href={resource.fileUrl} target="_blank" rel="noreferrer" style={{ color: 'var(--color-primary)' }}>
+                        📎 {resource.title}
+                      </a>
+                    ) : (
+                      <Link to={resource.route} style={{ color: 'var(--color-primary)' }}>
+                        📄 {resource.title}
+                      </Link>
+                    )}
+                  </li>
+                ))}
+              </ul>
             </article>
           ) : null}
         </SectionCard>
