@@ -11,6 +11,7 @@ function buildSystemPrompt({ intent = "general", contextSummary = "", historySum
     "Return strict JSON with keys:",
     "title (string),",
     "summary (string),",
+    "isIrrelevant (boolean, set to true ONLY if the question is completely off-topic or inappropriate for an academic assistant),",
     "categories (array of objects with heading and points array)."
   ].join(" ");
 }
@@ -32,6 +33,7 @@ function normalizeAnswer(answer, { question, sources = [], debug = "", fallback 
     summary:
       answer?.summary ||
       "Here is a structured study response based on the available academic resources.",
+    isIrrelevant: answer?.isIrrelevant === true,
     categories: Array.isArray(answer?.categories) ? answer.categories : [],
     debug,
     usedFallback: fallback,

@@ -38,7 +38,7 @@ rateLimitBucketSchema.index(
   { expireAfterSeconds: 0, name: "ttl_rate_limit_expiry" }
 );
 
-const RateLimitBucket =
+export const RateLimitBucket =
   mongoose.models.RateLimitBucket || mongoose.model("RateLimitBucket", rateLimitBucketSchema);
 
 const rateLimitFallbackWarnings = new Map();
@@ -47,11 +47,11 @@ function shouldUseSharedStore() {
   return mongoose.connection.readyState === 1;
 }
 
-function getWindowStart(now, windowMs) {
+export function getWindowStart(now, windowMs) {
   return Math.floor(now / windowMs) * windowMs;
 }
 
-function getExpiryDate(resetAt, windowMs) {
+export function getExpiryDate(resetAt, windowMs) {
   return new Date(resetAt + Math.max(windowMs, 60_000));
 }
 

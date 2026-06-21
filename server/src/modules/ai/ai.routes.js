@@ -10,10 +10,33 @@ import {
   summarizeLecture
 } from "./ai.controller.js";
 import { protect } from "../../middleware/authMiddleware.js";
-import { createRateLimiter } from "../../middleware/rateLimit.js";
+import { createRateLimiter, RateLimitBucket, getWindowStart } from "../../middleware/rateLimit.js";
 import { llmFirewall } from "../../middleware/llmFirewall.js";
+import { createHttpError } from "../../utils/requestValidation.js";
 
 export const aiRouter = Router();
+
+async function checkAiAbuse(req, res, next) {
+  try {
+    const windowMs = 24 * 60 * 60 * 1000; // 24 hours
+    const now = Date.now();
+    const windowStart = getWindowStart(now, windowMs);
+    const key = `ai_abuse:${req.user?.id || req.ip}`;
+
+    const bucket = await RateLimitBucket.findOne({ key, windowStart });
+    if (bucket && bucket.count >= 3) {
+      return next(
+        createHttpError(
+          429,
+          "You are temporarily blocked from using AI for 24 hours due to repeated irrelevant questions."
+        )
+      );
+    }
+    next();
+  } catch (error) {
+    next(error);
+  }
+}
 
 const aiRateLimiter = createRateLimiter({
   windowMs: 60 * 60 * 1000, // 1 hour
@@ -23,7 +46,7 @@ const aiRateLimiter = createRateLimiter({
   keyGenerator: (req) => req.user?.id || req.ip
 });
 
-aiRouter.use(protect, aiRateLimiter, llmFirewall);
+aiRouter.use(protect, aiRateLimiter, checkAiAbuse, llmFirewall);
 
 aiRouter.get("/summary", summarizeLecture);
 aiRouter.get("/pyq-answer", generatePyqAnswer);

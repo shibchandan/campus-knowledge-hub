@@ -1,6 +1,7 @@
 import { AiHistory } from "./aiHistory.model.js";
 import { generateStructuredAnswer, verifyAiProvider } from "./ai.service.js";
 import { Resource } from "../resources/resource.model.js";
+import { RateLimitBucket, getWindowStart, getExpiryDate } from "../../middleware/rateLimit.js";
 import { env } from "../../config/env.js";
 import { createHttpError, readEnum, readMongoId, readString } from "../../utils/requestValidation.js";
 import {
@@ -137,6 +138,39 @@ async function buildAiResponse({
     categoryId: resource.categoryId,
     subjectId: resource.subjectId
   }));
+
+  if (answer.isIrrelevant) {
+    const windowMs = 24 * 60 * 60 * 1000; // 24 hours
+    const now = Date.now();
+    const windowStart = getWindowStart(now, windowMs);
+    const key = `ai_abuse:${req.user?.id || req.ip}`;
+    
+    const bucket = await RateLimitBucket.findOneAndUpdate(
+      { key, windowStart },
+      {
+        $inc: { count: 1 },
+        $setOnInsert: {
+          keyPrefix: "ai_abuse",
+          key,
+          windowStart,
+          expiresAt: getExpiryDate(now, windowMs)
+        }
+      },
+      { upsert: true, new: true }
+    );
+
+    if (bucket.count >= 3) {
+      throw createHttpError(
+        429,
+        "You have been temporarily blocked from using AI for 24 hours due to repeated irrelevant questions."
+      );
+    } else {
+      throw createHttpError(
+        400,
+        `Your question was flagged as irrelevant to academics. Strike ${bucket.count}/3. Repeated violations will result in a 24-hour ban.`
+      );
+    }
+  }
 
   if (persist) {
     await saveAiHistory({
