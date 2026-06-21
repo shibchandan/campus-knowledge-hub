@@ -94,7 +94,7 @@ async function callOpenAI(question, prompt) {
         { role: "system", content: prompt },
         { role: "user", content: question }
       ],
-      max_tokens: 1000,
+      max_tokens: 4000,
       temperature: 0.3,
       response_format: { type: "json_object" }
     })
@@ -124,7 +124,7 @@ async function callGemini(question, prompt) {
         }
       ],
       generationConfig: {
-        maxOutputTokens: 1000,
+        maxOutputTokens: 4000,
         temperature: 0.3,
         responseMimeType: "application/json"
       }
@@ -170,7 +170,7 @@ async function callAnthropic(question, prompt) {
     },
     body: JSON.stringify({
       model: env.anthropicModel,
-      max_tokens: 900,
+      max_tokens: 4000,
       temperature: 0.3,
       system: prompt,
       messages: [{ role: "user", content: question }]
