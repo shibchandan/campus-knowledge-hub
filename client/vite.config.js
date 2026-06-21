@@ -7,14 +7,6 @@ export default defineConfig({
     port: 5173
   },
   build: {
-    chunkSizeWarningLimit: 1200,
-    rollupOptions: {
-      output: {
-        manualChunks: {
-          vendor: ["react", "react-dom", "react-router-dom"],
-          ui: ["recharts", "axios", "@vercel/speed-insights"]
-        }
-      }
-    }
+    chunkSizeWarningLimit: 1200
   }
 });
