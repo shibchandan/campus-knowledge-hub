@@ -19,9 +19,9 @@
   --glass-bg-subtle: rgba(255, 255, 255, 0.02);   /* Layer 1: section containers */
 
   /* Glass borders */
-  --glass-border: rgba(255, 255, 255, 0.15);
-  --glass-border-strong: rgba(255, 255, 255, 0.25);
-  --glass-border-subtle: rgba(255, 255, 255, 0.08);
+  --glass-border: rgba(0, 0, 0, 0.08);
+  --glass-border-strong: rgba(0, 0, 0, 0.15);
+  --glass-border-subtle: rgba(0, 0, 0, 0.04);
 
   /* Blur strengths — standardized */
   --blur-sm: blur(10px);
@@ -113,6 +113,11 @@
   --glass-border-subtle: rgba(255, 255, 255, 0.04);
 
   --panel-bg: linear-gradient(135deg, rgba(15,23,42,0.3) 0%, rgba(30,27,75,0.3) 40%, rgba(15,23,42,0.3) 100%);
+
+  /* Glass borders */
+  --glass-border: rgba(255, 255, 255, 0.15);
+  --glass-border-strong: rgba(255, 255, 255, 0.25);
+  --glass-border-subtle: rgba(255, 255, 255, 0.08);
 
   /* Dark text on dark glass */
   --glass-text-primary: #e2e8f0;
@@ -4018,7 +4023,7 @@ h3 {
   gap: 12px;
   margin-bottom: 24px;
   padding-bottom: 20px;
-  border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+  border-bottom: 1px solid var(--sidebar-border);
 }
 
 .sidebar-brand-row {
