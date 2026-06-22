@@ -201,10 +201,11 @@ export function DashboardPage() {
     }
 
     try {
-      const response = await apiClient.get("/academic/structures", {
-        params: { collegeName: selectedCollege.name }
-      });
-      setStructures(groupStructuresIntoPrograms(response.data.data));
+      const [structRes, subjRes] = await Promise.all([
+        apiClient.get("/academic/structures", { params: { collegeName: selectedCollege.name } }),
+        apiClient.get("/academic/subjects", { params: { collegeName: selectedCollege.name } })
+      ]);
+      setStructures(groupStructuresIntoPrograms(structRes.data.data, subjRes.data.data));
     } catch {
       setStructures([]);
     }

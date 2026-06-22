@@ -1,4 +1,4 @@
-export function groupStructuresIntoPrograms(structures) {
+export function groupStructuresIntoPrograms(structures, subjects = []) {
   const programMap = new Map();
 
   for (const item of structures) {
@@ -23,10 +23,18 @@ export function groupStructuresIntoPrograms(structures) {
     }
 
     const branch = program.branches.get(item.branchId);
+    
+    const semesterSubjects = subjects
+      .filter((s) => s.programId === item.programId && s.branchId === item.branchId && s.semesterId === item.semesterId)
+      .map((s) => ({
+        id: s.subjectId,
+        name: s.name
+      }));
+
     branch.semesters.push({
       id: item.semesterId,
       semester: item.semesterName,
-      subjects: [],
+      subjects: semesterSubjects,
       semesterOrder: item.semesterOrder
     });
   }
