@@ -2454,11 +2454,6 @@ h3 {
   color: #d8e1ef;
 }
 
-[data-theme="dark"] .sidebar {
-  background: rgba(8, 15, 28, 0.95);
-  color: #d8e1ef;
-}
-
 [data-theme="dark"] .card,
 [data-theme="dark"] .overview-hero-band,
 [data-theme="dark"] .program-card,
@@ -2800,10 +2795,14 @@ h3 {
   .sidebar-overlay {
     display: block;
     position: fixed;
-    inset: 0;
+    top: 0;
+    right: 0;
+    bottom: 0;
+    left: min(84vw, 300px);
     border: none;
     background: rgba(15, 23, 42, 0.4);
     backdrop-filter: blur(4px);
+    -webkit-backdrop-filter: blur(4px);
     z-index: 100;
     opacity: 0;
     pointer-events: none;
