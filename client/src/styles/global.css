@@ -87,12 +87,14 @@
 
   font-family: "Outfit", "Inter", system-ui, -apple-system, sans-serif;
   color: #0f172a;
-  /* Layer 0 — body gradient makes glass visible */
+  /* Layer 0 — vivid multi-orb mesh: 5 orbs across all quadrants */
   background:
-    radial-gradient(ellipse at 15% 0%, rgba(99, 102, 241, 0.18) 0%, transparent 50%),
-    radial-gradient(ellipse at 85% 30%, rgba(168, 85, 247, 0.15) 0%, transparent 50%),
-    radial-gradient(ellipse at 50% 100%, rgba(56, 189, 248, 0.15) 0%, transparent 50%),
-    linear-gradient(135deg, #e8e4f8 0%, #f0ecff 40%, #e4eaf8 100%);
+    radial-gradient(ellipse at 10% 0%,   rgba(99,  102, 241, 0.30) 0%, transparent 40%),
+    radial-gradient(ellipse at 90% 5%,   rgba(168,  85, 247, 0.25) 0%, transparent 40%),
+    radial-gradient(ellipse at 80% 60%,  rgba(236,  72, 153, 0.18) 0%, transparent 38%),
+    radial-gradient(ellipse at 20% 80%,  rgba( 56, 189, 248, 0.22) 0%, transparent 40%),
+    radial-gradient(ellipse at 55% 45%,  rgba(139,  92, 246, 0.12) 0%, transparent 35%),
+    linear-gradient(135deg, #ece9ff 0%, #f3efff 45%, #e8eeff 100%);
   background-attachment: fixed;
   line-height: 1.5;
   font-weight: 400;
@@ -144,11 +146,14 @@
   --color-primary: #818cf8;
 
   color: rgba(240, 236, 255, 0.92);
-  /* Layer 0 dark — deep lavender-dark mesh */
+  /* Layer 0 dark — vivid multi-orb mesh, dark mode */
   background:
-    radial-gradient(ellipse at 15% 0%, rgba(99, 102, 241, 0.20) 0%, transparent 50%),
-    radial-gradient(ellipse at 85% 30%, rgba(168, 85, 247, 0.15) 0%, transparent 50%),
-    linear-gradient(135deg, #1a1730 0%, #1e1b38 40%, #181628 100%);
+    radial-gradient(ellipse at 10% 0%,   rgba( 99, 102, 241, 0.35) 0%, transparent 42%),
+    radial-gradient(ellipse at 90% 5%,   rgba(168,  85, 247, 0.28) 0%, transparent 40%),
+    radial-gradient(ellipse at 80% 60%,  rgba(236,  72, 153, 0.20) 0%, transparent 38%),
+    radial-gradient(ellipse at 20% 80%,  rgba( 56, 189, 248, 0.18) 0%, transparent 40%),
+    radial-gradient(ellipse at 55% 45%,  rgba(139,  92, 246, 0.14) 0%, transparent 35%),
+    linear-gradient(135deg, #16132c 0%, #1a1736 45%, #151228 100%);
   background-attachment: fixed;
 
   /* Mobile: reduce blur for performance */
@@ -207,14 +212,28 @@ h3 {
   background: var(--glass-bg);
   backdrop-filter: var(--blur-md);
   -webkit-backdrop-filter: var(--blur-md);
-  border: 1px solid var(--glass-border);
+  /* Stronger visible border */
+  border: 1px solid var(--glass-border-strong);
   border-radius: 16px;
   box-shadow: var(--glass-shadow-md);
-  transition: background 0.2s ease, box-shadow 0.2s ease;
+  transition: background 0.2s ease, box-shadow 0.2s ease, border-color 0.2s ease;
+  position: relative;
+  overflow: hidden;
+}
+/* Top shimmer line */
+.glass-card::before {
+  content: "";
+  position: absolute;
+  top: 0; left: 10%; right: 10%;
+  height: 1px;
+  background: linear-gradient(90deg, transparent, rgba(255,255,255,0.95), transparent);
+  pointer-events: none;
+  border-radius: 1px;
 }
 .glass-card:hover {
   background: var(--glass-bg-hover);
   box-shadow: var(--glass-shadow-lg);
+  border-color: rgba(255, 255, 255, 0.55);
 }
 
 /* Layer 4: strong glass — right panels, modals, active workspaces */
@@ -1347,26 +1366,30 @@ h3 {
   background: var(--glass-bg);
   backdrop-filter: var(--glass-blur) saturate(1.8);
   -webkit-backdrop-filter: var(--glass-blur) saturate(1.8);
-  border: 1px solid var(--glass-border);
+  /* Prominent border — stronger alpha */
+  border: 1px solid var(--glass-border-strong);
   border-radius: 20px;
   padding: 24px;
   box-shadow: var(--glass-shadow);
   transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
   position: relative;
+  overflow: hidden;
 }
 
+/* Shimmer highlight line — runs 80% width, centered */
 .card::before {
   content: "";
   position: absolute;
-  top: 0; left: 0; right: 0;
+  top: 0; left: 10%; right: 10%;
   height: 1px;
-  background: linear-gradient(90deg, transparent, rgba(255,255,255,0.8), transparent);
+  background: linear-gradient(90deg, transparent, rgba(255,255,255,0.95), transparent);
   pointer-events: none;
+  border-radius: 1px;
 }
 
 .card:hover {
   box-shadow: var(--glass-shadow-hover);
-  border-color: var(--glass-border-subtle);
+  border-color: rgba(255, 255, 255, 0.55);
   transform: translateY(-2px);
 }
 
@@ -1463,17 +1486,31 @@ h3 {
   background: var(--glass-bg);
   backdrop-filter: var(--glass-blur) saturate(1.5);
   -webkit-backdrop-filter: var(--glass-blur) saturate(1.5);
-  border: 1px solid var(--glass-border);
+  /* Prominent border */
+  border: 1px solid var(--glass-border-strong);
   border-radius: 18px;
   box-shadow: var(--glass-shadow);
   transition: all 0.25s ease;
+  position: relative;
+  overflow: hidden;
+}
+
+/* Shimmer line */
+.stat-card::before,
+.list-item::before {
+  content: "";
+  position: absolute;
+  top: 0; left: 12%; right: 12%;
+  height: 1px;
+  background: linear-gradient(90deg, transparent, rgba(255,255,255,0.90), transparent);
+  pointer-events: none;
 }
 
 .stat-card:hover,
 .list-item:hover {
   background: var(--glass-bg-hover);
   box-shadow: var(--glass-shadow-hover);
-  border-color: var(--glass-border-subtle);
+  border-color: rgba(255, 255, 255, 0.55);
   transform: translateY(-2px);
 }
 
@@ -1486,7 +1523,8 @@ h3 {
   background: var(--glass-bg);
   backdrop-filter: var(--glass-blur) saturate(1.6);
   -webkit-backdrop-filter: var(--glass-blur) saturate(1.6);
-  border: 1px solid var(--glass-border);
+  /* Prominent border */
+  border: 1px solid var(--glass-border-strong);
   border-radius: 20px;
   box-shadow: var(--glass-shadow);
   transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
@@ -1494,6 +1532,7 @@ h3 {
   overflow: hidden;
 }
 
+/* Shimmer highlight line — centered 80% width */
 .program-card::before,
 .college-card::before,
 .branch-card::before,
@@ -1501,10 +1540,11 @@ h3 {
 .resource-card::before {
   content: "";
   position: absolute;
-  top: 0; left: 0; right: 0;
+  top: 0; left: 10%; right: 10%;
   height: 1px;
-  background: linear-gradient(90deg, transparent, rgba(255,255,255,0.9), transparent);
+  background: linear-gradient(90deg, transparent, rgba(255,255,255,0.95), transparent);
   pointer-events: none;
+  border-radius: 1px;
 }
 
 .program-card {
