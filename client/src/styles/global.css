@@ -47,9 +47,9 @@
   --panel-bg: linear-gradient(135deg, rgba(232,228,248,0.3) 0%, rgba(240,236,255,0.3) 40%, rgba(228,234,248,0.3) 100%);
 
   /* Sidebar — Glass (NOT solid) */
-  --sidebar-bg: rgba(255, 255, 255, 0.03);
-  --sidebar-glass: rgba(255, 255, 255, 0.08);
-  --sidebar-border: rgba(255, 255, 255, 0.15);
+  --sidebar-bg: rgba(255, 255, 255, 0.05);
+  --sidebar-glass: rgba(255, 255, 255, 0.1);
+  --sidebar-border: rgba(0, 0, 0, 0.06); /* Darker border in light mode for edge definition */
 
   /* Text on glass — high contrast */
   --glass-text-primary: #1e293b;
@@ -356,8 +356,8 @@ h3 {
 .sidebar {
   padding: 28px 20px;
   background: var(--sidebar-bg);
-  backdrop-filter: var(--blur-lg);
-  -webkit-backdrop-filter: var(--blur-lg);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
   color: var(--glass-text-primary);
   display: flex;
   flex-direction: column;
