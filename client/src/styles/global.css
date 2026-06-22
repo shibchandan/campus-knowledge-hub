@@ -570,9 +570,8 @@ h3 {
 
 .content {
   padding: 32px;
-  /* Layer 0 content area — gradient behind glass is what makes glass visible */
-  background: var(--panel-bg);
-  background-attachment: fixed;
+  /* Transparent — the body's fixed orb mesh shows through all glass cards */
+  background: transparent;
 }
 
 .topbar {
