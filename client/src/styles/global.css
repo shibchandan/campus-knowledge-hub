@@ -780,7 +780,7 @@ h3 {
 .auth-submit {
   padding: 14px 18px;
   background: var(--btn-primary-bg);
-  color: #ffffff;
+  color: var(--btn-primary-text);
   font-weight: var(--btn-font-weight);
   border: none;
   border-radius: 14px;
@@ -888,7 +888,7 @@ h3 {
 .auth-submit {
   padding: 14px 18px;
   background: var(--btn-primary-bg);
-  color: #ffffff;
+  color: var(--btn-primary-text);
   font-weight: var(--btn-font-weight);
   border: none;
   border-radius: 14px;
@@ -1848,11 +1848,11 @@ h3 {
 }
 
 .action-button.neutral {
-  background: rgba(255, 255, 255, 0.1);
-  color: #ffffff;
-  border: 1px solid rgba(255, 255, 255, 0.2);
-  backdrop-filter: blur(8px);
-  -webkit-backdrop-filter: blur(8px);
+  background: var(--btn-secondary-bg);
+  color: var(--btn-secondary-text);
+  border: 1px solid var(--glass-border);
+  backdrop-filter: var(--blur-sm);
+  -webkit-backdrop-filter: var(--blur-sm);
 }
 
 .action-button.neutral:hover {
@@ -2191,7 +2191,7 @@ h3 {
   width: 100%;
   padding: 12px;
   background: var(--btn-primary-bg);
-  color: #ffffff;
+  color: var(--btn-primary-text);
   text-align: center;
   border-radius: var(--btn-radius);
   font-weight: var(--btn-font-weight);
@@ -2657,13 +2657,7 @@ h3 {
   color: #d8e1ef;
 }
 
-[data-theme="dark"] .open-college-button,
-[data-theme="dark"] .auth-submit,
-[data-theme="dark"] .logout-button,
-[data-theme="dark"] .theme-button {
-  background: #30455f;
-}
-
+/* Removed legacy solid backgrounds to rely on glass tokens instead */
 [data-theme="dark"] .field-toggle {
   background: rgba(8, 15, 28, 0.9);
   color: #d8e1ef;
@@ -3571,7 +3565,7 @@ h3 {
 
 .resource-action-btn.primary {
   background: var(--btn-primary-bg);
-  color: #ffffff;
+  color: var(--btn-primary-text);
 }
 .resource-action-btn.primary:hover { background: var(--btn-primary-hover); }
 
@@ -5231,9 +5225,9 @@ h3 {
 }
 
 .tab-btn.active {
-  color: #ffffff;
-  background: #1e293b;
-  border: 1px solid rgba(59, 130, 246, 0.5); /* Blue border for the active tab */
+  color: var(--glass-text-primary);
+  background: var(--glass-bg-strong);
+  border: 1px solid var(--glass-border-strong);
 }
 
 /* Admin Analytics Dashboard */
