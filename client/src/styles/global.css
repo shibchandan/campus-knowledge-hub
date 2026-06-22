@@ -437,7 +437,7 @@ h3 {
 .sidebar-user-name {
   font-size: 0.85rem;
   font-weight: 600;
-  color: #f1f5f9;
+  color: var(--glass-text-primary);
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
@@ -447,7 +447,7 @@ h3 {
 .sidebar-user-role {
   font-size: 0.72rem;
   font-weight: 500;
-  color: rgba(241, 245, 249, 0.7);
+  color: var(--glass-text-muted);
   text-transform: capitalize;
 }
 
@@ -501,7 +501,7 @@ h3 {
 }
 
 .sidebar .muted {
-  color: rgba(241, 245, 249, 0.6);
+  color: var(--glass-text-muted);
 }
 
 .nav {
@@ -521,7 +521,7 @@ h3 {
   font-weight: 700;
   text-transform: uppercase;
   letter-spacing: 0.08em;
-  color: rgba(241, 245, 249, 0.4);
+  color: var(--glass-text-muted);
   margin: 0 0 6px 14px;
 }
 
@@ -531,10 +531,10 @@ h3 {
   gap: 12px;
   padding: 11px 14px;
   border-radius: 12px;
-  background: rgba(255, 255, 255, 0.03);
+  background: var(--glass-bg-subtle);
   border: 1px solid transparent;
   font-weight: 500;
-  color: rgba(241, 245, 249, 0.7);
+  color: var(--glass-text-secondary);
   transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
@@ -548,9 +548,9 @@ h3 {
 
 .nav-link:hover {
   transform: translateX(4px);
-  background: rgba(129, 140, 248, 0.12);
-  border-color: rgba(129, 140, 248, 0.15);
-  color: #ffffff;
+  background: var(--glass-bg-hover);
+  border-color: var(--glass-border);
+  color: var(--glass-text-primary);
 }
 
 .nav-link.active {
@@ -4058,7 +4058,7 @@ h3 {
   font-size: 1.1rem;
   margin: 0;
   line-height: 1.2;
-  color: #f1f5f9;
+  color: var(--glass-text-primary);
 }
 
 .sidebar-brand-text .eyebrow {
