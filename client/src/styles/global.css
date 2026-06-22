@@ -4152,6 +4152,10 @@ h3 {
 .subject-card-link {
   display: flex !important;
   flex-direction: column;
+  /* Override inherited center alignments from .subject-pill */
+  align-items: stretch !important;
+  justify-content: flex-start !important;
+  text-align: left;
   padding: 0 !important;
   border-radius: 14px !important;
   border: 1px solid rgba(24, 33, 47, 0.08);
