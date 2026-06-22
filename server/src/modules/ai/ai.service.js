@@ -273,6 +273,35 @@ export async function verifyAiProvider() {
   }
 }
 
+async function withRetry(fn, maxRetries = 3, initialDelay = 1000) {
+  let attempt = 0;
+  while (attempt < maxRetries) {
+    try {
+      return await fn();
+    } catch (error) {
+      attempt++;
+      // Check if it's a transient HTTP error (500, 502, 503, 504, 429) or fetch failure
+      const msg = error.message || "";
+      const isTransient = 
+        msg.includes("503") || 
+        msg.includes("500") || 
+        msg.includes("502") || 
+        msg.includes("504") || 
+        msg.includes("429") || 
+        msg.includes("fetch") || 
+        msg.includes("network");
+                          
+      if (!isTransient || attempt >= maxRetries) {
+        throw error;
+      }
+      
+      const delay = initialDelay * Math.pow(2, attempt - 1);
+      console.warn(`[AI Service] Transient error caught: ${msg}. Retrying in ${delay}ms... (Attempt ${attempt}/${maxRetries})`);
+      await new Promise(resolve => setTimeout(resolve, delay));
+    }
+  }
+}
+
 export async function generateStructuredAnswer({
   question,
   contextResources = [],
@@ -309,11 +338,11 @@ export async function generateStructuredAnswer({
     let rawAnswer = null;
 
     if (provider === "openai" && env.openAiApiKey) {
-      rawAnswer = await callOpenAI(trimmedQuestion, prompt);
+      rawAnswer = await withRetry(() => callOpenAI(trimmedQuestion, prompt));
     } else if (provider === "gemini" && env.geminiApiKey) {
-      rawAnswer = await callGemini(trimmedQuestion, prompt, files);
+      rawAnswer = await withRetry(() => callGemini(trimmedQuestion, prompt, files));
     } else if (provider === "anthropic" && env.anthropicApiKey) {
-      rawAnswer = await callAnthropic(trimmedQuestion, prompt);
+      rawAnswer = await withRetry(() => callAnthropic(trimmedQuestion, prompt));
     }
 
     if (rawAnswer) {
