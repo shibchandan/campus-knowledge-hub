@@ -12,16 +12,16 @@
    * ============================================================ */
 
   /* Glass surfaces — increasing alpha = foreground */
-  --glass-bg: rgba(255, 255, 255, 0.10);          /* Layer 2: cards */
-  --glass-bg-hover: rgba(255, 255, 255, 0.15);    /* Layer 3: hovered */
-  --glass-bg-active: rgba(255, 255, 255, 0.20);
-  --glass-bg-strong: rgba(255, 255, 255, 0.25);   /* Layer 4: panels, modals */
-  --glass-bg-subtle: rgba(255, 255, 255, 0.05);   /* Layer 1: section containers */
+  --glass-bg: rgba(255, 255, 255, 0.05);          /* Layer 2: cards */
+  --glass-bg-hover: rgba(255, 255, 255, 0.10);    /* Layer 3: hovered */
+  --glass-bg-active: rgba(255, 255, 255, 0.15);
+  --glass-bg-strong: rgba(255, 255, 255, 0.15);   /* Layer 4: panels, modals */
+  --glass-bg-subtle: rgba(255, 255, 255, 0.02);   /* Layer 1: section containers */
 
   /* Glass borders */
-  --glass-border: rgba(255, 255, 255, 0.25);
-  --glass-border-strong: rgba(255, 255, 255, 0.35);
-  --glass-border-subtle: rgba(255, 255, 255, 0.15);
+  --glass-border: rgba(255, 255, 255, 0.15);
+  --glass-border-strong: rgba(255, 255, 255, 0.25);
+  --glass-border-subtle: rgba(255, 255, 255, 0.08);
 
   /* Blur strengths — standardized */
   --blur-sm: blur(10px);
@@ -47,9 +47,9 @@
   --panel-bg: linear-gradient(135deg, rgba(232,228,248,0.3) 0%, rgba(240,236,255,0.3) 40%, rgba(228,234,248,0.3) 100%);
 
   /* Sidebar — Glass (NOT solid) */
-  --sidebar-bg: rgba(255, 255, 255, 0.05);
-  --sidebar-glass: rgba(255, 255, 255, 0.10);
-  --sidebar-border: rgba(255, 255, 255, 0.25);
+  --sidebar-bg: rgba(255, 255, 255, 0.03);
+  --sidebar-glass: rgba(255, 255, 255, 0.08);
+  --sidebar-border: rgba(255, 255, 255, 0.15);
 
   /* Text on glass — high contrast */
   --glass-text-primary: #1e293b;
@@ -67,13 +67,13 @@
   --btn-font-weight: 600;
   --btn-transition: all 0.25s ease;
 
-  --btn-primary-bg: rgba(255, 255, 255, 0.25);
+  --btn-primary-bg: rgba(255, 255, 255, 0.15);
   --btn-primary-text: #1e293b;
-  --btn-primary-hover: rgba(255, 255, 255, 0.35);
+  --btn-primary-hover: rgba(255, 255, 255, 0.25);
 
-  --btn-secondary-bg: rgba(255, 255, 255, 0.08);
+  --btn-secondary-bg: rgba(255, 255, 255, 0.05);
   --btn-secondary-text: #1e293b;
-  --btn-secondary-hover: rgba(255, 255, 255, 0.15);
+  --btn-secondary-hover: rgba(255, 255, 255, 0.10);
 
   --btn-danger-bg: rgba(239, 68, 68, 0.1);
   --btn-danger-text: #ef4444;
@@ -89,12 +89,12 @@
   color: #1e293b;
   /* Layer 0 — vivid multi-orb mesh: 5 orbs across all quadrants */
   background:
-    radial-gradient(ellipse at 10% 0%,   rgba(99,  102, 241, 0.20) 0%, transparent 40%),
-    radial-gradient(ellipse at 90% 5%,   rgba(168,  85, 247, 0.15) 0%, transparent 40%),
-    radial-gradient(ellipse at 80% 60%,  rgba(236,  72, 153, 0.12) 0%, transparent 38%),
-    radial-gradient(ellipse at 20% 80%,  rgba( 56, 189, 248, 0.15) 0%, transparent 40%),
-    radial-gradient(ellipse at 55% 45%,  rgba(139,  92, 246, 0.08) 0%, transparent 35%),
-    linear-gradient(135deg, #e2e8f0 0%, #f1f5f9 45%, #e2e8f0 100%);
+    radial-gradient(ellipse at 10% 0%,   rgba(99,  102, 241, 0.35) 0%, transparent 45%),
+    radial-gradient(ellipse at 90% 5%,   rgba(168,  85, 247, 0.30) 0%, transparent 45%),
+    radial-gradient(ellipse at 80% 60%,  rgba(236,  72, 153, 0.25) 0%, transparent 42%),
+    radial-gradient(ellipse at 20% 80%,  rgba( 56, 189, 248, 0.30) 0%, transparent 45%),
+    radial-gradient(ellipse at 55% 45%,  rgba(139,  92, 246, 0.18) 0%, transparent 40%),
+    linear-gradient(135deg, #eef2ff 0%, #f8fafc 45%, #f0fdf4 100%);
   background-attachment: fixed;
   line-height: 1.5;
   font-weight: 400;
