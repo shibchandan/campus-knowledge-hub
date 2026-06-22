@@ -53,7 +53,21 @@ export function QuizzesPage() {
   }, [selectedCollege?.name]);
 
   if (!selectedCollege?.name) {
-    return <Navigate to="/colleges" replace />;
+    return (
+      <div className="page-stack">
+        <SectionCard title="Quiz Arena" variant="hero">
+          <div className="lecture-empty-state" style={{ padding: '2rem 0' }}>
+            <span className="lecture-empty-icon">🏛️</span>
+            <p className="muted" style={{ marginBottom: '1.5rem', fontSize: '1.1rem' }}>
+              Select a college from the Colleges page to view available quizzes.
+            </p>
+            <Link to="/colleges" className="action-button approve" style={{ display: 'inline-flex', alignItems: 'center' }}>
+              Go to Colleges
+            </Link>
+          </div>
+        </SectionCard>
+      </div>
+    );
   }
 
   return (

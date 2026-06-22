@@ -1,5 +1,5 @@
 import { Router } from "express";
-import { authorize, protect } from "../../middleware/authMiddleware.js";
+import { authorize, protect, optionalAuth } from "../../middleware/authMiddleware.js";
 import {
   createQuiz,
   deleteQuiz,
@@ -14,7 +14,7 @@ import {
 
 export const quizRouter = Router();
 
-quizRouter.get("/", protect, listQuizzes);
+quizRouter.get("/", optionalAuth, listQuizzes);
 quizRouter.get("/:quizId", protect, getQuizById);
 quizRouter.get("/:quizId/results", protect, authorize("representative", "admin"), getQuizResults);
 quizRouter.post("/:quizId/start", protect, startQuiz);
