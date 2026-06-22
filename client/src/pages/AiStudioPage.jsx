@@ -22,6 +22,11 @@ export function AiStudioPage() {
   const [historyLoading, setHistoryLoading] = useState(true);
   const [historyLimit, setHistoryLimit] = useState(3);
   const [files, setFiles] = useState([]);
+  const [expandedHistoryItems, setExpandedHistoryItems] = useState({});
+
+  const toggleExpand = (id) => {
+    setExpandedHistoryItems(prev => ({ ...prev, [id]: !prev[id] }));
+  };
 
   async function loadMeta() {
     if (!user) {
@@ -273,9 +278,16 @@ export function AiStudioPage() {
                 <article className="panel-card" key={item._id}>
                   <h3>{item.question}</h3>
                   <p className="muted">
-                    Intent: {item.intent} | Provider: {item.provider || "fallback"} | {new Date(item.createdAt).toLocaleString()}
+                    {new Date(item.createdAt).toLocaleString()}
                   </p>
-                  <p className="summary-text" title={item.answer?.summary}>{item.answer?.summary}</p>
+                  <p 
+                    className="summary-text" 
+                    title={expandedHistoryItems[item._id] ? "Click to collapse" : "Click to expand"}
+                    style={{ cursor: "pointer", ...(expandedHistoryItems[item._id] ? { WebkitLineClamp: "unset", display: "block" } : {}) }}
+                    onClick={() => toggleExpand(item._id)}
+                  >
+                    {item.answer?.summary || (typeof item.answer === "string" ? item.answer : "No answer saved.")}
+                  </p>
 
                   <div className="panel-actions">
                     <button

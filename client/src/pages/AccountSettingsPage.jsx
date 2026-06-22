@@ -47,6 +47,11 @@ export function AccountSettingsPage() {
   const [preferences, setPreferences] = useState(defaultPreferences);
   const [historyItems, setHistoryItems] = useState([]);
   const [historyLoading, setHistoryLoading] = useState(true);
+  const [expandedHistoryItems, setExpandedHistoryItems] = useState({});
+
+  const toggleExpand = (id) => {
+    setExpandedHistoryItems(prev => ({ ...prev, [id]: !prev[id] }));
+  };
   const [blockedUsers, setBlockedUsers] = useState([]);
   const [settingsLoading, setSettingsLoading] = useState(true);
   const [blockedUserForm, setBlockedUserForm] = useState({
@@ -781,9 +786,16 @@ export function AccountSettingsPage() {
                 <article className="panel-card" key={item._id}>
                   <h3>{item.question}</h3>
                   <p className="muted">
-                    Provider: {item.provider || "fallback"} | Intent: {item.intent || "general"}
+                    {new Date(item.createdAt).toLocaleString()}
                   </p>
-                  <p className="summary-text">{item.answer?.summary || (typeof item.answer === "string" ? item.answer : "No answer saved.")}</p>
+                  <p 
+                    className="summary-text" 
+                    title={expandedHistoryItems[item._id] ? "Click to collapse" : "Click to expand"}
+                    style={{ cursor: "pointer", ...(expandedHistoryItems[item._id] ? { WebkitLineClamp: "unset", display: "block" } : {}) }}
+                    onClick={() => toggleExpand(item._id)}
+                  >
+                    {item.answer?.summary || (typeof item.answer === "string" ? item.answer : "No answer saved.")}
+                  </p>
                 </article>
               ))}
             </div>
