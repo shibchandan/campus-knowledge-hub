@@ -58,4 +58,23 @@ paymentOrderSchema.index(
   { name: "idx_payment_resource_buyer_status" }
 );
 
+// Idempotency constraints: prevent multiple pending payments for the same item/resource
+paymentOrderSchema.index(
+  { buyer: 1, marketplaceItem: 1 },
+  {
+    unique: true,
+    partialFilterExpression: { status: "created", marketplaceItem: { $type: "objectId" } },
+    name: "uniq_pending_marketplace_payment"
+  }
+);
+
+paymentOrderSchema.index(
+  { buyer: 1, resource: 1 },
+  {
+    unique: true,
+    partialFilterExpression: { status: "created", resource: { $type: "objectId" } },
+    name: "uniq_pending_resource_payment"
+  }
+);
+
 export const PaymentOrder = mongoose.model("PaymentOrder", paymentOrderSchema);

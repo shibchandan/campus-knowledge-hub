@@ -348,34 +348,81 @@ export async function purchaseMarketplaceItem(req, res, next) {
       return;
     }
 
-    const gatewayOrder = await createRazorpayOrder({
-      amount,
-      currency: item.currency,
-      receipt: `market-${item._id}-${Date.now()}`.slice(0, 40),
-      notes: {
-        itemId: String(item._id),
-        buyerId: String(req.user.id),
-        purchaseType
-      }
+    // IDEMPOTENCY CHECK: If there is already a pending order for this user and item, reuse it.
+    const existingOrder = await PaymentOrder.findOne({
+      buyer: req.user.id,
+      marketplaceItem: item._id,
+      status: "created"
     });
 
-    const paymentOrder = await PaymentOrder.create({
-      gateway: "razorpay",
-      purpose:
-        purchaseType === "monthly-subscription"
-          ? "marketplace-subscription"
-          : "marketplace-item",
-      buyer: req.user.id,
-      seller: item.seller._id,
-      marketplaceItem: item._id,
-      amount,
-      currency: item.currency,
-      gatewayOrderId: gatewayOrder.id,
-      gatewayReceipt: gatewayOrder.receipt || "",
-      metadata: {
-        purchaseType
+    if (existingOrder && existingOrder.gatewayOrderId && existingOrder.gatewayOrderId !== "pending") {
+      return res.status(200).json({
+        success: true,
+        paymentRequired: true,
+        message: "Resuming existing payment session.",
+        data: {
+          paymentOrderId: existingOrder._id,
+          purchaseType: existingOrder.metadata?.purchaseType || purchaseType,
+          checkout: buildRazorpayCheckoutPayload({
+            order: { id: existingOrder.gatewayOrderId, amount: existingOrder.amount, currency: existingOrder.currency },
+            title: item.title,
+            description:
+              purchaseType === "monthly-subscription"
+                ? "Monthly basic subscription"
+                : "Marketplace course purchase",
+            customer: req.user
+          })
+        }
+      });
+    }
+
+    let paymentOrder;
+    try {
+      paymentOrder = await PaymentOrder.create({
+        gateway: "razorpay",
+        purpose:
+          purchaseType === "monthly-subscription"
+            ? "marketplace-subscription"
+            : "marketplace-item",
+        buyer: req.user.id,
+        seller: item.seller._id,
+        marketplaceItem: item._id,
+        amount,
+        currency: item.currency,
+        gatewayOrderId: "pending", // Placeholder until Razorpay resolves
+        gatewayReceipt: `market-${item._id}-${Date.now()}`.slice(0, 40),
+        metadata: {
+          purchaseType
+        }
+      });
+    } catch (err) {
+      if (err.code === 11000) {
+        // Race condition: Another request hit the unique partial index just now.
+        // It's safer to prompt them to retry in a second so the other request completes.
+        throw createHttpError("A payment session is already being created. Please wait a moment and try again.", 409);
       }
-    });
+      throw err;
+    }
+
+    try {
+      const gatewayOrder = await createRazorpayOrder({
+        amount,
+        currency: item.currency,
+        receipt: paymentOrder.gatewayReceipt,
+        notes: {
+          itemId: String(item._id),
+          buyerId: String(req.user.id),
+          purchaseType
+        }
+      });
+
+      paymentOrder.gatewayOrderId = gatewayOrder.id;
+      await paymentOrder.save();
+    } catch (err) {
+      // If Razorpay fails, cleanup the pending order to allow retries
+      await paymentOrder.deleteOne();
+      throw err;
+    }
 
     res.status(201).json({
       success: true,
@@ -388,7 +435,7 @@ export async function purchaseMarketplaceItem(req, res, next) {
         paymentOrderId: paymentOrder._id,
         purchaseType,
         checkout: buildRazorpayCheckoutPayload({
-          order: gatewayOrder,
+          order: { id: paymentOrder.gatewayOrderId, amount: paymentOrder.amount, currency: paymentOrder.currency },
           title: item.title,
           description:
             purchaseType === "monthly-subscription"
