@@ -2520,6 +2520,22 @@ h3 {
   border-color: rgba(255, 207, 124, 0.4);
 }
 
+[data-theme="dark"] .tab-btn {
+  background: rgba(12, 19, 31, 0.95);
+  color: #d8e1ef;
+  border-color: rgba(131, 148, 173, 0.25);
+}
+
+[data-theme="dark"] .tab-btn:hover {
+  background: rgba(20, 28, 43, 0.95);
+}
+
+[data-theme="dark"] .tab-btn.active {
+  background: rgba(48, 69, 95, 0.95);
+  color: #ffcf7c;
+  border-color: rgba(255, 207, 124, 0.4);
+}
+
 [data-theme="dark"] .table-row h3,
 [data-theme="dark"] .list-item,
 [data-theme="dark"] .stat-card h3,
@@ -5197,42 +5213,36 @@ h3 {
 /* Panel Tab Navigation */
 .tab-navigation {
   display: flex;
-  gap: 0.25rem;
+  flex-wrap: wrap;
+  gap: 10px;
   margin-bottom: 1.5rem;
-  padding: 0.35rem;
-  background: #0b0f19; /* Very dark background from the image */
-  border: 1px solid rgba(255, 255, 255, 0.03);
-  border-radius: 8px;
-  overflow-x: auto;
-  scrollbar-width: none; /* Firefox */
-}
-
-.tab-navigation::-webkit-scrollbar {
-  display: none; /* Safari and Chrome */
 }
 
 .tab-btn {
-  padding: 0.6rem 1.25rem;
-  background: transparent;
-  color: var(--color-slate-400-adaptive);
-  border: 1px solid transparent;
-  border-radius: 6px;
-  font-size: 0.9rem;
-  font-weight: 500;
+  border: 1px solid rgba(24, 33, 47, 0.1);
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.9);
+  color: #425166;
+  padding: 10px 16px;
   cursor: pointer;
+  font-weight: 600;
+  font-size: 0.9rem;
   white-space: nowrap;
   transition: all 0.2s ease;
 }
 
 .tab-btn:hover {
-  color: #e2e8f0;
+  background: rgba(255, 255, 255, 1);
+  border-color: rgba(24, 33, 47, 0.2);
 }
 
 .tab-btn.active {
-  color: var(--glass-text-primary);
-  background: var(--glass-bg-strong);
-  border: 1px solid var(--glass-border-strong);
+  background: linear-gradient(135deg, #ffcf7c, #f2a65a);
+  color: #17212d;
+  border-color: rgba(242, 166, 90, 0.65);
 }
+
+
 
 /* Admin Analytics Dashboard */
 .analytics-dashboard {
