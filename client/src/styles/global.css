@@ -4180,16 +4180,21 @@ h3 {
 
 .subject-card-top {
   display: flex;
-  align-items: center;
+  /* Align icon to top so it never shifts when name wraps */
+  align-items: flex-start;
   gap: 10px;
   padding: 14px 16px;
   flex: 1;
+  /* Min-height ensures the name area is same height regardless of text length */
+  min-height: 72px;
 }
 
 .subject-card-icon {
   font-size: 1.2rem;
   line-height: 1;
   flex-shrink: 0;
+  /* Always pinned to top of the name block */
+  margin-top: 1px;
 }
 
 .subject-card-name {
