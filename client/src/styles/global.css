@@ -2254,8 +2254,19 @@ h3 {
 
 .account-settings-tabs {
   display: flex;
-  flex-wrap: wrap;
   gap: 10px;
+  overflow-x: auto;
+  scrollbar-width: none;
+  padding-bottom: 4px;
+}
+.account-settings-tabs::-webkit-scrollbar {
+  display: none;
+}
+@media (min-width: 641px) {
+  .account-settings-tabs {
+    flex-wrap: wrap;
+    overflow-x: visible;
+  }
 }
 
 .account-settings-tab {
@@ -2266,6 +2277,8 @@ h3 {
   padding: 10px 16px;
   cursor: pointer;
   font-weight: 600;
+  white-space: nowrap;
+  flex-shrink: 0;
 }
 
 .account-settings-tab.active {
@@ -5213,9 +5226,20 @@ h3 {
 /* Panel Tab Navigation */
 .tab-navigation {
   display: flex;
-  flex-wrap: wrap;
   gap: 10px;
   margin-bottom: 1.5rem;
+  overflow-x: auto;
+  scrollbar-width: none;
+  padding-bottom: 4px;
+}
+.tab-navigation::-webkit-scrollbar {
+  display: none;
+}
+@media (min-width: 641px) {
+  .tab-navigation {
+    flex-wrap: wrap;
+    overflow-x: visible;
+  }
 }
 
 .tab-btn {
@@ -5228,6 +5252,7 @@ h3 {
   font-weight: 600;
   font-size: 0.9rem;
   white-space: nowrap;
+  flex-shrink: 0;
   transition: all 0.2s ease;
 }
 
