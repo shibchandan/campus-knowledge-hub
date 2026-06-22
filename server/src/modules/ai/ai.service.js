@@ -258,11 +258,11 @@ export async function verifyAiProvider() {
 
     let result = null;
     if (status.provider === "openai") {
-      result = await callOpenAI(question, prompt);
+      result = await withRetry(() => callOpenAI(question, prompt));
     } else if (status.provider === "gemini") {
-      result = await callGemini(question, prompt);
+      result = await withRetry(() => callGemini(question, prompt));
     } else if (status.provider === "anthropic") {
-      result = await callAnthropic(question, prompt);
+      result = await withRetry(() => callAnthropic(question, prompt));
     }
 
     if (!result) {
@@ -275,7 +275,7 @@ export async function verifyAiProvider() {
   }
 }
 
-async function withRetry(fn, maxRetries = 3, initialDelay = 1000) {
+async function withRetry(fn, maxRetries = 5, initialDelay = 1500) {
   let attempt = 0;
   while (attempt < maxRetries) {
     try {
