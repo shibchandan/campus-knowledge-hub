@@ -139,6 +139,12 @@ export function AiStudioPage() {
     }
   }
 
+  function handleLoadHistory(item) {
+    setQuestion(item.question);
+    setAnswer(item.answer);
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  }
+
   return (
     <div className="page-stack">
       <div className="panel-card">
@@ -285,6 +291,14 @@ export function AiStudioPage() {
                   </p>
 
                   <div className="panel-actions">
+                    <button
+                      className="action-button"
+                      style={{ background: 'var(--color-primary)', color: 'white', borderColor: 'var(--color-primary)' }}
+                      onClick={() => handleLoadHistory(item)}
+                      type="button"
+                    >
+                      Load Full Answer
+                    </button>
                     <button
                       className="action-button reject"
                       disabled={historyBusyId === item._id}
