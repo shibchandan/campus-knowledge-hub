@@ -228,26 +228,6 @@ export function AiStudioPage() {
             </article>
           ) : null}
 
-          {answer.contextUsed?.length > 0 ? (
-            <article className="ai-history-card answer-source-card" style={{ marginTop: '24px', background: 'rgba(255, 255, 255, 0.4)' }}>
-              <h3 style={{ marginBottom: '12px' }}>Campus Context Used</h3>
-              <ul className="ai-points" style={{ listStyle: 'none', paddingLeft: 0 }}>
-                {answer.contextUsed.map((resource) => (
-                  <li key={resource.id} style={{ marginBottom: '8px' }}>
-                    {resource.fileUrl ? (
-                      <a href={resource.fileUrl} target="_blank" rel="noreferrer" style={{ color: 'var(--color-primary)' }}>
-                        📎 {resource.title}
-                      </a>
-                    ) : (
-                      <Link to={resource.route} style={{ color: 'var(--color-primary)' }}>
-                        📎 {resource.title}
-                      </Link>
-                    )}
-                  </li>
-                ))}
-              </ul>
-            </article>
-          ) : null}
 
           {answer.externalLinks?.length > 0 ? (
             <article className="ai-history-card answer-source-card" style={{ marginTop: '16px', background: 'rgba(255, 255, 255, 0.4)' }}>
