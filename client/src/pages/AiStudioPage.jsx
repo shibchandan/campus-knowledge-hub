@@ -228,9 +228,9 @@ export function AiStudioPage() {
             </article>
           ) : null}
 
-          {answer.contextUsed && answer.contextUsed.length > 0 ? (
-            <article className="panel-card" style={{ marginTop: '16px' }}>
-              <h3 style={{ marginBottom: '12px' }}>Sources Used</h3>
+          {answer.contextUsed?.length > 0 ? (
+            <article className="ai-history-card answer-source-card" style={{ marginTop: '24px', background: 'rgba(255, 255, 255, 0.4)' }}>
+              <h3 style={{ marginBottom: '12px' }}>Campus Context Used</h3>
               <ul className="ai-points" style={{ listStyle: 'none', paddingLeft: 0 }}>
                 {answer.contextUsed.map((resource) => (
                   <li key={resource.id} style={{ marginBottom: '8px' }}>
@@ -240,9 +240,24 @@ export function AiStudioPage() {
                       </a>
                     ) : (
                       <Link to={resource.route} style={{ color: 'var(--color-primary)' }}>
-                        📄 {resource.title}
+                        📎 {resource.title}
                       </Link>
                     )}
+                  </li>
+                ))}
+              </ul>
+            </article>
+          ) : null}
+
+          {answer.externalLinks?.length > 0 ? (
+            <article className="ai-history-card answer-source-card" style={{ marginTop: '16px', background: 'rgba(255, 255, 255, 0.4)' }}>
+              <h3 style={{ marginBottom: '12px' }}>External Web Resources</h3>
+              <ul className="ai-points" style={{ listStyle: 'none', paddingLeft: 0 }}>
+                {answer.externalLinks.map((link, i) => (
+                  <li key={i} style={{ marginBottom: '8px' }}>
+                    <a href={link.url} target="_blank" rel="noreferrer" style={{ color: 'var(--color-primary)' }}>
+                      🌐 {link.title || link.url}
+                    </a>
                   </li>
                 ))}
               </ul>

@@ -12,7 +12,8 @@ function buildSystemPrompt({ intent = "general", contextSummary = "", historySum
     "title (string),",
     "summary (string),",
     "isIrrelevant (boolean, set to true ONLY if the question is completely off-topic or inappropriate for an academic assistant),",
-    "categories (array of objects with heading and points array)."
+    "categories (array of objects with heading and points array),",
+    "externalLinks (array of objects with 'title' and 'url' strings, providing online web resources related to the concept if applicable or requested)."
   ].join(" ");
 }
 
@@ -35,6 +36,7 @@ function normalizeAnswer(answer, { question, sources = [], debug = "", fallback 
       "Here is a structured study response based on the available academic resources.",
     isIrrelevant: answer?.isIrrelevant === true,
     categories: Array.isArray(answer?.categories) ? answer.categories : [],
+    externalLinks: Array.isArray(answer?.externalLinks) ? answer.externalLinks : [],
     debug,
     usedFallback: fallback,
     question
