@@ -1,5 +1,7 @@
 import cors from "cors";
 import compression from "compression";
+import path from "path";
+import { fileURLToPath } from "url";
 import "./config/mongooseGlobalPlugin.js";
 import express from "express";
 import morgan from "morgan";
@@ -95,6 +97,21 @@ export function createApp() {
   });
 
   app.use("/api", globalRateLimiter, apiRouter);
+
+  if (env.serveFrontend) {
+    const __filename = fileURLToPath(import.meta.url);
+    const __dirname = path.dirname(__filename);
+    const clientDistPath = path.resolve(__dirname, "../../client/dist");
+
+    app.use(express.static(clientDistPath));
+    app.get("*", (req, res, next) => {
+      if (req.originalUrl.startsWith("/api/")) {
+        return next();
+      }
+      res.sendFile(path.join(clientDistPath, "index.html"));
+    });
+  }
+
   app.use(notFoundHandler);
   app.use(errorHandler);
 

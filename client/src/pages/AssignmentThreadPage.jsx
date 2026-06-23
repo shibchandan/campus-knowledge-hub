@@ -1,8 +1,10 @@
 import { useEffect, useState, useRef } from "react";
 import { useParams, useNavigate, Link } from "react-router-dom";
 import { SectionCard } from "../components/SectionCard";
+import { Breadcrumbs } from "../components/Breadcrumbs";
 import { apiClient } from "../lib/apiClient";
 import { useAuth } from "../auth/AuthContext";
+import { useConfirm } from "../ui/ConfirmContext";
 import { useToast } from "../ui/ToastContext";
 
 function formatDate(dateString) {
@@ -17,6 +19,7 @@ function formatDate(dateString) {
 export function AssignmentThreadPage() {
   const { id } = useParams();
   const { user } = useAuth();
+  const confirm = useConfirm();
   const { showError, showSuccess } = useToast();
   const navigate = useNavigate();
 
@@ -139,6 +142,14 @@ export function AssignmentThreadPage() {
   }
 
   async function handleDelete() {
+    const isConfirmed = await confirm({
+      title: "Delete Assignment",
+      message: `Are you sure you want to delete "${assignment?.title || 'this assignment'}" and all its submissions?`,
+      confirmText: "Delete Assignment",
+      intent: "danger"
+    });
+    if (!isConfirmed) return;
+
     if (!window.confirm("Are you sure you want to delete this assignment permanently?")) return;
     setDeleting(true);
     try {

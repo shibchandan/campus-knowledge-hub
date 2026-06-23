@@ -1,6 +1,11 @@
 import { useEffect, useMemo, useState } from "react";
 import { Link } from "react-router-dom";
+import { SkeletonCard } from "../components/LoadingStates";
+import { SearchInput } from "../components/SearchInput";
+import { HighlightText } from "../components/HighlightText";
+import { useDebounce } from "../hooks/useDebounce";
 import { useAuth } from "../auth/AuthContext";
+import { useConfirm } from "../ui/ConfirmContext";
 import { SectionCard } from "../components/SectionCard";
 import { useCollege } from "../college/CollegeContext";
 import { apiClient } from "../lib/apiClient";
@@ -228,22 +233,28 @@ export function RepresentativePanelPage() {
   const [error, setError] = useState("");
   const [success, setSuccess] = useState("");
   const [collegeSearch, setCollegeSearch] = useState("");
+  const debouncedCollegeSearch = useDebounce(collegeSearch, 300);
   const [requestSearch, setRequestSearch] = useState("");
+  const debouncedRequestSearch = useDebounce(requestSearch, 300);
   const [requestFilter, setRequestFilter] = useState("all");
   const [collegeSort, setCollegeSort] = useState("college-asc");
   const [noticeForm, setNoticeForm] = useState(initialNoticeForm);
   const [noticeSearch, setNoticeSearch] = useState("");
+  const debouncedNoticeSearch = useDebounce(noticeSearch, 300);
   const [quizForm, setQuizForm] = useState(initialQuizForm);
   const [quizSubmitting, setQuizSubmitting] = useState(false);
   const [quizSearch, setQuizSearch] = useState("");
+  const debouncedQuizSearch = useDebounce(quizSearch, 300);
   const [transferEmail, setTransferEmail] = useState("");
   const [transferring, setTransferring] = useState(false);
   const [structureForm, setStructureForm] = useState(initialStructureForm);
   const [structureSubmitting, setStructureSubmitting] = useState(false);
   const [structureSearch, setStructureSearch] = useState("");
+  const debouncedStructureSearch = useDebounce(structureSearch, 300);
   const [subjectForm, setSubjectForm] = useState(initialSubjectForm);
   const [subjectSubmitting, setSubjectSubmitting] = useState(false);
   const [subjectSearch, setSubjectSearch] = useState("");
+  const debouncedSubjectSearch = useDebounce(subjectSearch, 300);
   const [openSelector, setOpenSelector] = useState("");
   const [activeTab, setActiveTab] = useState("overview");
   
@@ -554,6 +565,14 @@ export function RepresentativePanelPage() {
   }
 
   async function handleDeleteCourse(course) {
+    const isConfirmed = await confirm({
+      title: "Delete Course",
+      message: `Are you sure you want to delete the approved course "${course.courseName}"?`,
+      confirmText: "Delete Course",
+      intent: "danger"
+    });
+    if (!isConfirmed) return;
+
     const currentPassword = requestDeletePassword(
       `${course.courseName} from ${course.collegeName}`
     );
@@ -585,6 +604,14 @@ export function RepresentativePanelPage() {
   }
 
   async function handleDeleteCollege(course) {
+    const isConfirmed = await confirm({
+      title: "Remove College Link",
+      message: `Are you sure you want to remove "${course.collegeName}"?`,
+      confirmText: "Remove Link",
+      intent: "danger"
+    });
+    if (!isConfirmed) return;
+
     const currentPassword = requestDeletePassword(
       `${course.collegeName} and all college records created under your account`
     );
@@ -619,6 +646,14 @@ export function RepresentativePanelPage() {
   }
 
   async function handleDeleteProfile(profile) {
+    const isConfirmed = await confirm({
+      title: "Delete Profile Detail",
+      message: `Are you sure you want to delete these details for "${profile.collegeName}"?`,
+      confirmText: "Delete Details",
+      intent: "danger"
+    });
+    if (!isConfirmed) return;
+
     const currentPassword = requestDeletePassword(
       `the profile details for ${profile.collegeName}`
     );
@@ -687,6 +722,15 @@ export function RepresentativePanelPage() {
   }
 
   async function handleDeleteNotice(noticeId) {
+    const notice = notices.find(n => n._id === noticeId);
+    const isConfirmed = await confirm({
+      title: "Delete Notice",
+      message: `Are you sure you want to delete notice "${notice?.title || 'Unknown'}"?`,
+      confirmText: "Delete Notice",
+      intent: "danger"
+    });
+    if (!isConfirmed) return;
+
     const currentPassword = requestDeletePassword("this notice");
     if (!currentPassword) {
       return;
@@ -739,7 +783,15 @@ export function RepresentativePanelPage() {
     }));
   }
 
-  function removeQuizQuestion(questionIndex) {
+  async function removeQuizQuestion(questionIndex) {
+    const isConfirmed = await confirm({
+      title: "Remove Question",
+      message: "Are you sure you want to remove this question from the quiz?",
+      confirmText: "Remove Question",
+      intent: "danger"
+    });
+    if (!isConfirmed) return;
+
     setQuizForm((current) => ({
       ...current,
       questions:
@@ -794,6 +846,15 @@ export function RepresentativePanelPage() {
   }
 
   async function handleDeleteQuiz(quizId) {
+    const quiz = quizzes.find(q => q._id === quizId);
+    const isConfirmed = await confirm({
+      title: "Delete Quiz",
+      message: `Are you sure you want to delete quiz "${quiz?.title || 'Unknown'}"?`,
+      confirmText: "Delete Quiz",
+      intent: "danger"
+    });
+    if (!isConfirmed) return;
+
     const currentPassword = requestDeletePassword("this quiz");
     if (!currentPassword) {
       return;
@@ -876,6 +937,15 @@ export function RepresentativePanelPage() {
   }
 
   async function handleDeleteStructure(structureId) {
+    const structure = structures.find(s => s._id === structureId);
+    const isConfirmed = await confirm({
+      title: "Delete Structure",
+      message: `Are you sure you want to delete the structure for branch "${structure?.branchId || 'Unknown'}"?`,
+      confirmText: "Delete Structure",
+      intent: "danger"
+    });
+    if (!isConfirmed) return;
+
     const currentPassword = requestDeletePassword("this academic structure");
     if (!currentPassword) {
       return;
@@ -938,6 +1008,15 @@ export function RepresentativePanelPage() {
   }
 
   async function handleDeleteSubject(subjectId) {
+    const subject = subjects.find(s => s._id === subjectId);
+    const isConfirmed = await confirm({
+      title: "Delete Subject",
+      message: `Are you sure you want to delete "${subject?.name || 'Unknown'}"?`,
+      confirmText: "Delete Subject",
+      intent: "danger"
+    });
+    if (!isConfirmed) return;
+
     const currentPassword = requestDeletePassword("this subject");
     if (!currentPassword) {
       return;
@@ -1010,7 +1089,7 @@ export function RepresentativePanelPage() {
   };
 
   const filteredColleges = useMemo(() => {
-    const term = collegeSearch.trim().toLowerCase();
+    const term = debouncedCollegeSearch.trim().toLowerCase();
     const items = myColleges.filter((item) => {
       if (!term) {
         return true;
@@ -1036,10 +1115,10 @@ export function RepresentativePanelPage() {
     });
 
     return items;
-  }, [collegeSearch, collegeSort, myColleges]);
+  }, [myColleges, debouncedCollegeSearch, collegeSort]);
 
   const filteredRequests = useMemo(() => {
-    const term = requestSearch.trim().toLowerCase();
+    const term = debouncedRequestSearch.trim().toLowerCase();
 
     return requests.filter((request) => {
       const matchesFilter = requestFilter === "all" ? true : request.status === requestFilter;
@@ -1050,10 +1129,10 @@ export function RepresentativePanelPage() {
 
       return matchesFilter && matchesSearch;
     });
-  }, [requestFilter, requestSearch, requests]);
+  }, [requests, debouncedRequestSearch, requestFilter]);
 
   const filteredNotices = useMemo(() => {
-    const term = noticeSearch.trim().toLowerCase();
+    const term = debouncedNoticeSearch.trim().toLowerCase();
 
     return notices.filter((notice) => {
       if (!term) {
@@ -1066,10 +1145,10 @@ export function RepresentativePanelPage() {
         (notice.collegeName || "").toLowerCase().includes(term)
       );
     });
-  }, [noticeSearch, notices]);
+  }, [debouncedNoticeSearch, notices]);
 
   const filteredQuizzes = useMemo(() => {
-    const term = quizSearch.trim().toLowerCase();
+    const term = debouncedQuizSearch.trim().toLowerCase();
 
     return quizzes.filter((quiz) => {
       if (!term) {
@@ -1083,10 +1162,10 @@ export function RepresentativePanelPage() {
         (quiz.collegeName || "").toLowerCase().includes(term)
       );
     });
-  }, [quizSearch, quizzes]);
+  }, [debouncedQuizSearch, quizzes]);
 
   const filteredStructures = useMemo(() => {
-    const term = structureSearch.trim().toLowerCase();
+    const term = debouncedStructureSearch.trim().toLowerCase();
 
     return structures.filter((structure) => {
       if (!term) {
@@ -1100,10 +1179,10 @@ export function RepresentativePanelPage() {
         structure.semesterName?.toLowerCase().includes(term)
       );
     });
-  }, [structureSearch, structures]);
+  }, [debouncedStructureSearch, structures]);
 
   const filteredSubjects = useMemo(() => {
-    const term = subjectSearch.trim().toLowerCase();
+    const term = debouncedSubjectSearch.trim().toLowerCase();
 
     return subjects.filter((subject) => {
       if (!term) {
@@ -1118,7 +1197,7 @@ export function RepresentativePanelPage() {
         subject.subjectId?.toLowerCase().includes(term)
       );
     });
-  }, [subjectSearch, subjects]);
+  }, [debouncedSubjectSearch, subjects]);
 
   const collegeCatalogOptions = useMemo(() => {
     const merged = new Map();

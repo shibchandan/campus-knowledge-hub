@@ -1,9 +1,12 @@
 import { useState, useEffect } from "react";
-import { NavLink, Outlet, useNavigate } from "react-router-dom";
+import { NavLink, Outlet, useNavigate, useLocation } from "react-router-dom";
+import { AnimatePresence } from "framer-motion";
+import { PageTransition } from "../components/PageTransition";
 import { useAuth } from "../auth/AuthContext";
 import { useCollege } from "../college/CollegeContext";
 import { useTheme } from "../theme/ThemeContext";
 import { apiClient } from "../lib/apiClient";
+import { GlobalSearch } from "../components/GlobalSearch";
 
 const navSections = [
   {
@@ -41,6 +44,7 @@ export function DashboardLayout() {
   const { selectedCollege } = useCollege();
   const { theme, toggleTheme } = useTheme();
   const navigate = useNavigate();
+  const location = useLocation();
 
   const [isContactOpen, setIsContactOpen] = useState(false);
   const [contactEmail, setContactEmail] = useState(user?.email || "");
@@ -197,6 +201,20 @@ export function DashboardLayout() {
           </div>
 
           <div className="topbar-actions">
+            <button
+              className="action-button neutral"
+              onClick={() => window.dispatchEvent(new Event('open-global-search'))}
+              style={{ display: "flex", alignItems: "center", gap: "8px", padding: "6px 12px", background: "rgba(255,255,255,0.05)", border: "1px solid rgba(255,255,255,0.1)", borderRadius: "8px", color: "var(--color-slate-400-adaptive)", fontSize: "0.875rem" }}
+              type="button"
+            >
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                <circle cx="11" cy="11" r="8"></circle>
+                <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
+              </svg>
+              Search
+              <kbd style={{ marginLeft: "8px", fontSize: "0.7rem", background: "rgba(255,255,255,0.1)", padding: "2px 6px", borderRadius: "4px" }}>⌘K</kbd>
+            </button>
+
             <button className="theme-button" onClick={toggleTheme} type="button">
               {theme === "dark" ? "Light Mode" : "Dark Mode"}
             </button>
@@ -212,7 +230,11 @@ export function DashboardLayout() {
             )}
           </div>
         </div>
-        <Outlet />
+        <AnimatePresence mode="wait" onExitComplete={() => window.scrollTo(0, 0)}>
+          <PageTransition key={location.pathname}>
+            <Outlet />
+          </PageTransition>
+        </AnimatePresence>
         
         <footer style={{
           marginTop: "auto",
@@ -375,6 +397,8 @@ export function DashboardLayout() {
           </div>
         </div>
       ) : null}
+
+      <GlobalSearch />
     </div>
   );
 }

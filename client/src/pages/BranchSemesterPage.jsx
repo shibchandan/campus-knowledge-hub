@@ -2,6 +2,7 @@ import { useEffect, useMemo, useState } from "react";
 import { Link, Navigate, useParams } from "react-router-dom";
 import { useAuth } from "../auth/AuthContext";
 import { SectionCard } from "../components/SectionCard";
+import { Breadcrumbs } from "../components/Breadcrumbs";
 import { useCollege } from "../college/CollegeContext";
 import { getBranchById, getProgramById } from "../features/dashboard/data";
 import { getDynamicBranchById, getDynamicProgramById, groupStructuresIntoPrograms } from "../lib/academicHelpers";
@@ -299,8 +300,16 @@ export function BranchSemesterPage() {
     return <Navigate to="/dashboard" replace />;
   }
 
+  
+  const breadcrumbItems = [
+    { label: "Dashboard", href: "/dashboard" },
+    { label: program?.name || "Program", href: `/dashboard/${programId}` },
+    { label: branch?.name || "Branch", href: `/dashboard/${programId}/branch/${branchId}` }
+  ];
+
   return (
     <div className="page-stack">
+      <Breadcrumbs items={breadcrumbItems} />
       <SectionCard
         title={`${branch.name} Semester Structure`}
         description={`${program.name} semester-wise subjects`}

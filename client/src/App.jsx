@@ -3,6 +3,7 @@ import { AuthProvider } from "./auth/AuthContext";
 import { CollegeProvider } from "./college/CollegeContext";
 import { ThemeProvider } from "./theme/ThemeContext";
 import { ToastProvider } from "./ui/ToastContext";
+import { ConfirmProvider } from "./ui/ConfirmContext";
 import { ScrollToTop } from "./components/ScrollToTop";
 import { AppRoutes } from "./app/AppRoutes";
 import { SitemapPage } from "./pages/SitemapPage";
@@ -13,9 +14,11 @@ function App() {
       <ToastProvider>
         <AuthProvider>
           <CollegeProvider>
-            <ScrollToTop />
-            <AppRoutes />
-            <SpeedInsights />
+            <ConfirmProvider>
+              <ScrollToTop />
+              <AppRoutes />
+              <SpeedInsights />
+            </ConfirmProvider>
           </CollegeProvider>
         </AuthProvider>
       </ToastProvider>

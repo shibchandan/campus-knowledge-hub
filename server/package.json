@@ -5,7 +5,7 @@
   "type": "module",
   "scripts": {
     "dev": "node --watch src/server.js",
-    "start": "node src/server.js",
+    "start": "node src/cluster.js",
     "test": "node --test"
   },
   "dependencies": {
@@ -23,6 +23,7 @@
     "nodemailer": "^8.0.4",
     "pdfkit": "^0.19.1",
     "razorpay": "^2.9.6",
+    "redis": "^6.0.0",
     "xss": "^1.0.15"
   },
   "devDependencies": {

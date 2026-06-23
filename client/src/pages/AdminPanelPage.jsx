@@ -1,5 +1,6 @@
 import { useEffect, useMemo, useState } from "react";
 import { useAuth } from "../auth/AuthContext";
+import { useConfirm } from "../ui/ConfirmContext";
 import { SectionCard } from "../components/SectionCard";
 import { apiClient, buildAuthorizedApiUrl } from "../lib/apiClient";
 import { requestDeletePassword } from "../lib/deleteWithPassword";
@@ -363,6 +364,15 @@ export function AdminPanelPage() {
   }
 
   async function handleDeleteCourse(courseId) {
+    const course = approvedCourses.find(c => c._id === courseId);
+    const isConfirmed = await confirm({
+      title: "Delete Course",
+      message: `Are you sure you want to delete the approved course "${course?.courseName || 'Unknown'}"?`,
+      confirmText: "Delete Course",
+      intent: "danger"
+    });
+    if (!isConfirmed) return;
+
     const currentPassword = requestDeletePassword("this college course");
     if (!currentPassword) {
       return;
@@ -431,6 +441,15 @@ export function AdminPanelPage() {
   }
 
   async function handleDeleteStructure(structureId) {
+    const structure = structures.find(s => s._id === structureId);
+    const isConfirmed = await confirm({
+      title: "Delete Structure",
+      message: `Are you sure you want to delete the structure for branch "${structure?.branchId || 'Unknown'}"?`,
+      confirmText: "Delete Structure",
+      intent: "danger"
+    });
+    if (!isConfirmed) return;
+
     const currentPassword = requestDeletePassword("this academic structure");
     if (!currentPassword) {
       return;
@@ -491,6 +510,15 @@ export function AdminPanelPage() {
   }
 
   async function handleDeleteSubject(subjectId) {
+    const subject = subjects.find(s => s._id === subjectId);
+    const isConfirmed = await confirm({
+      title: "Delete Subject",
+      message: `Are you sure you want to delete "${subject?.name || 'Unknown'}"?`,
+      confirmText: "Delete Subject",
+      intent: "danger"
+    });
+    if (!isConfirmed) return;
+
     const currentPassword = requestDeletePassword("this subject");
     if (!currentPassword) {
       return;
@@ -514,6 +542,15 @@ export function AdminPanelPage() {
   }
 
   async function handleDeleteNotice(noticeId) {
+    const notice = notices.find(n => n._id === noticeId);
+    const isConfirmed = await confirm({
+      title: "Delete Notice",
+      message: `Are you sure you want to delete notice "${notice?.title || 'Unknown'}"?`,
+      confirmText: "Delete Notice",
+      intent: "danger"
+    });
+    if (!isConfirmed) return;
+
     const currentPassword = requestDeletePassword("this notice");
     if (!currentPassword) {
       return;
@@ -549,6 +586,15 @@ export function AdminPanelPage() {
   }
 
   async function handleDeleteResource(resourceId) {
+    const resource = resources.find(r => r._id === resourceId);
+    const isConfirmed = await confirm({
+      title: "Delete Resource",
+      message: `Are you sure you want to completely delete "${resource?.title || 'this resource'}"? This action cannot be undone.`,
+      confirmText: "Delete Resource",
+      intent: "danger"
+    });
+    if (!isConfirmed) return;
+
     const currentPassword = requestDeletePassword("this resource");
     if (!currentPassword) {
       return;

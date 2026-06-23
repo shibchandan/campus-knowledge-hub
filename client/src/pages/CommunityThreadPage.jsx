@@ -3,6 +3,7 @@ import { useParams, useNavigate, Link } from "react-router-dom";
 import { SectionCard } from "../components/SectionCard";
 import { apiClient } from "../lib/apiClient";
 import { useAuth } from "../auth/AuthContext";
+import { useConfirm } from "../ui/ConfirmContext";
 import { useToast } from "../ui/ToastContext";
 
 function formatDate(dateString) {
@@ -25,6 +26,7 @@ function getChannelColor(channelType) {
 export function CommunityThreadPage() {
   const { id } = useParams();
   const { user } = useAuth();
+  const confirm = useConfirm();
   const { showError, showSuccess } = useToast();
   const navigate = useNavigate();
 
@@ -53,22 +55,49 @@ export function CommunityThreadPage() {
     e.preventDefault();
     if (!replyMessage.trim()) return;
 
+    const originalReplyText = replyMessage.trim();
+    
+    // Optimistic Update
+    const tempReply = {
+      _id: `temp-${Date.now()}`,
+      user: {
+        _id: user.id,
+        fullName: user.fullName || "You",
+        role: user.role
+      },
+      message: originalReplyText,
+      createdAt: new Date().toISOString()
+    };
+
+    setThread(prev => ({ ...prev, replies: [...(prev?.replies || []), tempReply] }));
+    setReplyMessage("");
     setReplying(true);
+
     try {
-      await apiClient.post(`/community/${id}/reply`, { message: replyMessage });
-      setReplyMessage("");
+      await apiClient.post(`/community/${id}/reply`, { message: originalReplyText });
       showSuccess("Reply posted!");
-      // Reload thread to get the new reply
+      // Background sync to get the real ID and exact timestamp
       const response = await apiClient.get(`/community/${id}`);
       setThread(response.data.data);
     } catch (error) {
       showError(error.response?.data?.message || "Failed to post reply.");
+      // Rollback
+      setThread(prev => ({ ...prev, replies: (prev?.replies || []).filter(r => r._id !== tempReply._id) }));
+      setReplyMessage(originalReplyText);
     } finally {
       setReplying(false);
     }
   }
 
   async function handleDeleteThread() {
+    const isConfirmed = await confirm({
+      title: "Delete Thread",
+      message: `Are you sure you want to completely delete "${thread?.title || 'this thread'}"?`,
+      confirmText: "Delete Thread",
+      intent: "danger"
+    });
+    if (!isConfirmed) return;
+
     if (!window.confirm("Are you sure you want to delete this thread?")) return;
     setDeleting(true);
     try {

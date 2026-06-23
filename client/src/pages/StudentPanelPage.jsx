@@ -1,5 +1,9 @@
 import { useEffect, useMemo, useState } from "react";
 import { SectionCard } from "../components/SectionCard";
+import { SkeletonCard } from "../components/LoadingStates";
+import { SearchInput } from "../components/SearchInput";
+import { HighlightText } from "../components/HighlightText";
+import { useDebounce } from "../hooks/useDebounce";
 import { apiClient } from "../lib/apiClient";
 
 export function StudentPanelPage() {
@@ -7,6 +11,7 @@ export function StudentPanelPage() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
   const [search, setSearch] = useState("");
+  const debouncedSearch = useDebounce(search, 300);
   const [sortBy, setSortBy] = useState("college-asc");
 
   useEffect(() => {
@@ -28,7 +33,7 @@ export function StudentPanelPage() {
   }, []);
 
   const filteredCourses = useMemo(() => {
-    const term = search.trim().toLowerCase();
+    const term = debouncedSearch.trim().toLowerCase();
     const items = courses.filter((item) => {
       if (!term) {
         return true;
@@ -54,7 +59,7 @@ export function StudentPanelPage() {
     });
 
     return items;
-  }, [courses, search, sortBy]);
+  }, [courses, debouncedSearch, sortBy]);
 
   const stats = useMemo(
     () => [
@@ -100,12 +105,12 @@ export function StudentPanelPage() {
         description="Search and sort what students can currently access."
       >
         <div className="toolbar-grid">
-          <input
-            className="college-search"
-            onChange={(event) => setSearch(event.target.value)}
-            placeholder="Search college, course, or representative..."
-            type="text"
+          <SearchInput
             value={search}
+            onChange={(event) => setSearch(event.target.value)}
+            onClear={() => setSearch("")}
+            isPending={search !== debouncedSearch}
+            placeholder="Search college, course, or representative..."
           />
           <select
             className="college-search"
@@ -118,18 +123,25 @@ export function StudentPanelPage() {
           </select>
         </div>
 
-        {loading ? <p className="muted">Loading approved data...</p> : null}
+        {loading ? <SkeletonCard count={3} /> : null}
         {!loading && filteredCourses.length === 0 ? (
-          <p className="muted">No approved college-course data available yet.</p>
+          debouncedSearch ? (
+            <div className="search-empty-state" style={{ padding: "2rem", textAlign: "center", background: "rgba(255,255,255,0.02)", borderRadius: "8px", border: "1px dashed rgba(255,255,255,0.1)" }}>
+              <p className="muted" style={{ marginBottom: "0.5rem" }}>No results found for "{debouncedSearch}"</p>
+              <p style={{ fontSize: "0.875rem", color: "var(--color-slate-400-adaptive)" }}>Check for typos or try searching by a different term.</p>
+            </div>
+          ) : (
+            <p className="muted">No approved college-course data available yet.</p>
+          )
         ) : null}
         <div className="panel-list">
           {filteredCourses.map((item) => (
             <article className="panel-card" key={item._id}>
-              <h3>{item.collegeName}</h3>
+              <h3><HighlightText text={item.collegeName} highlight={debouncedSearch} /></h3>
               <p className="muted">
-                Course: {item.courseName} | Semesters: {item.semesterCount}
+                Course: <HighlightText text={item.courseName} highlight={debouncedSearch} /> | Semesters: {item.semesterCount}
               </p>
-              <p className="muted">Added by: {item.addedByRepresentative?.fullName || "Representative"}</p>
+              <p className="muted">Added by: <HighlightText text={item.addedByRepresentative?.fullName || "Representative"} highlight={debouncedSearch} /></p>
             </article>
           ))}
         </div>

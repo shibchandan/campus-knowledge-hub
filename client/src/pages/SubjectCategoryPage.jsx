@@ -3,6 +3,7 @@ import { Link, Navigate, useParams, useNavigate } from "react-router-dom";
 import { useAuth } from "../auth/AuthContext";
 import { useCollege } from "../college/CollegeContext";
 import { SectionCard } from "../components/SectionCard";
+import { Breadcrumbs } from "../components/Breadcrumbs";
 import {
   getBranchById,
   getProgramById,
@@ -15,7 +16,11 @@ import { apiClient, buildAuthorizedApiUrl } from "../lib/apiClient";
 import { requestDeletePassword } from "../lib/deleteWithPassword";
 import { openRazorpayCheckout } from "../lib/paymentClient";
 import { useToast } from "../ui/ToastContext";
+import { useConfirm } from "../ui/ConfirmContext";
 import { SkeletonCard, Spinner } from "../components/LoadingStates";
+import { SearchInput } from "../components/SearchInput";
+import { HighlightText } from "../components/HighlightText";
+import { useDebounce } from "../hooks/useDebounce";
 
 const CATEGORY_UPLOAD_GUIDANCE = {
   lecture: {
@@ -204,6 +209,7 @@ function ResourcePreview({ resource, onAccessAttempt }) {
         alt={resource.title}
         className="resource-image"
         src={previewSrc}
+        style={{ aspectRatio: "16/9", width: "100%", objectFit: "cover" }}
       />
     );
   }
@@ -300,6 +306,7 @@ export function SubjectCategoryPage() {
   const [error, setError] = useState("");
   const [success, setSuccess] = useState("");
   const [search, setSearch] = useState("");
+  const debouncedSearch = useDebounce(search, 400); // Wait a bit longer for network search
   const [sortBy, setSortBy] = useState("newest");
   const [uploadForm, setUploadForm] = useState(initialUploadForm);
   const [editForm, setEditForm] = useState(initialEditForm);
@@ -456,7 +463,7 @@ export function SubjectCategoryPage() {
           categoryId,
           page: nextPage,
           limit: pagination.limit,
-          search: search.trim() || undefined
+          search: debouncedSearch.trim() || undefined
         }
       });
 
@@ -472,7 +479,7 @@ export function SubjectCategoryPage() {
 
   useEffect(() => {
     loadResources(1);
-  }, [selectedCollege?.name, programId, branchId, semesterId, subjectId, categoryId]);
+  }, [selectedCollege?.name, programId, branchId, semesterId, subjectId, categoryId, debouncedSearch]);
 
   useEffect(() => {
     async function loadFeedbackSummary() {
@@ -508,7 +515,7 @@ export function SubjectCategoryPage() {
     return (
       <div className="page-stack">
         <SectionCard title="Loading category workspace" description="Fetching branch, semester, and subject context.">
-          <p className="muted">Loading resource category...</p>
+          <SkeletonCard count={1} />
         </SectionCard>
       </div>
     );
@@ -638,6 +645,15 @@ export function SubjectCategoryPage() {
   }
 
   async function handleDelete(resourceId) {
+    const resource = resources.find(r => r._id === resourceId);
+    const isConfirmed = await confirm({
+      title: "Delete Resource",
+      message: `Are you sure you want to delete "${resource?.title || 'this resource'}"? This action cannot be undone.`,
+      confirmText: "Delete Resource",
+      intent: "danger"
+    });
+    if (!isConfirmed) return;
+
     const currentPassword = requestDeletePassword("this resource");
     if (!currentPassword) {
       return;
@@ -809,6 +825,14 @@ export function SubjectCategoryPage() {
   }
 
   async function handleDeleteComment(resourceId, commentId) {
+    const isConfirmed = await confirm({
+      title: "Delete Comment",
+      message: "Are you sure you want to remove this comment?",
+      confirmText: "Delete Comment",
+      intent: "danger"
+    });
+    if (!isConfirmed) return;
+
     const currentPassword = requestDeletePassword("this comment");
     if (!currentPassword) {
       return;
@@ -867,8 +891,18 @@ export function SubjectCategoryPage() {
     }
   }
 
+  
+  const breadcrumbItems = [
+    { label: "Dashboard", href: "/dashboard" },
+    { label: programName || "Program", href: `/dashboard/${programId}` },
+    { label: branchName || "Branch", href: `/dashboard/${programId}/branch/${branchId}` },
+    { label: subject.name || "Subject", href: `/dashboard/${programId}/branch/${branchId}/${semesterId}/${subjectId}` },
+    { label: categoryTitle || "Category", href: `/dashboard/${programId}/branch/${branchId}/${semesterId}/${subjectId}/${categoryId}` }
+  ];
+
   return (
     <div className="page-stack">
+      <Breadcrumbs items={breadcrumbItems} />
       <SectionCard
         title={`${category.label} Resources`}
         description={`${selectedCollege?.shortName || selectedCollege?.name || "College"} | ${resolvedSubject.name}`}
@@ -1204,12 +1238,12 @@ export function SubjectCategoryPage() {
 
       <SectionCard title="Available Resources" description="View online or download resources.">
         <div className="toolbar-grid">
-          <input
-            className="college-search"
-            onChange={(event) => setSearch(event.target.value)}
-            placeholder="Search title, description, text..."
-            type="text"
+          <SearchInput
             value={search}
+            onChange={(event) => setSearch(event.target.value)}
+            onClear={() => setSearch("")}
+            isPending={search !== debouncedSearch}
+            placeholder="Search title, description, text..."
           />
           <select
             className="college-search"
@@ -1221,9 +1255,6 @@ export function SubjectCategoryPage() {
             <option value="uploader-asc">Sort by uploader</option>
             <option value="file-first">Show file uploads first</option>
           </select>
-          <button className="open-college-button" onClick={() => loadResources(1)} type="button">
-            Search
-          </button>
         </div>
         <div className="stat-grid compact-stat-grid">
           <article className="stat-card">
@@ -1244,7 +1275,14 @@ export function SubjectCategoryPage() {
         </div>
 
         {!loading && resources.length === 0 ? (
-          <p className="muted">No resources uploaded in this category yet.</p>
+          debouncedSearch ? (
+            <div className="search-empty-state" style={{ padding: "2rem", textAlign: "center", background: "rgba(255,255,255,0.02)", borderRadius: "8px", border: "1px dashed rgba(255,255,255,0.1)" }}>
+              <p className="muted" style={{ marginBottom: "0.5rem" }}>No resources found matching "{debouncedSearch}"</p>
+              <p style={{ fontSize: "0.875rem", color: "var(--color-slate-400-adaptive)" }}>Check your spelling or try broader keywords.</p>
+            </div>
+          ) : (
+            <p className="muted">No resources uploaded in this category yet.</p>
+          )
         ) : null}
         <div className="panel-list">
           {loading ? (
@@ -1270,7 +1308,7 @@ export function SubjectCategoryPage() {
                   {/* Left: Content */}
                   <div className="resource-card-content">
                     <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", gap: "12px", marginBottom: "8px" }}>
-                      <h3 style={{ margin: 0 }}>{resource.title}</h3>
+                      <h3 className="resource-title"><HighlightText text={resource.title} highlight={debouncedSearch} /></h3>
                       {resource.storageProvider === "external" ? (
                         <span style={{
                           background: "rgba(16, 185, 129, 0.1)",

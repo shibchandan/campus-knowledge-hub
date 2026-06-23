@@ -4,11 +4,13 @@ import { useCollege } from "../college/CollegeContext";
 import { apiClient } from "../lib/apiClient";
 import { Spinner, SkeletonCard } from "../components/LoadingStates";
 import { useAuth } from "../auth/AuthContext";
+import { useConfirm } from "../ui/ConfirmContext";
 import { useNavigate, Link } from "react-router-dom";
 import { useToast } from "../ui/ToastContext";
 
 export function AiStudioPage() {
   const { user } = useAuth();
+  const confirm = useConfirm();
   const navigate = useNavigate();
   const { showError } = useToast();
   const { selectedCollege } = useCollege();
@@ -104,6 +106,14 @@ export function AiStudioPage() {
   }
 
   async function handleDeleteHistoryItem(historyId) {
+    const isConfirmed = await confirm({
+      title: "Delete Chat",
+      message: "Are you sure you want to delete this chat history? This cannot be undone.",
+      confirmText: "Delete Chat",
+      intent: "danger"
+    });
+    if (!isConfirmed) return;
+
     const confirmed = window.confirm("Are you sure you want to delete this AI history item?");
     if (!confirmed) {
       return;
@@ -122,6 +132,14 @@ export function AiStudioPage() {
   }
 
   async function handleClearHistory() {
+    const isConfirmed = await confirm({
+      title: "Clear All History",
+      message: "Are you sure you want to completely wipe your AI chat history?",
+      confirmText: "Clear History",
+      intent: "danger"
+    });
+    if (!isConfirmed) return;
+
     const confirmed = window.confirm("Are you sure you want to clear all your AI history? This cannot be undone.");
     if (!confirmed) {
       return;

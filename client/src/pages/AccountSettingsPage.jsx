@@ -441,6 +441,8 @@ export function AccountSettingsPage() {
                 alt={`${profileForm.fullName || user?.fullName || "User"} avatar`}
                 className="account-avatar account-avatar-image"
                 src={profileForm.avatarUrl}
+                width="100"
+                height="100"
               />
             ) : (
               <div className="account-avatar" aria-hidden="true">
@@ -1066,6 +1068,8 @@ export function AccountSettingsPage() {
                       alt="2FA QR Code"
                       src={`https://api.qrserver.com/v1/create-qr-code/?size=200x200&data=${encodeURIComponent(setupData.otpauthUrl)}`}
                       style={{ borderRadius: "8px", background: "white", padding: "8px" }}
+                      width="200"
+                      height="200"
                     />
                     <div style={{ textAlign: "center" }}>
                       <p className="muted" style={{ fontSize: "0.75rem" }}>Can't scan the code? Enter this key manually:</p>

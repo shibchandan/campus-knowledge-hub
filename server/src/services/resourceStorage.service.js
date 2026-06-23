@@ -84,6 +84,13 @@ export async function storeUploadedFile(file) {
   }
 
   if (!cloudflareR2Configured()) {
+    if (env.enforceCloudStorage) {
+      await fs.unlink(file.path).catch(() => {});
+      const err = new Error("FATAL: Cloud storage is enforced but neither Cloudinary nor R2/S3 is fully configured.");
+      err.statusCode = 500;
+      throw err;
+    }
+
     return {
       storageProvider: "local",
       fileOriginalName: file.originalname,

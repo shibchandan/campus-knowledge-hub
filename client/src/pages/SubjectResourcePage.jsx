@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useState } from "react";
 import { Link, Navigate, useParams } from "react-router-dom";
 import { SectionCard } from "../components/SectionCard";
+import { Breadcrumbs } from "../components/Breadcrumbs";
 import { useCollege } from "../college/CollegeContext";
 import {
   getBranchById,
@@ -10,6 +11,8 @@ import {
   subjectCategories
 } from "../features/dashboard/data";
 import { getDynamicBranchById, getDynamicProgramById, groupStructuresIntoPrograms } from "../lib/academicHelpers";
+import { useToast } from "../ui/ToastContext";
+import { SkeletonCard } from "../components/LoadingStates";
 import { apiClient } from "../lib/apiClient";
 
 function humanizeSlug(value = "") {
@@ -146,7 +149,7 @@ export function SubjectResourcePage() {
     return (
       <div className="page-stack">
         <SectionCard title="Loading subject workspace" description="Fetching branch, semester, and subject context.">
-          <p className="muted">Loading subject details...</p>
+          <SkeletonCard count={1} />
         </SectionCard>
       </div>
     );
@@ -156,8 +159,18 @@ export function SubjectResourcePage() {
     return <Navigate to="/dashboard" replace />;
   }
 
+  
+  const breadcrumbItems = [
+    { label: "Dashboard", href: "/dashboard" },
+    { label: programName || "Program", href: `/dashboard/${programId}` },
+    { label: branchName || "Branch", href: `/dashboard/${programId}/branch/${branchId}` },
+    { label: semesterName || "Semester", href: `/dashboard/${programId}/branch/${branchId}` }, // Semester doesn't have a standalone page
+    { label: subject.name || "Subject", href: `/dashboard/${programId}/branch/${branchId}/${semesterId}/${subjectId}` }
+  ];
+
   return (
     <div className="page-stack">
+      <Breadcrumbs items={breadcrumbItems} />
       <SectionCard
         title={subject.name}
         description={`${programName} | ${branchName} | ${semesterName} resource categories`}

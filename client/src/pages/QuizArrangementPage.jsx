@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useState } from "react";
 import { Link, Navigate, useParams, useSearchParams } from "react-router-dom";
 import { SectionCard } from "../components/SectionCard";
+import { Breadcrumbs } from "../components/Breadcrumbs";
 import { getQuizArrangementById } from "../features/notes/mockResources";
 import { apiClient } from "../lib/apiClient";
 import { useCollege } from "../college/CollegeContext";
@@ -217,8 +218,15 @@ export function QuizArrangementPage() {
     }
   }
 
+  
+  const breadcrumbItems = [
+    { label: "Quizzes", href: "/quizzes" },
+    { label: quiz?.title || "Quiz Details", href: `/quizzes/${quizId}` }
+  ];
+
   return (
     <div className="page-stack">
+      <Breadcrumbs items={breadcrumbItems} />
       <SectionCard
         title={quiz.title}
         description={`${quiz.mode} | ${quiz.difficulty} | ${quiz.duration} | Based on ${quiz.resourceMatch}`}

@@ -108,5 +108,8 @@ export const env = {
   serverRequestTimeoutMs: Number(process.env.SERVER_REQUEST_TIMEOUT_MS || 60000),
   serverHeadersTimeoutMs: Number(process.env.SERVER_HEADERS_TIMEOUT_MS || 65000),
   serverKeepAliveTimeoutMs: Number(process.env.SERVER_KEEP_ALIVE_TIMEOUT_MS || 5000),
-  serverShutdownGraceMs: Number(process.env.SERVER_SHUTDOWN_GRACE_MS || 10000)
+  serverShutdownGraceMs: Number(process.env.SERVER_SHUTDOWN_GRACE_MS || 10000),
+  redisUrl: readSecretValue("REDIS_URL", ""),
+  enforceCloudStorage: String(process.env.ENFORCE_CLOUD_STORAGE || "false").trim().toLowerCase() === "true",
+  serveFrontend: String(process.env.SERVE_FRONTEND || "false").trim().toLowerCase() === "true"
 };

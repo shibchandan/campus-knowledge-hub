@@ -1,5 +1,6 @@
 import mongoose from "mongoose";
 import { logAppEvent } from "../services/logger.service.js";
+import { redisClient } from "../config/redis.js";
 
 function createHttpError(message, statusCode = 429) {
   const error = new Error(message);
@@ -160,9 +161,23 @@ export function createRateLimiter({
     }
 
     try {
-      const count = shouldUseSharedStore()
-        ? await incrementSharedHit({ keyPrefix, key, windowStart, resetAt, windowMs })
-        : incrementLocalHit({ hits, key, now, resetAt });
+      let count;
+      
+      if (redisClient && redisClient.isReady) {
+        // Fast path: Redis
+        const redisKey = `ratelimit:${windowStart}:${key}`;
+        count = await redisClient.incr(redisKey);
+        if (count === 1) {
+          // Set expiry when creating the key
+          await redisClient.expire(redisKey, Math.ceil(windowMs / 1000) + 10);
+        }
+      } else if (shouldUseSharedStore()) {
+        // Fallback: MongoDB
+        count = await incrementSharedHit({ keyPrefix, key, windowStart, resetAt, windowMs });
+      } else {
+        // Fallback: Local memory
+        count = incrementLocalHit({ hits, key, now, resetAt });
+      }
 
       setRateLimitHeaders(res, { maxRequests, count, resetAt });
 

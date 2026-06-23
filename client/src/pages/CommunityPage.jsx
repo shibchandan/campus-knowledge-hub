@@ -1,11 +1,13 @@
 import { useEffect, useState, useRef } from "react";
 import { apiClient } from "../lib/apiClient";
 import { useAuth } from "../auth/AuthContext";
+import { useConfirm } from "../ui/ConfirmContext";
 import { useToast } from "../ui/ToastContext";
 import { SectionCard } from "../components/SectionCard";
 
 export function CommunityPage() {
   const { user } = useAuth();
+  const confirm = useConfirm();
   const { showError, showSuccess } = useToast();
 
   const [groups, setGroups] = useState([]);
@@ -140,24 +142,76 @@ export function CommunityPage() {
     e.preventDefault();
     if (!messageText.trim() || !activeGroup) return;
 
+    const originalText = messageText.trim();
+    // Optimistic Update
+    const tempId = `temp-${Date.now()}`;
+    const tempMessage = {
+      _id: tempId,
+      text: originalText,
+      sender: user,
+      createdAt: new Date().toISOString(),
+      reactions: [],
+      isOptimistic: true // flag for optional styling if we wanted to
+    };
+
+    setMessages((prev) => [...prev, tempMessage]);
+    setMessageText("");
     setSending(true);
+
     try {
-      await apiClient.post(`/community/groups/${activeGroup._id}/messages`, { text: messageText });
-      setMessageText("");
+      await apiClient.post(`/community/groups/${activeGroup._id}/messages`, { text: originalText });
+      // The pollMessages call will fetch the actual message from the server and overwrite the temp one.
       pollMessages(activeGroup._id);
     } catch (err) {
       showError("Failed to send message");
+      // Rollback
+      setMessages((prev) => prev.filter(m => m._id !== tempId));
+      setMessageText(originalText); // restore the drafted text
     } finally {
       setSending(false);
     }
   }
 
   async function handleReact(msgId, emoji) {
+    // Optimistic Update
+    const originalMessages = [...messages];
+    setMessages((prev) => 
+      prev.map(msg => {
+        if (msg._id !== msgId) return msg;
+
+        // Clone reactions
+        const newReactions = [...(msg.reactions || [])];
+        const existingReactionIndex = newReactions.findIndex(r => r.emoji === emoji);
+
+        if (existingReactionIndex !== -1) {
+          const reaction = newReactions[existingReactionIndex];
+          if (reaction.users.includes(user.id)) {
+            // Remove my reaction
+            reaction.users = reaction.users.filter(uid => uid !== user.id);
+            if (reaction.users.length === 0) {
+              newReactions.splice(existingReactionIndex, 1);
+            }
+          } else {
+            // Add my reaction to existing emoji
+            reaction.users.push(user.id);
+          }
+        } else {
+          // Add new emoji reaction
+          newReactions.push({ emoji, users: [user.id] });
+        }
+
+        return { ...msg, reactions: newReactions };
+      })
+    );
+
     try {
       await apiClient.post(`/community/messages/${msgId}/react`, { emoji });
-      pollMessages(activeGroup._id); // Refresh messages
+      // Background sync
+      pollMessages(activeGroup._id);
     } catch (err) {
       showError("Failed to add reaction");
+      // Rollback
+      setMessages(originalMessages);
     }
   }
 
@@ -213,6 +267,14 @@ export function CommunityPage() {
   }
 
   async function handleDeleteGroup() {
+    const isConfirmed = await confirm({
+      title: "Delete Group",
+      message: `Are you sure you want to permanently delete "${activeGroup?.name || 'this group'}"?`,
+      confirmText: "Delete Group",
+      intent: "danger"
+    });
+    if (!isConfirmed) return;
+
     if (!window.confirm("Delete this group permanently? This cannot be undone.")) return;
     try {
       await apiClient.delete(`/community/groups/${activeGroup._id}`);

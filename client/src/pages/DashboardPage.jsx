@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useState } from "react";
 import { Link } from "react-router-dom";
 import { useAuth } from "../auth/AuthContext";
+import { useConfirm } from "../ui/ConfirmContext";
 import { SectionCard } from "../components/SectionCard";
 import { useCollege } from "../college/CollegeContext";
 import { academicPrograms } from "../features/dashboard/data";
@@ -567,6 +568,14 @@ export function DashboardPage() {
   }
 
   async function handleDeleteCourse(course) {
+    const isConfirmed = await confirm({
+      title: "Delete Course",
+      message: `Are you sure you want to delete "${course.courseName}"?`,
+      confirmText: "Delete Course",
+      intent: "danger"
+    });
+    if (!isConfirmed) return;
+
     const currentPassword = requestDeletePassword(
       `${course.courseName} from ${course.collegeName}`
     );
