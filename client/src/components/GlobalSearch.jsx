@@ -2,6 +2,7 @@ import { useState, useEffect, useRef, useMemo } from "react";
 import { useNavigate } from "react-router-dom";
 import { useCollege } from "../college/CollegeContext";
 import { useDebounce } from "../hooks/useDebounce";
+import { useTheme } from "../theme/ThemeContext";
 
 const navLinks = [
   { label: "Dashboard Overview", to: "/dashboard", type: "Navigation" },
@@ -19,6 +20,7 @@ const navLinks = [
 ];
 
 export function GlobalSearch() {
+  const { theme } = useTheme();
   const [isOpen, setIsOpen] = useState(false);
   const [query, setQuery] = useState("");
   const debouncedQuery = useDebounce(query, 200);
@@ -158,13 +160,13 @@ export function GlobalSearch() {
   return (
     <div style={{
       position: "fixed", top: 0, left: 0, right: 0, bottom: 0,
-      background: "rgba(0, 0, 0, 0.6)", backdropFilter: "blur(4px)",
+      background: theme === "light" ? "rgba(255, 255, 255, 0.4)" : "rgba(0, 0, 0, 0.6)", backdropFilter: "blur(4px)",
       zIndex: 10000, display: "flex", justifyContent: "center", alignItems: "flex-start", paddingTop: "10vh"
     }} onClick={() => setIsOpen(false)}>
       <div 
         style={{
-          width: "100%", maxWidth: "600px", background: "rgba(30, 41, 59, 0.95)",
-          border: "1px solid rgba(255, 255, 255, 0.1)", borderRadius: "12px",
+          width: "100%", maxWidth: "600px", background: "var(--glass-bg)",
+          border: "1px solid var(--glass-border)", borderRadius: "12px",
           boxShadow: "0 25px 50px -12px rgba(0, 0, 0, 0.5)", overflow: "hidden",
           display: "flex", flexDirection: "column", margin: "0 1rem"
         }}

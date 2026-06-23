@@ -281,7 +281,7 @@ export function DashboardLayout() {
           left: 0,
           right: 0,
           bottom: 0,
-          background: "rgba(0, 0, 0, 0.6)",
+          background: theme === "light" ? "rgba(255, 255, 255, 0.4)" : "rgba(0, 0, 0, 0.6)",
           backdropFilter: "blur(4px)",
           display: "flex",
           justifyContent: "center",
@@ -292,7 +292,7 @@ export function DashboardLayout() {
           <div className="section-card" style={{
             width: "100%",
             maxWidth: "500px",
-            background: theme === "light" ? "#ffffff" : "var(--glass-bg)",
+            background: "var(--glass-bg)",
             border: "1px solid var(--glass-border)",
             boxShadow: "0 20px 25px -5px rgba(0, 0, 0, 0.3)",
             borderRadius: "16px",
