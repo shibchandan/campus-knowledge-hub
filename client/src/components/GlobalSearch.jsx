@@ -120,6 +120,12 @@ export function GlobalSearch() {
   };
 
   const handleKeyDown = (e) => {
+    if (e.key === "Escape") {
+      e.preventDefault();
+      setIsOpen(false);
+      return;
+    }
+
     const items = debouncedQuery ? results : recentSearches.map(r => ({ ...r, type: "Recent" }));
     if (!items.length) return;
 
@@ -186,7 +192,13 @@ export function GlobalSearch() {
               borderTopColor: "var(--color-primary)", borderRadius: "50%", animation: "spin 1s linear infinite"
             }} />
           )}
-          <kbd style={{ fontSize: "0.75rem", background: "rgba(255,255,255,0.1)", padding: "4px 6px", borderRadius: "4px", color: "var(--color-slate-400-adaptive)" }}>ESC</kbd>
+          <kbd 
+            onClick={() => setIsOpen(false)}
+            style={{ fontSize: "0.75rem", background: "rgba(255,255,255,0.1)", padding: "4px 6px", borderRadius: "4px", color: "var(--color-slate-400-adaptive)", cursor: "pointer" }}
+            title="Close Search"
+          >
+            ESC
+          </kbd>
         </div>
 
         <div style={{ maxHeight: "400px", overflowY: "auto", padding: "8px 0" }}>
