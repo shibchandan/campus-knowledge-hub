@@ -204,7 +204,7 @@ export function DashboardLayout() {
             <button
               className="action-button neutral"
               onClick={() => window.dispatchEvent(new Event('open-global-search'))}
-              style={{ display: "flex", alignItems: "center", gap: "8px", padding: "6px 12px", background: "rgba(255,255,255,0.05)", border: "1px solid rgba(255,255,255,0.1)", borderRadius: "8px", color: "var(--color-slate-400-adaptive)", fontSize: "0.875rem" }}
+              style={{ display: "flex", alignItems: "center", gap: "8px", padding: "6px 12px", background: "var(--glass-bg)", border: "1px solid var(--glass-border)", borderRadius: "8px", color: "var(--color-slate-400-adaptive)", fontSize: "0.875rem" }}
               type="button"
             >
               <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
@@ -212,7 +212,7 @@ export function DashboardLayout() {
                 <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
               </svg>
               Search
-              <kbd style={{ marginLeft: "8px", fontSize: "0.7rem", background: "rgba(255,255,255,0.1)", padding: "2px 6px", borderRadius: "4px" }}>⌘K</kbd>
+              <kbd style={{ marginLeft: "8px", fontSize: "0.7rem", background: "var(--glass-bg-hover)", padding: "2px 6px", borderRadius: "4px" }}>⌘K</kbd>
             </button>
 
             <button className="theme-button" onClick={toggleTheme} type="button">
