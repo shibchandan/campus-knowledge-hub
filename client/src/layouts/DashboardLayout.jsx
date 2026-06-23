@@ -292,7 +292,7 @@ export function DashboardLayout() {
           <div className="section-card" style={{
             width: "100%",
             maxWidth: "500px",
-            background: "var(--glass-bg)",
+            background: theme === "light" ? "#ffffff" : "var(--glass-bg)",
             border: "1px solid var(--glass-border)",
             boxShadow: "0 20px 25px -5px rgba(0, 0, 0, 0.3)",
             borderRadius: "16px",
@@ -366,9 +366,9 @@ export function DashboardLayout() {
                     width: "100%",
                     padding: "0.75rem",
                     borderRadius: "8px",
-                    background: "var(--input-bg)",
-                    border: "1px solid var(--border-color)",
-                    color: "var(--text-color)",
+                    background: "var(--glass-bg)",
+                    border: "1px solid var(--glass-border)",
+                    color: "var(--glass-text-primary)",
                     fontFamily: "inherit",
                     resize: "none"
                   }}
