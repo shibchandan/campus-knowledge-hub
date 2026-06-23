@@ -27,5 +27,10 @@ if (cluster.isPrimary) {
 } else {
   // Workers can share any TCP connection
   // In this case, it is an HTTP server initialized in server.js
-  import("./server.js");
+  import("./server.js").then(({ bootstrap }) => {
+    bootstrap().catch((error) => {
+      console.error("Failed to start server in worker", error);
+      process.exit(1);
+    });
+  });
 }
