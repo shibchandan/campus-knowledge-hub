@@ -113,9 +113,9 @@ export async function bootstrap(config = env) {
 
   await new Promise((resolve, reject) => {
     server.once("error", reject);
-    server.listen(config.port, () => {
+    server.listen(config.port, "0.0.0.0", () => {
       server.off("error", reject);
-      console.log(`Server running on port ${config.port}`);
+      console.log(`Server running on port ${config.port} (bound to 0.0.0.0)`);
       console.log(`===========================================================`);
       console.log(`⚠️ PROPRIETARY SOFTWARE NOTICE ⚠️`);
       console.log(`This software is the proprietary property of Shib Chandan Mistry.`);
@@ -123,6 +123,7 @@ export async function bootstrap(config = env) {
       console.log(`===========================================================`);
       logAppEvent("info", "server_started", {
         port: config.port,
+        host: "0.0.0.0",
         instanceId: config.instanceId,
         multiInstanceEnabled: config.multiInstanceEnabled,
         sharedStorageConfigured: deploymentStatus.sharedStorageConfigured
