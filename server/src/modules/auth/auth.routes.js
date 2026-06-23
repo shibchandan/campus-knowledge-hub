@@ -8,6 +8,7 @@ import {
   getCurrentUser,
   login,
   logout,
+  refresh,
   listUsers,
   register,
   resetPassword,
@@ -55,6 +56,7 @@ authRouter.post("/register", authRateLimiter, uploadRateLimiter, upload.single("
 authRouter.post("/verify-registration-otp", authRateLimiter, verifyRegistrationOtp);
 authRouter.post("/resend-registration-otp", otpRateLimiter, resendRegistrationOtp);
 authRouter.post("/login", authRateLimiter, login);
+authRouter.post("/refresh", refresh);
 authRouter.post("/logout", protect, logout);
 authRouter.post("/forgot-password", otpRateLimiter, forgotPassword);
 authRouter.post("/reset-password", authRateLimiter, resetPassword);

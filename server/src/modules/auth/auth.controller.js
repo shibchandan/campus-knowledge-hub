@@ -1,6 +1,8 @@
 import jwt from "jsonwebtoken";
 import { User, TokenBlacklist } from "./auth.model.js";
-import { createToken } from "../../utils/createToken.js";
+import { RefreshToken } from "./refreshToken.model.js";
+import { createToken, createRefreshToken } from "../../utils/createToken.js";
+import { verifyRefreshTokenWithRotation } from "../../utils/verifyToken.js";
 import { generateSecret, verifyToken } from "../../utils/totp.js";
 import crypto from "crypto";
 import path from "path";
@@ -44,11 +46,7 @@ function getCookieSameSite() {
   return "lax";
 }
 
-function setAuthCookie(res, token) {
-  if (!env.authTokenInCookie) {
-    return;
-  }
-
+function setRefreshTokenCookie(res, token) {
   const sameSite = getCookieSameSite();
   const secure = env.cookieSecure || sameSite === "none";
 
@@ -57,8 +55,51 @@ function setAuthCookie(res, token) {
     secure,
     sameSite,
     path: "/",
-    maxAge: 7 * 24 * 60 * 60 * 1000
+    maxAge: 7 * 24 * 60 * 60 * 1000 // 7 days
   });
+}
+
+function clearRefreshTokenCookie(res) {
+  const sameSite = getCookieSameSite();
+  const secure = env.cookieSecure || sameSite === "none";
+
+  res.cookie(env.authCookieName, "", {
+    httpOnly: true,
+    secure,
+    sameSite,
+    path: "/",
+    maxAge: 0
+  });
+}
+
+function getRefreshTokenFromCookies(req) {
+  const rawCookies = req.headers.cookie;
+  if (!rawCookies) return "";
+  const cookieEntries = rawCookies.split(";").map((item) => item.trim());
+  const match = cookieEntries.find((entry) => entry.startsWith(`${env.authCookieName}=`));
+  if (!match) return "";
+  return decodeURIComponent(match.substring(env.authCookieName.length + 1));
+}
+
+async function issueTokenPair(user, req, res, existingFamilyId = null) {
+  const payload = { id: user._id, role: user.role, email: user.email };
+  const accessToken = createToken(payload);
+  const refreshToken = createRefreshToken(payload);
+  const familyId = existingFamilyId || crypto.randomUUID();
+
+  // Decode refresh token to get exact expiry date
+  const decoded = jwt.decode(refreshToken);
+
+  await RefreshToken.create({
+    user: user._id,
+    token: refreshToken,
+    familyId,
+    expiresAt: new Date(decoded.exp * 1000)
+  });
+
+  setRefreshTokenCookie(res, refreshToken);
+
+  return { token: accessToken, user: serializeUserForClient(user, req) };
 }
 
 function genericForgotPasswordResponse(res) {
@@ -394,9 +435,8 @@ export async function login(req, res, next) {
 
     await syncRepresentativeCollegeFromCourses(user);
 
-    const token = createToken({ id: user._id, role: user.role, email: user.email });
-    setAuthCookie(res, token);
-    res.json({ success: true, data: { token, user: serializeUserForClient(user, req) } });
+    const tokenData = await issueTokenPair(user, req, res);
+    res.json({ success: true, data: tokenData });
   } catch (error) {
     next(error);
   }
@@ -404,6 +444,7 @@ export async function login(req, res, next) {
 
 export async function logout(req, res, next) {
   try {
+    // 1. Blacklist the current access token
     if (req.token) {
       const decoded = jwt.decode(req.token);
       if (decoded && decoded.exp) {
@@ -411,23 +452,79 @@ export async function logout(req, res, next) {
           token: req.token,
           expiresAt: new Date(decoded.exp * 1000)
         }).catch((err) => {
-          // Ignore duplicate key error if token already blacklisted
           if (err.code !== 11000) throw err;
         });
       }
     }
 
-    const sameSite = getCookieSameSite();
-    const secure = env.cookieSecure || sameSite === "none";
+    // 2. Revoke the refresh token family
+    const refreshToken = getRefreshTokenFromCookies(req);
+    if (refreshToken) {
+      const storedToken = await RefreshToken.findOne({ token: refreshToken });
+      if (storedToken) {
+        // Revoke entire family
+        await RefreshToken.updateMany({ familyId: storedToken.familyId }, { isRevoked: true });
+      }
+    }
 
-    res.clearCookie(env.authCookieName, {
-      httpOnly: true,
-      secure,
-      sameSite,
-      path: "/"
-    });
+    clearRefreshTokenCookie(res);
+    res.json({ success: true, message: "Logged out successfully" });
+  } catch (error) {
+    next(error);
+  }
+}
 
-    res.json({ success: true, message: "Logged out successfully." });
+export async function refresh(req, res, next) {
+  try {
+    const token = getRefreshTokenFromCookies(req);
+    if (!token) {
+      const error = new Error("No refresh token provided");
+      error.statusCode = 401;
+      return next(error);
+    }
+
+    try {
+      verifyRefreshTokenWithRotation(token);
+    } catch {
+      clearRefreshTokenCookie(res);
+      const error = new Error("Invalid refresh token");
+      error.statusCode = 401;
+      return next(error);
+    }
+
+    const storedToken = await RefreshToken.findOne({ token }).populate("user");
+    if (!storedToken) {
+      clearRefreshTokenCookie(res);
+      const error = new Error("Invalid refresh token");
+      error.statusCode = 401;
+      return next(error);
+    }
+
+    if (storedToken.isRevoked) {
+      // THEFT DETECTED: Revoke the entire family
+      await RefreshToken.updateMany({ familyId: storedToken.familyId }, { isRevoked: true });
+      clearRefreshTokenCookie(res);
+      const error = new Error("Security alert: token reuse detected. You have been logged out.");
+      error.statusCode = 401;
+      return next(error);
+    }
+
+    const user = storedToken.user;
+    if (!user || user.status !== "active") {
+      clearRefreshTokenCookie(res);
+      const error = new Error("User inactive or not found");
+      error.statusCode = 401;
+      return next(error);
+    }
+
+    // Invalidate the current refresh token
+    storedToken.isRevoked = true;
+    await storedToken.save();
+
+    // Issue new pair using the SAME familyId
+    const tokenData = await issueTokenPair(user, req, res, storedToken.familyId);
+    
+    res.json({ success: true, data: tokenData });
   } catch (error) {
     next(error);
   }
@@ -1193,15 +1290,11 @@ export async function login2fa(req, res, next) {
     
     await syncRepresentativeCollegeFromCourses(user);
     
-    const token = createToken({ id: user._id, role: user.role, email: user.email });
-    setAuthCookie(res, token);
+    const tokenData = await issueTokenPair(user, req, res);
     
     res.json({
       success: true,
-      data: {
-        token,
-        user: serializeUserForClient(user, req)
-      }
+      data: tokenData
     });
   } catch (error) {
     next(error);
@@ -1277,13 +1370,12 @@ export async function verifyRegistrationOtp(req, res, next) {
     user.emailVerificationOtpSentAt = null;
     await user.save();
 
-    const token = createToken({ id: user._id, role: user.role, email: user.email });
-    setAuthCookie(res, token);
+    const tokenData = await issueTokenPair(user, req, res);
 
     res.json({
       success: true,
       message: "Email verified successfully.",
-      data: { token, user: serializeUserForClient(user, req) }
+      data: tokenData
     });
   } catch (error) {
     next(error);

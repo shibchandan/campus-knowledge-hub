@@ -7,6 +7,7 @@ dotenv.config();
 
 const envNodeEnv = (process.env.NODE_ENV || "development").trim().toLowerCase();
 let resolvedJwtSecret = readSecretValue("JWT_SECRET", "");
+let resolvedJwtRefreshSecret = readSecretValue("JWT_REFRESH_SECRET", "");
 
 if (!resolvedJwtSecret) {
   if (envNodeEnv === "production") {
@@ -17,8 +18,21 @@ if (!resolvedJwtSecret) {
   console.warn("WARNING: JWT_SECRET not set. Using a random generated secret for development.");
 }
 
+if (!resolvedJwtRefreshSecret) {
+  if (envNodeEnv === "production") {
+    throw new Error("FATAL ERROR: JWT_REFRESH_SECRET is not defined in production environment.");
+  }
+  // Fallback for development only
+  resolvedJwtRefreshSecret = crypto.randomBytes(32).toString("hex");
+  console.warn("WARNING: JWT_REFRESH_SECRET not set. Using a random generated secret for development.");
+}
+
 const resolvedJwtPreviousSecrets = readListValue("JWT_PREVIOUS_SECRETS").filter(
   (secret) => secret !== resolvedJwtSecret
+);
+
+const resolvedJwtRefreshPreviousSecrets = readListValue("JWT_REFRESH_PREVIOUS_SECRETS").filter(
+  (secret) => secret !== resolvedJwtRefreshSecret
 );
 
 export const env = {
@@ -28,7 +42,11 @@ export const env = {
   jwtSecret: resolvedJwtSecret,
   jwtPreviousSecrets: resolvedJwtPreviousSecrets,
   jwtAllVerificationSecrets: [resolvedJwtSecret, ...resolvedJwtPreviousSecrets],
-  jwtExpiresIn: process.env.JWT_EXPIRES_IN || "1h",
+  jwtExpiresIn: process.env.JWT_EXPIRES_IN || "15m",
+  jwtRefreshSecret: resolvedJwtRefreshSecret,
+  jwtRefreshPreviousSecrets: resolvedJwtRefreshPreviousSecrets,
+  jwtRefreshAllVerificationSecrets: [resolvedJwtRefreshSecret, ...resolvedJwtRefreshPreviousSecrets],
+  jwtRefreshExpiresIn: process.env.JWT_REFRESH_EXPIRES_IN || "7d",
   clientUrl: process.env.CLIENT_URL || "https://campus-knowledge-hub.com",
   nodeEnv: (process.env.NODE_ENV || "development").trim().toLowerCase(),
   trustProxy: Number(process.env.TRUST_PROXY || 0),
