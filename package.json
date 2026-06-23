@@ -14,5 +14,11 @@
     "build:client": "npm --workspace client run build",
     "start:server": "npm --workspace server run start",
     "test:server": "npm --workspace server run test"
+  },
+  "engines": {
+    "node": "20.x"
+  },
+  "overrides": {
+    "rollup": "npm:@rollup/wasm-node@latest"
   }
 }
