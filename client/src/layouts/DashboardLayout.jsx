@@ -237,7 +237,6 @@ export function DashboardLayout() {
         </AnimatePresence>
         
         <footer style={{
-          marginTop: "auto",
           padding: "2rem 1.5rem",
           display: "flex",
           justifyContent: "space-between",

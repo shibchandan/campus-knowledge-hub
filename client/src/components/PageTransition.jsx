@@ -35,9 +35,7 @@ export function PageTransition({ children }) {
       style={{
         display: "flex",
         flexDirection: "column",
-        flex: 1,
         width: "100%",
-        minHeight: "100%",
       }}
     >
       {children}
