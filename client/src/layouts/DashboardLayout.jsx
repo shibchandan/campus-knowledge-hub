@@ -292,20 +292,20 @@ export function DashboardLayout() {
           <div className="section-card" style={{
             width: "100%",
             maxWidth: "500px",
-            background: "rgba(30, 41, 59, 0.95)",
-            border: "1px solid rgba(255, 255, 255, 0.1)",
+            background: "var(--glass-bg)",
+            border: "1px solid var(--glass-border)",
             boxShadow: "0 20px 25px -5px rgba(0, 0, 0, 0.3)",
             borderRadius: "16px",
             overflow: "hidden"
           }}>
             <div style={{
               padding: "1.5rem",
-              borderBottom: "1px solid rgba(255, 255, 255, 0.05)",
+              borderBottom: "1px solid var(--glass-border)",
               display: "flex",
               justifyContent: "space-between",
               alignItems: "center"
             }}>
-              <h2 style={{ margin: 0, fontSize: "1.25rem", color: "#f8fafc" }}>Contact Administrators</h2>
+              <h2 style={{ margin: 0, fontSize: "1.25rem", color: "var(--text-color)" }}>Contact Administrators</h2>
               <button
                 onClick={() => {
                   setIsContactOpen(false);
@@ -366,9 +366,9 @@ export function DashboardLayout() {
                     width: "100%",
                     padding: "0.75rem",
                     borderRadius: "8px",
-                    background: "rgba(0, 0, 0, 0.2)",
-                    border: "1px solid rgba(255, 255, 255, 0.1)",
-                    color: "white",
+                    background: "var(--input-bg)",
+                    border: "1px solid var(--border-color)",
+                    color: "var(--text-color)",
                     fontFamily: "inherit",
                     resize: "none"
                   }}
