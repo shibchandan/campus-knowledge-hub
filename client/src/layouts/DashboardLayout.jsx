@@ -243,16 +243,16 @@ export function DashboardLayout() {
           alignItems: "center",
           flexWrap: "wrap",
           gap: "1rem",
-          borderTop: "1px solid rgba(255, 255, 255, 0.05)",
-          background: "rgba(255, 255, 255, 0.01)"
+          borderTop: "1px solid var(--glass-border)",
+          background: "transparent"
         }}>
           <div style={{ display: "flex", alignItems: "center", gap: "1.5rem", flexWrap: "wrap" }}>
-            <p style={{ margin: 0, color: "rgba(255, 255, 255, 0.4)", fontSize: "0.875rem" }}>
+            <p style={{ margin: 0, color: "var(--color-slate-400-adaptive)", fontSize: "0.875rem" }}>
               © {new Date().getFullYear()} Campus Knowledge Hub. All Rights Reserved.
             </p>
             <div style={{ display: "flex", gap: "1rem", fontSize: "0.875rem" }}>
-              <NavLink to="/privacy" style={{ color: "rgba(255, 255, 255, 0.6)", textDecoration: "none" }}>Privacy Policy</NavLink>
-              <NavLink to="/terms" style={{ color: "rgba(255, 255, 255, 0.6)", textDecoration: "none" }}>Terms of Service</NavLink>
+              <NavLink to="/privacy" style={{ color: "var(--color-slate-500-adaptive)", textDecoration: "none" }}>Privacy Policy</NavLink>
+              <NavLink to="/terms" style={{ color: "var(--color-slate-500-adaptive)", textDecoration: "none" }}>Terms of Service</NavLink>
             </div>
           </div>
           <button
