@@ -570,6 +570,8 @@ h3 {
   padding: 32px;
   /* Transparent — the body's fixed orb mesh shows through all glass cards */
   background: transparent;
+  display: flex;
+  flex-direction: column;
 }
 
 .topbar {
