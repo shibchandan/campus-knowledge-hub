@@ -86,15 +86,15 @@ export function Chatbot() {
   const [isOpen, setIsOpen] = useState(false);
   const [inputText, setInputText] = useState("");
   const [messages, setMessages] = useState([
-    { role: "bot", content: "Hi! I am CivicBot, your AI Assistant.\nHow can I help you improve our city today?" }
+    { role: "bot", content: "Hi! I am CampusBot, your academic AI Assistant.\nHow can I help you with your studies today?" }
   ]);
   const [isLoading, setIsLoading] = useState(false);
   const scrollRef = useRef(null);
   
   const suggestions = [
-    "How do I report a pothole?",
-    "What is the SLA for broken streetlights?",
-    "How can I pay my utilities?"
+    "Can you summarize my recent lecture?",
+    "Generate a PYQ for my upcoming exam.",
+    "Give me some study recommendations."
   ];
 
   useEffect(() => {
@@ -155,7 +155,7 @@ export function Chatbot() {
                   <div className="cb-status-dot"></div>
                 </div>
                 <div className="cb-header-text">
-                  <h3 className="cb-title">CivicBot</h3>
+                  <h3 className="cb-title">CampusBot</h3>
                   <p className="cb-subtitle">AI Assistant • Online</p>
                 </div>
               </div>
@@ -224,7 +224,7 @@ export function Chatbot() {
                   type="text"
                   value={inputText}
                   onChange={(e) => setInputText(e.target.value)}
-                  placeholder="Ask CivicBot..."
+                  placeholder="Ask CampusBot..."
                   className="cb-input"
                   disabled={isLoading}
                   onKeyDown={(e) => {
