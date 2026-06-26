@@ -7,6 +7,7 @@ import { ConfirmProvider } from "./ui/ConfirmContext";
 import { ScrollToTop } from "./components/ScrollToTop";
 import { AppRoutes } from "./app/AppRoutes";
 import { SitemapPage } from "./pages/SitemapPage";
+import { Chatbot } from "./components/Chatbot";
 
 function App() {
   return (
@@ -18,6 +19,7 @@ function App() {
               <ScrollToTop />
               <AppRoutes />
               <SpeedInsights />
+              <Chatbot />
             </ConfirmProvider>
           </CollegeProvider>
         </AuthProvider>
