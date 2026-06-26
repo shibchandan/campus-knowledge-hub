@@ -128,9 +128,19 @@ export function AuthProvider({ children }) {
     return response.data.data;
   }
 
-  function logout() {
-    localStorage.removeItem(COLLEGE_STORAGE_KEY);
-    setSession(null);
+  async function logout() {
+    try {
+      const raw = localStorage.getItem(AUTH_STORAGE_KEY);
+      const parsed = raw ? JSON.parse(raw) : null;
+      const currentRefreshToken = parsed?.refreshToken || "";
+      
+      await apiClient.post("/auth/logout", { refreshToken: currentRefreshToken });
+    } catch (error) {
+      // Ignore network errors on logout
+    } finally {
+      localStorage.removeItem(COLLEGE_STORAGE_KEY);
+      setSession(null);
+    }
   }
 
   const value = useMemo(

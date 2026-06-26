@@ -99,7 +99,7 @@ async function issueTokenPair(user, req, res, existingFamilyId = null) {
 
   setRefreshTokenCookie(res, refreshToken);
 
-  return { token: accessToken, user: serializeUserForClient(user, req) };
+  return { token: accessToken, refreshToken, user: serializeUserForClient(user, req) };
 }
 
 function genericForgotPasswordResponse(res) {
@@ -458,7 +458,7 @@ export async function logout(req, res, next) {
     }
 
     // 2. Revoke the refresh token family
-    const refreshToken = getRefreshTokenFromCookies(req);
+    const refreshToken = req.body.refreshToken || getRefreshTokenFromCookies(req);
     if (refreshToken) {
       const storedToken = await RefreshToken.findOne({ token: refreshToken });
       if (storedToken) {
@@ -476,7 +476,7 @@ export async function logout(req, res, next) {
 
 export async function refresh(req, res, next) {
   try {
-    const token = getRefreshTokenFromCookies(req);
+    const token = req.body.refreshToken || getRefreshTokenFromCookies(req);
     if (!token) {
       const error = new Error("No refresh token provided");
       error.statusCode = 401;

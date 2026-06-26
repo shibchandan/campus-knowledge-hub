@@ -131,13 +131,22 @@ apiClient.interceptors.response.use(
       isRefreshing = true;
 
       try {
-        const { data } = await axios.post(`${apiClient.defaults.baseURL}/auth/refresh`, {}, { withCredentials: true });
-        const newToken = data.data.token;
-        
         const raw = window.localStorage.getItem(AUTH_STORAGE_KEY);
-        if (raw) {
-          const parsed = JSON.parse(raw);
+        const parsed = raw ? JSON.parse(raw) : null;
+        const currentRefreshToken = parsed?.refreshToken || "";
+
+        const { data } = await axios.post(`${apiClient.defaults.baseURL}/auth/refresh`, {
+          refreshToken: currentRefreshToken
+        }, { withCredentials: true });
+        
+        const newToken = data.data.token;
+        const newRefreshToken = data.data.refreshToken;
+        
+        if (parsed) {
           parsed.token = newToken;
+          if (newRefreshToken) {
+            parsed.refreshToken = newRefreshToken;
+          }
           window.localStorage.setItem(AUTH_STORAGE_KEY, JSON.stringify(parsed));
         }
 
