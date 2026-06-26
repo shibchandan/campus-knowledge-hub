@@ -1,5 +1,6 @@
-import { useState } from "react";
+import { useState, useRef, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
+import { apiClient } from "../lib/apiClient";
 import "./Chatbot.css";
 
 const RobotIcon = ({ className, style }) => (
@@ -84,12 +85,56 @@ const SendIcon = ({ className, style }) => (
 export function Chatbot() {
   const [isOpen, setIsOpen] = useState(false);
   const [inputText, setInputText] = useState("");
+  const [messages, setMessages] = useState([
+    { role: "bot", content: "Hi! I am CivicBot, your AI Assistant.\nHow can I help you improve our city today?" }
+  ]);
+  const [isLoading, setIsLoading] = useState(false);
+  const scrollRef = useRef(null);
   
   const suggestions = [
     "How do I report a pothole?",
     "What is the SLA for broken streetlights?",
     "How can I pay my utilities?"
   ];
+
+  useEffect(() => {
+    if (scrollRef.current) {
+      scrollRef.current.scrollTop = scrollRef.current.scrollHeight;
+    }
+  }, [messages, isLoading]);
+
+  const handleSend = async (text) => {
+    if (!text.trim() || isLoading) return;
+    
+    setInputText("");
+    setMessages(prev => [...prev, { role: "user", content: text }]);
+    setIsLoading(true);
+
+    try {
+      const response = await apiClient.post("/ai/ask", {
+        question: text,
+        intent: "general"
+      });
+
+      const aiData = response.data?.data;
+      
+      let botResponse = aiData?.summary || "I couldn't generate a response.";
+      if (aiData?.categories?.length > 0) {
+        aiData.categories.forEach(cat => {
+          botResponse += `\n\n**${cat.heading}**\n` + cat.points.map(p => `• ${p}`).join('\n');
+        });
+      }
+
+      setMessages(prev => [...prev, { role: "bot", content: botResponse }]);
+    } catch (error) {
+      setMessages(prev => [...prev, { 
+        role: "bot", 
+        content: error?.response?.data?.message || "Sorry, I am having trouble connecting to my servers right now." 
+      }]);
+    } finally {
+      setIsLoading(false);
+    }
+  };
 
   return (
     <div className="cb-container">
@@ -123,16 +168,40 @@ export function Chatbot() {
             </div>
 
             {/* Chat Body */}
-            <div className="cb-body">
-              <div className="cb-message-row">
-                <div className="cb-message-avatar">
-                  <RobotIcon style={{ width: '16px', height: '16px' }} />
+            <div className="cb-body" ref={scrollRef}>
+              {messages.map((msg, idx) => (
+                <div key={idx} className="cb-message-row" style={{ flexDirection: msg.role === "user" ? "row-reverse" : "row" }}>
+                  {msg.role === "bot" && (
+                    <div className="cb-message-avatar">
+                      <RobotIcon style={{ width: '16px', height: '16px' }} />
+                    </div>
+                  )}
+                  <div 
+                    className="cb-message-bubble" 
+                    style={{
+                      backgroundColor: msg.role === "user" ? "#4f46e5" : "#1e293b",
+                      borderTopLeftRadius: msg.role === "bot" ? "0.125rem" : "1rem",
+                      borderTopRightRadius: msg.role === "user" ? "0.125rem" : "1rem",
+                      whiteSpace: "pre-wrap"
+                    }}
+                  >
+                    {msg.content}
+                  </div>
                 </div>
-                <div className="cb-message-bubble">
-                  Hi! I am CivicBot, your AI Assistant.<br/>
-                  How can I help you improve our city today?
+              ))}
+              
+              {isLoading && (
+                <div className="cb-message-row">
+                  <div className="cb-message-avatar">
+                    <RobotIcon style={{ width: '16px', height: '16px' }} />
+                  </div>
+                  <div className="cb-message-bubble" style={{ display: "flex", gap: "4px", alignItems: "center" }}>
+                    <div style={{ width: "6px", height: "6px", borderRadius: "50%", backgroundColor: "#94a3b8", animation: "pulse 1.5s infinite" }}></div>
+                    <div style={{ width: "6px", height: "6px", borderRadius: "50%", backgroundColor: "#94a3b8", animation: "pulse 1.5s infinite 0.2s" }}></div>
+                    <div style={{ width: "6px", height: "6px", borderRadius: "50%", backgroundColor: "#94a3b8", animation: "pulse 1.5s infinite 0.4s" }}></div>
+                  </div>
                 </div>
-              </div>
+              )}
             </div>
 
             {/* Suggestions & Input */}
@@ -141,8 +210,9 @@ export function Chatbot() {
                 {suggestions.map((text, i) => (
                   <button 
                     key={i}
-                    onClick={() => setInputText(text)}
+                    onClick={() => handleSend(text)}
                     className="cb-suggestion-chip"
+                    disabled={isLoading}
                   >
                     {text}
                   </button>
@@ -156,20 +226,17 @@ export function Chatbot() {
                   onChange={(e) => setInputText(e.target.value)}
                   placeholder="Ask CivicBot..."
                   className="cb-input"
+                  disabled={isLoading}
                   onKeyDown={(e) => {
                     if (e.key === 'Enter' && inputText.trim()) {
-                      setInputText("");
-                      // handle send
+                      handleSend(inputText);
                     }
                   }}
                 />
                 <button 
-                  className={`cb-send-btn ${inputText.trim() ? 'cb-send-active' : ''}`}
-                  onClick={() => {
-                    if (inputText.trim()) {
-                      setInputText("");
-                    }
-                  }}
+                  className={`cb-send-btn ${inputText.trim() && !isLoading ? 'cb-send-active' : ''}`}
+                  disabled={isLoading || !inputText.trim()}
+                  onClick={() => handleSend(inputText)}
                 >
                   <SendIcon style={{ width: '16px', height: '16px' }} />
                 </button>

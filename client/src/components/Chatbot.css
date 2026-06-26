@@ -293,3 +293,14 @@
   border-radius: 9999px;
   border: 2px solid #0B1120;
 }
+
+@keyframes pulse {
+  0%, 100% {
+    opacity: 1;
+    transform: scale(1);
+  }
+  50% {
+    opacity: 0.5;
+    transform: scale(0.8);
+  }
+}
