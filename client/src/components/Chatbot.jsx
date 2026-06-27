@@ -1,6 +1,7 @@
 import { useState, useRef, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { apiClient } from "../lib/apiClient";
+import { useAuth } from "../auth/AuthContext";
 import "./Chatbot.css";
 
 const RobotIcon = ({ className, style }) => (
@@ -83,6 +84,7 @@ const SendIcon = ({ className, style }) => (
 );
 
 export function Chatbot() {
+  const { isAuthenticated } = useAuth();
   const [isOpen, setIsOpen] = useState(false);
   const [inputText, setInputText] = useState("");
   const [messages, setMessages] = useState([
@@ -92,9 +94,9 @@ export function Chatbot() {
   const scrollRef = useRef(null);
   
   const suggestions = [
-    "Can you summarize my recent lecture?",
-    "Generate a PYQ for my upcoming exam.",
-    "Give me some study recommendations."
+    { text: "Can you summarize my recent lecture?", intent: "lecture-summary" },
+    { text: "Generate a PYQ for my upcoming exam.", intent: "pyq-answer" },
+    { text: "Give me some study recommendations.", intent: "study-recommendations" }
   ];
 
   useEffect(() => {
@@ -103,7 +105,7 @@ export function Chatbot() {
     }
   }, [messages, isLoading]);
 
-  const handleSend = async (text) => {
+  const handleSend = async (text, intentOverride = "general") => {
     if (!text.trim() || isLoading) return;
     
     setInputText("");
@@ -113,7 +115,7 @@ export function Chatbot() {
     try {
       const response = await apiClient.post("/ai/ask", {
         question: text,
-        intent: "general"
+        intent: intentOverride
       });
 
       const aiData = response.data?.data;
@@ -135,6 +137,8 @@ export function Chatbot() {
       setIsLoading(false);
     }
   };
+
+  if (!isAuthenticated) return null;
 
   return (
     <div className="cb-container">
@@ -207,14 +211,14 @@ export function Chatbot() {
             {/* Suggestions & Input */}
             <div className="cb-footer">
               <div className="cb-suggestions">
-                {suggestions.map((text, i) => (
+                {suggestions.map((item, i) => (
                   <button 
                     key={i}
-                    onClick={() => handleSend(text)}
+                    onClick={() => handleSend(item.text, item.intent)}
                     className="cb-suggestion-chip"
                     disabled={isLoading}
                   >
-                    {text}
+                    {item.text}
                   </button>
                 ))}
               </div>
