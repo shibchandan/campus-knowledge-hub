@@ -127,11 +127,14 @@ export function Chatbot() {
         });
       }
 
-      setMessages(prev => [...prev, { role: "bot", content: botResponse }]);
+      const sources = Array.isArray(aiData?.contextUsed) ? aiData.contextUsed : [];
+
+      setMessages(prev => [...prev, { role: "bot", content: botResponse, sources }]);
     } catch (error) {
       setMessages(prev => [...prev, { 
         role: "bot", 
-        content: error?.response?.data?.message || "Sorry, I am having trouble connecting to my servers right now." 
+        content: error?.response?.data?.message || "Sorry, I am having trouble connecting to my servers right now.",
+        sources: []
       }]);
     } finally {
       setIsLoading(false);
@@ -191,6 +194,25 @@ export function Chatbot() {
                   >
                     {msg.content}
                   </div>
+                  {msg.role === "bot" && msg.sources?.length > 0 && (
+                    <div className="cb-sources">
+                      <span className="cb-sources-label">📚 Sources used:</span>
+                      <div className="cb-sources-chips">
+                        {msg.sources.map((src, si) => (
+                          <a
+                            key={si}
+                            href={src.route}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="cb-source-chip"
+                            title={src.title}
+                          >
+                            {src.categoryId} — {src.title.length > 22 ? src.title.slice(0, 22) + "…" : src.title}
+                          </a>
+                        ))}
+                      </div>
+                    </div>
+                  )}
                 </div>
               ))}
               
