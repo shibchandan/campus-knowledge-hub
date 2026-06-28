@@ -120,7 +120,7 @@ async function buildAiResponse({
 
   const historyItems = await AiHistory.find({ user: req.user.id })
     .sort({ createdAt: -1 })
-    .limit(3)
+    .limit(5)
     .lean();
 
   const answer = await generateStructuredAnswer({

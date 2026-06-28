@@ -9,6 +9,7 @@ import { createAuditLog } from "../../services/audit.service.js";
 import { removeStoredFile, storeUploadedFile } from "../../services/resourceStorage.service.js";
 import { sendAdminNotification } from "../../services/email.service.js";
 import { removeTempFile, scanFileForMalware } from "../../services/malwareScan.service.js";
+import { extractTextFromFile } from "../../services/pdfExtract.service.js";
 import {
   buildRazorpayCheckoutPayload,
   createRazorpayOrder,
@@ -484,6 +485,10 @@ export async function uploadResource(req, res, next) {
       await scanFileForMalware(req.file.path);
     }
 
+    // Auto-extract text from PDFs for RAG context — user-typed text takes priority
+    const extractedText = await extractTextFromFile(req.file);
+    const finalTextContent = cleanedText || extractedText;
+
     const storedFile = await storeUploadedFile(req.file);
     const fileUrl = cleanExternalLink || storedFile.fileUrl || "";
     const previewUrl = cleanExternalLink || storedFile.previewUrl || fileUrl;
@@ -500,7 +505,7 @@ export async function uploadResource(req, res, next) {
       categoryId: categoryKey,
       title: cleanedTitle,
       description: cleanedDescription,
-      textContent: cleanedText,
+      textContent: finalTextContent,
       fileOriginalName,
       fileStoredName: storedFile.fileStoredName,
       fileMimeType,

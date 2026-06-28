@@ -1,20 +1,33 @@
 import { env } from "../../config/env.js";
 
 function buildSystemPrompt({ intent = "general", contextSummary = "", historySummary = "" }) {
+  const intentInstructions = {
+    "lecture-summary": "Summarize the lecture content clearly with key concepts, definitions, and important points.",
+    "pyq-answer": "Answer in the style of a model exam answer. Be structured, precise, and exam-ready.",
+    "study-recommendations": "Give actionable, prioritized study tips based on the available material and student's history.",
+    "general": "Answer the academic question thoroughly using the provided campus resources."
+  };
+
+  const intentGuide = intentInstructions[intent] || intentInstructions["general"];
+
   return [
-    "You are an academic assistant for college students.",
-    "Prefer the supplied campus resources over general knowledge when relevant.",
-    `Current task intent: ${intent}.`,
-    contextSummary ? `Campus resource context:\n${contextSummary}` : "No campus resource context was found.",
-    historySummary ? `Recent conversation summary:\n${historySummary}` : "No prior conversation context.",
-    "Answer clearly and categorically.",
-    "Return strict JSON with keys:",
-    "title (string),",
-    "summary (string),",
-    "isIrrelevant (boolean, set to true ONLY if the question is completely off-topic or inappropriate for an academic assistant),",
-    "categories (array of objects with heading and points array),",
-    "externalLinks (array of objects with 'title' and 'url' strings, providing online web resources related to the concept if applicable or requested)."
-  ].join(" ");
+    "You are CampusBot, an expert academic assistant for college students.",
+    "Always prefer the supplied campus resources over your general knowledge.",
+    `Task: ${intentGuide}`,
+    contextSummary
+      ? `--- CAMPUS STUDY MATERIAL ---\n${contextSummary}\n--- END OF MATERIAL ---`
+      : "No campus study material was found for this query. Answer from general academic knowledge.",
+    historySummary
+      ? `--- RECENT CONVERSATION ---\n${historySummary}\n--- END OF CONVERSATION ---`
+      : "",
+    "Rules: Be concise, structured, and factually accurate.",
+    "Return ONLY strict JSON with these exact keys:",
+    "title (string - a short descriptive title for the answer),",
+    "summary (string - 2-4 sentence overview),",
+    "isIrrelevant (boolean - true ONLY if completely off-topic or inappropriate),",
+    "categories (array of objects, each with 'heading' string and 'points' string array),",
+    "externalLinks (array of objects with 'title' and 'url', for relevant online resources)."
+  ].filter(Boolean).join(" ");
 }
 
 function parseAiJson(rawText) {
@@ -199,7 +212,7 @@ async function callAnthropic(question, prompt) {
 
 export function summarizeHistory(historyItems = []) {
   return historyItems
-    .slice(0, 3)
+    .slice(0, 5)
     .map((item, index) => `Q${index + 1}: ${item.question}\nA${index + 1}: ${item.answer?.summary || ""}`)
     .join("\n\n");
 }
@@ -209,18 +222,18 @@ export function summarizeContextResources(resources = []) {
     .slice(0, 5)
     .map((resource, index) => {
       const snippet =
-        resource.textContent?.slice(0, 700) ||
-        resource.description?.slice(0, 300) ||
+        resource.textContent?.slice(0, 1200) ||
+        resource.description?.slice(0, 400) ||
         resource.title;
 
       return [
         `Source ${index + 1}: ${resource.title}`,
         `Category: ${resource.categoryId}`,
         `Academic path: ${resource.programId} / ${resource.branchId} / ${resource.semesterId} / ${resource.subjectId}`,
-        `Snippet: ${snippet}`
+        `Content:\n${snippet}`
       ].join("\n");
     })
-    .join("\n\n");
+    .join("\n\n---\n\n");
 }
 
 function providerConfigStatus() {
