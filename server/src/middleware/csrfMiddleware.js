@@ -11,6 +11,19 @@ function getCsrfTokenFromCookies(req) {
   return decodeURIComponent(match.substring("csrf_token=".length));
 }
 
+function isTrustedOrigin(req) {
+  const origin = (req.headers.origin || "").replace(/\/$/, "").toLowerCase();
+  const clientUrl = (env.clientUrl || "").replace(/\/$/, "").toLowerCase();
+
+  if (!origin || !clientUrl) return false;
+
+  const stripProtocol = (url) => url.replace(/^https?:\/\//, "");
+  return (
+    origin === clientUrl ||
+    stripProtocol(origin) === stripProtocol(clientUrl)
+  );
+}
+
 export function csrfMiddleware(req, res, next) {
   // Bypass CSRF protection for testing to not break existing test suite
   if (env.nodeEnv === "test") {
@@ -22,6 +35,14 @@ export function csrfMiddleware(req, res, next) {
     return next();
   }
 
+  // If the request comes from our trusted Vercel frontend origin,
+  // CORS already validates the origin — no need for cookie double-submit.
+  // This handles cross-origin Vercel + Render deployments correctly.
+  if (isTrustedOrigin(req)) {
+    return next();
+  }
+
+  // For all other origins, enforce the double-submit cookie pattern
   const tokenFromCookie = getCsrfTokenFromCookies(req);
   const tokenFromHeader = req.headers["x-csrf-token"];
 
