@@ -6,6 +6,7 @@ import { CollegeCourse } from "../governance/governance.model.js";
 import path from "path";
 import { uploadDirectory } from "../../middleware/uploadMiddleware.js";
 import { createAuditLog } from "../../services/audit.service.js";
+import { awardReputation } from "../../services/reputation.service.js";
 import { removeStoredFile, storeUploadedFile } from "../../services/resourceStorage.service.js";
 import { sendAdminNotification } from "../../services/email.service.js";
 import { removeTempFile, scanFileForMalware } from "../../services/malwareScan.service.js";
@@ -532,6 +533,13 @@ export async function uploadResource(req, res, next) {
       }
     });
 
+    await awardReputation({
+      userId: req.user.id,
+      points: 5,
+      reason: "Uploaded a new resource",
+      req
+    });
+
     const createdResource = await Resource.findById(resource._id).populate("uploadedBy", "fullName role");
     const accessContext = await loadCrossCollegeAccessContext(req.user);
     res.status(201).json({ success: true, data: serializeResourceForClient(createdResource, req, req.user, accessContext) });
@@ -787,6 +795,10 @@ export async function deleteResource(req, res, next) {
         subjectId: resource.subjectId
       }
     });
+
+    const penalty = isAdmin && !isOwner ? -20 : -5;
+    const reason = isAdmin && !isOwner ? "Resource deleted by admin (spam/violation)" : "Resource deleted by user";
+    await awardReputation({ userId: resource.uploadedBy, points: penalty, reason, req });
 
     res.json({ success: true, message: "Resource deleted successfully." });
   } catch (error) {

@@ -5,7 +5,9 @@ import { User } from "../auth/auth.model.js";
 import { Notice } from "../notices/notice.model.js";
 import { Quiz } from "../quizzes/quiz.model.js";
 import { Resource } from "../resources/resource.model.js";
+import { sendAdminNotification } from "../../services/email.service.js";
 import { createAuditLog } from "../../services/audit.service.js";
+import { awardReputation } from "../../services/reputation.service.js";
 import { sendEmail } from "../../services/email.service.js";
 import { removeStoredFile } from "../../services/resourceStorage.service.js";
 import {
@@ -566,6 +568,13 @@ export async function createApprovedCollegeCourse(req, res, next) {
       metadata: { collegeName: result.course.collegeName, courseName: result.course.courseName }
     });
 
+    await awardReputation({
+      userId: req.user.id,
+      points: 25,
+      reason: "Added a new college course structure",
+      req
+    });
+
     res.status(201).json({ success: true, data: result.populatedCourse });
   } catch (error) {
     next(error);
@@ -1096,6 +1105,13 @@ export async function upsertCollegeProfile(req, res, next) {
       entityType: "college_profile",
       entityId: profile._id,
       metadata: { collegeName: profile.collegeName }
+    });
+
+    await awardReputation({
+      userId: req.user.id,
+      points: 25,
+      reason: "Updated college profile details",
+      req
     });
 
     res.json({ success: true, data: profile });

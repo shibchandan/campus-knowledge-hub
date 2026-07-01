@@ -159,7 +159,14 @@ export function DashboardLayout() {
             </div>
             <div className="sidebar-user-details">
               <p className="sidebar-user-name">{user?.fullName || "Guest User"}</p>
-              <p className="sidebar-user-role">{user?.role || "Visitor"}</p>
+              <p className="sidebar-user-role">
+                {user?.role || "Visitor"}
+                {user && (
+                  <span title="Reputation Points" style={{ marginLeft: "6px", color: "#f59e0b" }}>
+                    ⭐ {user.reputationScore || 0}
+                  </span>
+                )}
+              </p>
             </div>
           </div>
         </div>
@@ -194,7 +201,14 @@ export function DashboardLayout() {
               </div>
             )}
             <div>
-              <p className="user-name">{user?.fullName || "Guest User"}</p>
+              <p className="user-name">
+                {user?.fullName || "Guest User"}
+                {user && (
+                  <span title="Reputation Points" style={{ marginLeft: "8px", fontSize: "0.85em", color: "#f59e0b" }}>
+                    ⭐ {user.reputationScore || 0}
+                  </span>
+                )}
+              </p>
               <p className="muted">{user?.email || "Browse Mode"}</p>
               <p className="topbar-meta">{user?.role || "visitor"} account</p>
             </div>

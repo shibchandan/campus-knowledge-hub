@@ -3,6 +3,35 @@ import { createHttpError, readEnum, readMongoId, readPositiveInt, readString } f
 import { Rating } from "./rating.model.js";
 import { ResourceComment } from "./resourceComment.model.js";
 import { requirePasswordConfirmation } from "../../utils/passwordConfirmation.js";
+import { awardReputation } from "../../services/reputation.service.js";
+
+async function getResourceOwnerId(resourceType, resourceId) {
+  try {
+    if (resourceType === "resource") {
+      const { Resource } = await import("../resources/resource.model.js");
+      const res = await Resource.findById(resourceId).select("uploadedBy");
+      return res?.uploadedBy;
+    }
+    if (resourceType === "marketplace-item") {
+      const { MarketplaceItem } = await import("../marketplace/marketplace.model.js");
+      const res = await MarketplaceItem.findById(resourceId).select("seller");
+      return res?.seller;
+    }
+    if (resourceType === "lecture") {
+      const { Lecture } = await import("../lectures/lecture.model.js");
+      const res = await Lecture.findById(resourceId).select("professor");
+      return res?.professor;
+    }
+    if (resourceType === "note") {
+      const { Note } = await import("../notes/note.model.js");
+      const res = await Note.findById(resourceId).select("author");
+      return res?.author;
+    }
+  } catch (err) {
+    console.error("Error finding resource owner:", err);
+  }
+  return null;
+}
 
 function readFeedbackResource(req) {
   const resourceType = readEnum(req.body.resourceType || req.query.resourceType, {
@@ -33,10 +62,39 @@ export async function createRating(req, res, next) {
         })
       : 0;
 
+    const existingRating = await Rating.findOne({ resourceType, resourceId, user: req.user.id });
+
     if (!stars && vote === "neutral") {
+      if (existingRating) {
+        let revertDiff = 0;
+        if (existingRating.vote === "upvote") revertDiff = -2;
+        else if (existingRating.vote === "downvote") revertDiff = 1;
+
+        if (revertDiff !== 0) {
+          const ownerId = await getResourceOwnerId(resourceType, resourceId);
+          if (ownerId && ownerId.toString() !== req.user.id) {
+            await awardReputation({ userId: ownerId, points: revertDiff, reason: "Rating removed from resource", req });
+          }
+        }
+      }
       await Rating.deleteOne({ resourceType, resourceId, user: req.user.id });
       res.status(200).json({ success: true, message: "Rating removed.", data: null });
       return;
+    }
+
+    let pointDiff = 0;
+    // Apply new vote impact
+    if (vote === "upvote" && (!existingRating || existingRating.vote !== "upvote")) {
+      pointDiff += 2;
+    } else if (vote === "downvote" && (!existingRating || existingRating.vote !== "downvote")) {
+      pointDiff -= 1;
+    }
+
+    // Revert old vote impact
+    if (existingRating && existingRating.vote === "upvote" && vote !== "upvote") {
+      pointDiff -= 2;
+    } else if (existingRating && existingRating.vote === "downvote" && vote !== "downvote") {
+      pointDiff += 1;
     }
 
     const rating = await Rating.findOneAndUpdate(
@@ -53,6 +111,18 @@ export async function createRating(req, res, next) {
         setDefaultsOnInsert: true
       }
     );
+
+    if (pointDiff !== 0) {
+      const ownerId = await getResourceOwnerId(resourceType, resourceId);
+      if (ownerId && ownerId.toString() !== req.user.id) {
+        await awardReputation({ 
+          userId: ownerId, 
+          points: pointDiff, 
+          reason: pointDiff > 0 ? "Received an upvote on a resource" : "Upvote removed or changed from resource",
+          req 
+        });
+      }
+    }
 
     res.status(201).json({ success: true, data: rating });
   } catch (error) {
@@ -152,6 +222,14 @@ export async function addComment(req, res, next) {
       comment,
       user: req.user.id
     });
+
+    await awardReputation({
+      userId: req.user.id,
+      points: 1,
+      reason: "Posted a comment on a resource",
+      req
+    });
+
     const populated = await ResourceComment.findById(saved._id).populate("user", "fullName role");
 
     res.status(201).json({ success: true, data: populated });
@@ -178,6 +256,11 @@ export async function deleteComment(req, res, next) {
     }
 
     await comment.deleteOne();
+
+    const penalty = isAdmin && !isOwner ? -5 : -1;
+    const reason = isAdmin && !isOwner ? "Comment deleted by admin (spam/violation)" : "Comment deleted by user";
+    await awardReputation({ userId: comment.user, points: penalty, reason, req });
+
     res.json({ success: true, message: "Comment deleted." });
   } catch (error) {
     next(error);
