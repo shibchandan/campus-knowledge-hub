@@ -5403,3 +5403,86 @@ html[data-theme="dark"] .analytics-card.gradient-success {
   color: #94a3b8 !important;
   opacity: 1;
 }
+
+/* ============================================================
+ * COLLAPSED SIDEBAR (Hide & Seek)
+ * ============================================================ */
+
+/* Sidebar Toggle Button */
+.sidebar-collapse-toggle {
+  position: absolute;
+  top: 32px;
+  right: -14px;
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  background: var(--sidebar-bg);
+  border: 1px solid var(--sidebar-border);
+  color: var(--glass-text-secondary);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 10px;
+  cursor: pointer;
+  z-index: 100;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+  transition: all 0.2s ease;
+}
+
+.sidebar-collapse-toggle:hover {
+  background: var(--sidebar-glass);
+  color: var(--color-primary);
+  transform: scale(1.1);
+}
+
+@media (min-width: 901px) {
+  .shell {
+    transition: grid-template-columns 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  }
+
+  .shell.sidebar-collapsed {
+    grid-template-columns: 88px 1fr;
+  }
+  
+  .shell.sidebar-collapsed .sidebar {
+    padding: 28px 12px;
+    width: 88px;
+  }
+  
+  .shell.sidebar-collapsed .sidebar-brand-text,
+  .shell.sidebar-collapsed .sidebar-brand-desc,
+  .shell.sidebar-collapsed .nav-section-label,
+  .shell.sidebar-collapsed .nav-link-text,
+  .shell.sidebar-collapsed .sidebar-user-details {
+    display: none;
+  }
+  
+  .shell.sidebar-collapsed .sidebar-brand-row {
+    justify-content: center;
+  }
+  
+  .shell.sidebar-collapsed .sidebar-logo-box {
+    margin: 0;
+  }
+  
+  .shell.sidebar-collapsed .nav-link {
+    justify-content: center;
+    padding: 12px;
+  }
+  
+  .shell.sidebar-collapsed .nav-link-icon {
+    font-size: 1.25rem;
+    margin: 0;
+  }
+  
+  .shell.sidebar-collapsed .sidebar-user-info {
+    justify-content: center;
+    padding: 10px;
+  }
+}
+
+@media (max-width: 900px) {
+  .sidebar-collapse-toggle {
+    display: none;
+  }
+}

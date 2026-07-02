@@ -40,6 +40,18 @@ const navSections = [
 
 export function DashboardLayout() {
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
+  const [isSidebarCollapsed, setIsSidebarCollapsed] = useState(() => {
+    return localStorage.getItem("sidebarCollapsed") === "true";
+  });
+  
+  const toggleSidebarCollapse = () => {
+    setIsSidebarCollapsed(prev => {
+      const newVal = !prev;
+      localStorage.setItem("sidebarCollapsed", newVal);
+      return newVal;
+    });
+  };
+
   const { user, logout } = useAuth();
   const { selectedCollege } = useCollege();
   const { theme, toggleTheme } = useTheme();
@@ -94,7 +106,7 @@ export function DashboardLayout() {
     : "G";
 
   return (
-    <div className={isSidebarOpen ? "shell sidebar-open" : "shell"}>
+    <div className={`shell ${isSidebarOpen ? "sidebar-open" : ""} ${isSidebarCollapsed ? "sidebar-collapsed" : ""}`.trim()}>
       {isSidebarOpen ? (
         <button
           aria-label="Close menu overlay"
@@ -112,6 +124,15 @@ export function DashboardLayout() {
           type="button"
         >
           Close
+        </button>
+        
+        <button
+          className="sidebar-collapse-toggle"
+          onClick={toggleSidebarCollapse}
+          aria-label={isSidebarCollapsed ? "Expand sidebar" : "Collapse sidebar"}
+          type="button"
+        >
+          {isSidebarCollapsed ? "❯" : "❮"}
         </button>
 
         <div className="sidebar-brand-section">
@@ -139,9 +160,10 @@ export function DashboardLayout() {
                   to={link.to}
                   onClick={() => setIsSidebarOpen(false)}
                   className={({ isActive }) => (isActive ? "nav-link active" : "nav-link")}
+                  title={isSidebarCollapsed ? link.label : undefined}
                 >
                   <span className="nav-link-icon">{link.icon}</span>
-                  {link.label}
+                  <span className="nav-link-text">{link.label}</span>
                 </NavLink>
               ))}
             </div>
