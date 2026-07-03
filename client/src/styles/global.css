@@ -5410,9 +5410,9 @@ html[data-theme="dark"] .analytics-card.gradient-success {
 
 /* Sidebar Toggle Button */
 .sidebar-collapse-toggle {
-  position: absolute;
+  position: fixed;
   top: 32px;
-  right: -14px;
+  left: 266px;
   width: 28px;
   height: 28px;
   border-radius: 50%;
@@ -5442,6 +5442,10 @@ html[data-theme="dark"] .analytics-card.gradient-success {
 
   .shell.sidebar-collapsed {
     grid-template-columns: 88px 1fr;
+  }
+  
+  .shell.sidebar-collapsed .sidebar-collapse-toggle {
+    left: 74px;
   }
   
   .shell.sidebar-collapsed .sidebar {
