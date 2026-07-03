@@ -125,15 +125,6 @@ export function DashboardLayout() {
         >
           Close
         </button>
-        
-        <button
-          className="sidebar-collapse-toggle"
-          onClick={toggleSidebarCollapse}
-          aria-label={isSidebarCollapsed ? "Expand sidebar" : "Collapse sidebar"}
-          type="button"
-        >
-          {isSidebarCollapsed ? "❯" : "❮"}
-        </button>
 
         <div className="sidebar-brand-section">
           <div className="sidebar-brand-row">
@@ -193,6 +184,15 @@ export function DashboardLayout() {
           </div>
         </div>
       </aside>
+
+      <button
+        className="sidebar-collapse-toggle"
+        onClick={toggleSidebarCollapse}
+        aria-label={isSidebarCollapsed ? "Expand sidebar" : "Collapse sidebar"}
+        type="button"
+      >
+        {isSidebarCollapsed ? "❯" : "❮"}
+      </button>
 
       <main className="content">
         <div className="topbar">
