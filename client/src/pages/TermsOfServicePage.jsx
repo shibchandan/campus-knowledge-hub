@@ -46,7 +46,7 @@ export function TermsOfServicePage() {
       {/* Hero Header */}
       <div style={{
         background: "linear-gradient(135deg, rgba(236,72,153,0.1) 0%, rgba(245,158,11,0.1) 100%)",
-        borderBottom: "1px solid rgba(255,255,255,0.05)",
+        borderBottom: "1px solid var(--glass-border)",
         padding: "4rem 2rem 3rem",
         position: "relative",
         overflow: "hidden"
@@ -62,10 +62,10 @@ export function TermsOfServicePage() {
           <button 
             onClick={() => navigate(-1)}
             style={{
-              background: "rgba(255,255,255,0.05)",
+              background: "var(--glass-bg)",
               backdropFilter: "blur(10px)",
               color: "var(--color-text-primary)",
-              border: "1px solid rgba(255,255,255,0.1)",
+              border: "1px solid var(--glass-border)",
               borderRadius: "20px",
               padding: "0.5rem 1rem",
               cursor: "pointer",
@@ -76,8 +76,8 @@ export function TermsOfServicePage() {
               fontSize: "0.9rem",
               transition: "all 0.2s"
             }}
-            onMouseOver={e => e.currentTarget.style.background = "rgba(255,255,255,0.1)"}
-            onMouseOut={e => e.currentTarget.style.background = "rgba(255,255,255,0.05)"}
+            onMouseOver={e => e.currentTarget.style.background = "var(--glass-bg-hover)"}
+            onMouseOut={e => e.currentTarget.style.background = "var(--glass-bg)"}
           >
             &larr; Back to Platform
           </button>
@@ -162,54 +162,54 @@ export function TermsOfServicePage() {
         <div style={{ flex: 1, lineHeight: "1.8", fontSize: "1.05rem" }}>
           
           <div id="acceptance" className="policy-section" style={{ marginBottom: "4rem" }}>
-            <h2 style={{ fontSize: "2rem", color: "#f8fafc", margin: "0 0 1.5rem 0", display: "flex", alignItems: "center", gap: "1rem" }}>
+            <h2 style={{ fontSize: "2rem", color: "var(--glass-text-primary)", margin: "0 0 1.5rem 0", display: "flex", alignItems: "center", gap: "1rem" }}>
               <span style={{ padding: "0.5rem", background: "rgba(59,130,246,0.1)", borderRadius: "12px", color: "#60a5fa" }}>🤝</span>
               1. Acceptance of Terms
             </h2>
-            <p style={{ color: "#cbd5e1", marginBottom: "1.5rem", background: "rgba(30, 41, 59, 0.4)", padding: "1.5rem", borderRadius: "12px", border: "1px solid rgba(255,255,255,0.05)" }}>
+            <p style={{ color: "var(--glass-text-secondary)", marginBottom: "1.5rem", background: "var(--glass-bg)", padding: "1.5rem", borderRadius: "12px", border: "1px solid var(--glass-border)" }}>
               By accessing or using Campus Knowledge Hub, you agree to be bound by these Terms of Service. If you do not agree, please do not use our services.
             </p>
           </div>
 
           <div id="accounts" className="policy-section" style={{ marginBottom: "4rem" }}>
-            <h2 style={{ fontSize: "2rem", color: "#f8fafc", margin: "0 0 1.5rem 0", display: "flex", alignItems: "center", gap: "1rem" }}>
+            <h2 style={{ fontSize: "2rem", color: "var(--glass-text-primary)", margin: "0 0 1.5rem 0", display: "flex", alignItems: "center", gap: "1rem" }}>
               <span style={{ padding: "0.5rem", background: "rgba(167,139,250,0.1)", borderRadius: "12px", color: "#a78bfa" }}>👤</span>
               2. User Accounts
             </h2>
-            <p style={{ color: "#cbd5e1", marginBottom: "1.5rem" }}>
+            <p style={{ color: "var(--glass-text-secondary)", marginBottom: "1.5rem" }}>
               You are responsible for maintaining the security of your account and password. The platform cannot and will not be liable for any loss or damage from your failure to comply with this security obligation.
             </p>
           </div>
 
           <div id="acceptable" className="policy-section" style={{ marginBottom: "4rem" }}>
-            <h2 style={{ fontSize: "2rem", color: "#f8fafc", margin: "0 0 1.5rem 0", display: "flex", alignItems: "center", gap: "1rem" }}>
+            <h2 style={{ fontSize: "2rem", color: "var(--glass-text-primary)", margin: "0 0 1.5rem 0", display: "flex", alignItems: "center", gap: "1rem" }}>
               <span style={{ padding: "0.5rem", background: "rgba(16,185,129,0.1)", borderRadius: "12px", color: "#10b981" }}>✅</span>
               3. Acceptable Use
             </h2>
-            <p style={{ color: "#cbd5e1", marginBottom: "1.5rem" }}>
+            <p style={{ color: "var(--glass-text-secondary)", marginBottom: "1.5rem" }}>
               You agree not to use the platform for any illegal or unauthorized purpose. You must not violate any laws in your jurisdiction (including but not limited to copyright laws).
             </p>
-            <p style={{ color: "#cbd5e1", background: "rgba(16,185,129,0.05)", borderLeft: "4px solid #10b981", padding: "1.5rem", borderRadius: "0 12px 12px 0" }}>
+            <p style={{ color: "var(--glass-text-secondary)", background: "rgba(16,185,129,0.05)", borderLeft: "4px solid #10b981", padding: "1.5rem", borderRadius: "0 12px 12px 0" }}>
               For representatives managing college profiles, you agree to post accurate and verified information regarding branches, cut-offs, and placements.
             </p>
           </div>
 
           <div id="termination" className="policy-section" style={{ marginBottom: "4rem" }}>
-            <h2 style={{ fontSize: "2rem", color: "#f8fafc", margin: "0 0 1.5rem 0", display: "flex", alignItems: "center", gap: "1rem" }}>
+            <h2 style={{ fontSize: "2rem", color: "var(--glass-text-primary)", margin: "0 0 1.5rem 0", display: "flex", alignItems: "center", gap: "1rem" }}>
               <span style={{ padding: "0.5rem", background: "rgba(239,68,68,0.1)", borderRadius: "12px", color: "#ef4444" }}>🚫</span>
               4. Termination
             </h2>
-            <p style={{ color: "#cbd5e1", marginBottom: "1.5rem" }}>
+            <p style={{ color: "var(--glass-text-secondary)", marginBottom: "1.5rem" }}>
               We reserve the right to suspend or terminate your account at any time, with or without cause, including for any violation of these Terms of Service.
             </p>
           </div>
 
           <div id="disclaimer" className="policy-section" style={{ marginBottom: "4rem" }}>
-            <h2 style={{ fontSize: "2rem", color: "#f8fafc", margin: "0 0 1.5rem 0", display: "flex", alignItems: "center", gap: "1rem" }}>
+            <h2 style={{ fontSize: "2rem", color: "var(--glass-text-primary)", margin: "0 0 1.5rem 0", display: "flex", alignItems: "center", gap: "1rem" }}>
               <span style={{ padding: "0.5rem", background: "rgba(245,158,11,0.1)", borderRadius: "12px", color: "#f59e0b" }}>⚠️</span>
               5. Disclaimer of Warranties
             </h2>
-            <p style={{ color: "#cbd5e1", marginBottom: "1.5rem" }}>
+            <p style={{ color: "var(--glass-text-secondary)", marginBottom: "1.5rem" }}>
               The service is provided "as is". We make no warranties, expressed or implied, and hereby disclaim all warranties, including without limitation, implied warranties or conditions of merchantability or fitness for a particular purpose.
             </p>
           </div>
