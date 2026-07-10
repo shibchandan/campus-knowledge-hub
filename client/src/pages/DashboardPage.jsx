@@ -327,7 +327,8 @@ export function DashboardPage() {
           id: program.id,
           name: program.name,
           branch: branchCount > 0 ? `${branchCount} active branch${branchCount === 1 ? "" : "es"}` : "No branches configured yet.",
-          description: "Open this course to manage branch, semester, and subject flow."
+          description: "Open this course to manage branch, semester, and subject flow.",
+          branches: program.branches
         };
       });
     }
@@ -921,32 +922,60 @@ export function DashboardPage() {
               />
               <p className="muted">{filteredPrograms.length} programs visible</p>
             </div>
-            <div className="program-grid" style={{
-              display: "grid",
-              gridTemplateColumns: "repeat(auto-fit, minmax(320px, 1fr))",
-              gap: "1.5rem"
-            }}>
+            <div className="workspace-programs-list" style={{ display: "flex", flexDirection: "column", gap: "2rem" }}>
               {filteredPrograms.map((program) => (
-                <Link
-                  className="branch-card program-link branch-card-enhanced"
-                  key={program.id}
-                  to={`/dashboard/${program.id}`}
-                >
-                  <div className="branch-card-accent" />
-                  <div className="branch-card-body">
-                    <div className="branch-card-top-row">
-                      <span className="branch-icon">🏛️</span>
-                      <span className="branch-program-tag">Course</span>
+                <div key={program.id} className="workspace-program-block">
+                  <div style={{ display: "flex", alignItems: "center", gap: "0.75rem", marginBottom: "1rem" }}>
+                    <span className="branch-icon">🏛️</span>
+                    <span className="branch-program-tag">Course</span>
+                    <h3 className="branch-card-name" style={{ margin: 0 }}>{program.name}</h3>
+                    <span className="muted" style={{ fontSize: "0.85rem", marginLeft: "auto" }}>{program.branch}</span>
+                  </div>
+
+                  {program.branches && program.branches.length > 0 ? (
+                    <div className="branch-grid" style={{
+                      display: "grid",
+                      gridTemplateColumns: "repeat(auto-fit, minmax(300px, 1fr))",
+                      gap: "1rem"
+                    }}>
+                      {program.branches.map((branch) => (
+                        <Link
+                          className="branch-card program-link branch-card-enhanced"
+                          key={branch.id}
+                          to={`/dashboard/${program.id}/branch/${branch.id}`}
+                        >
+                          <div className="branch-card-accent" />
+                          <div className="branch-card-body">
+                            <div className="branch-card-top-row">
+                              <span className="branch-icon">🖥️</span>
+                              <span className="branch-program-tag">{program.name}</span>
+                            </div>
+                            <h3 className="branch-card-name">{branch.name}</h3>
+                            <p className="muted branch-card-desc">{branch.description}</p>
+                          </div>
+                          <div className="branch-card-footer">
+                            <span className="branch-open-label">Open Semesters</span>
+                            <span className="branch-open-arrow">→</span>
+                          </div>
+                        </Link>
+                      ))}
                     </div>
-                    <h3 className="branch-card-name">{program.name}</h3>
-                    <p className="muted branch-card-desc" style={{ marginBottom: "0.25rem" }}>{program.branch}</p>
-                    {program.description ? <p className="muted branch-card-desc" style={{ fontSize: "0.85rem", opacity: 0.8 }}>{program.description}</p> : null}
-                  </div>
-                  <div className="branch-card-footer">
-                    <span className="branch-open-label">Open Course Flow</span>
-                    <span className="branch-open-arrow">→</span>
-                  </div>
-                </Link>
+                  ) : (
+                    <Link
+                      className="branch-card program-link branch-card-enhanced"
+                      to={`/dashboard/${program.id}`}
+                    >
+                      <div className="branch-card-accent" />
+                      <div className="branch-card-body">
+                        <p className="muted branch-card-desc">{program.description}</p>
+                      </div>
+                      <div className="branch-card-footer">
+                        <span className="branch-open-label">Open Course Flow</span>
+                        <span className="branch-open-arrow">→</span>
+                      </div>
+                    </Link>
+                  )}
+                </div>
               ))}
             </div>
           </SectionCard>
