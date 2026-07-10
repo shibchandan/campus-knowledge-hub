@@ -894,7 +894,7 @@ export function SubjectCategoryPage() {
   
   const breadcrumbItems = [
     { label: "Dashboard", href: "/dashboard" },
-    { label: programName || "Program", href: `/dashboard/${programId}` },
+    { label: programName || "Program", href: "/dashboard" },
     { label: branchName || "Branch", href: `/dashboard/${programId}/branch/${branchId}` },
     { label: subject.name || "Subject", href: `/dashboard/${programId}/branch/${branchId}/${semesterId}/${subjectId}` },
     { label: categoryTitle || "Category", href: `/dashboard/${programId}/branch/${branchId}/${semesterId}/${subjectId}/${categoryId}` }

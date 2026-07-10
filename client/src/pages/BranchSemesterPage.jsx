@@ -303,7 +303,7 @@ export function BranchSemesterPage() {
   
   const breadcrumbItems = [
     { label: "Dashboard", href: "/dashboard" },
-    { label: program?.name || "Program", href: `/dashboard/${programId}` },
+    { label: program?.name || "Program", href: "/dashboard" },
     { label: branch?.name || "Branch", href: `/dashboard/${programId}/branch/${branchId}` }
   ];
 
@@ -325,8 +325,8 @@ export function BranchSemesterPage() {
               <p className="muted">This branch and semester structure is managed from the database.</p>
             ) : null}
           </div>
-          <Link className="back-link" to={`/dashboard/${programId}`}>
-            Back to branches
+          <Link className="back-link" to="/dashboard">
+            Back to dashboard
           </Link>
         </div>
       </SectionCard>
