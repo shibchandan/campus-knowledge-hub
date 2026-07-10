@@ -176,6 +176,13 @@ export function DashboardPage() {
   const [lastCreatedSubject, setLastCreatedSubject] = useState(null);
   const [courseForm, setCourseForm] = useState({ courseName: "" });
   const [courseBusy, setCourseBusy] = useState(false);
+  const [branchForm, setBranchForm] = useState({
+    programId: "",
+    branchName: "",
+    branchDescription: "",
+    semesterCount: 8
+  });
+  const [branchBusy, setBranchBusy] = useState(false);
 
   async function reloadApprovedCourses() {
     if (!selectedCollege?.name) {
@@ -565,6 +572,50 @@ export function DashboardPage() {
       showError(requestError.response?.data?.message || "Failed to add course.");
     } finally {
       setCourseBusy(false);
+    }
+  }
+
+  async function handleCreateBranch(event) {
+    event.preventDefault();
+
+    const selectedProgram = structures.find((p) => p.id === branchForm.programId);
+    if (!selectedCollege?.name || !selectedProgram) {
+      showError("Choose a college and program first.");
+      return;
+    }
+
+    setBranchBusy(true);
+
+    try {
+      const branchId = slugify(branchForm.branchName);
+      const semesterCount = Number(branchForm.semesterCount || 0);
+
+      for (let index = 1; index <= semesterCount; index += 1) {
+        await apiClient.post("/academic/structures", {
+          collegeName: selectedCollege.name,
+          programId: selectedProgram.id,
+          programName: selectedProgram.name,
+          branchId,
+          branchName: branchForm.branchName,
+          branchDescription: branchForm.branchDescription,
+          semesterId: `semester-${index}`,
+          semesterName: `Semester ${index}`,
+          semesterOrder: index
+        });
+      }
+
+      setBranchForm({
+        programId: "",
+        branchName: "",
+        branchDescription: "",
+        semesterCount: 8
+      });
+      showSuccess("Branch and semesters created successfully.");
+      await reloadStructures();
+    } catch (requestError) {
+      showError(requestError.response?.data?.message || "Failed to create branch and semesters.");
+    } finally {
+      setBranchBusy(false);
     }
   }
 
@@ -982,7 +1033,7 @@ export function DashboardPage() {
 
           <SectionCard
             title="Academic Operations"
-            description="Manage course setup and quick subject creation without leaving the overview workspace."
+            description="Manage course setup and branch creation without leaving the overview workspace."
           >
             {!canManageOverviewSubjects ? (
               <p className="muted">Only admins and representatives can manage courses and subjects from this page.</p>
@@ -1062,38 +1113,27 @@ export function DashboardPage() {
                 <div className="overview-operation-pane">
                   <div className="overview-pane-header">
                     <div>
-                      <p className="overview-side-label">Quick subject creator</p>
-                      <h3>Add subjects to an existing semester</h3>
+                      <p className="overview-side-label">Branch creator</p>
+                      <h3>Add a branch to a course</h3>
                     </div>
-                    <p className="muted">Use this once branch and semester structure is already available.</p>
+                    <p className="muted">Create a branch with semesters. Subjects can be added from the branch page.</p>
                   </div>
                   {!selectedCollege ? <p className="muted">Choose a college first.</p> : null}
                   {selectedCollege && !structures.length ? (
                     <p className="muted">
-                      No branch-semester structure is available yet for this college. Create the academic structure from panel first.
+                      No course structure is available yet. Create a course first using the course manager.
                     </p>
                   ) : null}
                   {selectedCollege && structures.length ? (
-                    <form className="panel-form" onSubmit={handleQuickCreateSubject}>
+                    <form className="panel-form" onSubmit={handleCreateBranch}>
                       <div className="panel-form-grid">
                         <label className="auth-field">
                           <span>Program</span>
                           <select
                             onChange={(event) =>
-                              setQuickSubjectForm({
-                                programId: event.target.value,
-                                branchId:
-                                  structures.find((program) => program.id === event.target.value)?.branches?.[0]?.id ||
-                                  "",
-                                semesterId:
-                                  structures
-                                    .find((program) => program.id === event.target.value)
-                                    ?.branches?.[0]?.semesters?.[0]?.id || "",
-                                subjectName: quickSubjectForm.subjectName,
-                                subjectId: quickSubjectForm.subjectId
-                              })
+                              setBranchForm((current) => ({ ...current, programId: event.target.value }))
                             }
-                            value={quickSubjectForm.programId}
+                            value={branchForm.programId}
                           >
                             <option value="">Select program</option>
                             {structures.map((program) => (
@@ -1104,103 +1144,56 @@ export function DashboardPage() {
                           </select>
                         </label>
                         <label className="auth-field">
-                          <span>Branch</span>
-                          <select
+                          <span>Branch Name</span>
+                          <input
                             onChange={(event) =>
-                              setQuickSubjectForm((current) => ({
-                                ...current,
-                                branchId: event.target.value,
-                                semesterId:
-                                  selectedProgramStructure?.branches?.find((branch) => branch.id === event.target.value)
-                                    ?.semesters?.[0]?.id || ""
-                              }))
+                              setBranchForm((current) => ({ ...current, branchName: event.target.value }))
                             }
-                            value={quickSubjectForm.branchId}
-                          >
-                            <option value="">Select branch</option>
-                            {selectedProgramStructure?.branches?.map((branch) => (
-                              <option key={branch.id} value={branch.id}>
-                                {branch.name}
-                              </option>
-                            ))}
-                          </select>
+                            placeholder="Computer Science & Engineering"
+                            required
+                            type="text"
+                            value={branchForm.branchName}
+                          />
                         </label>
                         <label className="auth-field">
-                          <span>Semester</span>
-                          <select
+                          <span>Semester Count</span>
+                          <input
+                            min="1"
+                            max="20"
                             onChange={(event) =>
-                              setQuickSubjectForm((current) => ({ ...current, semesterId: event.target.value }))
+                              setBranchForm((current) => ({
+                                ...current,
+                                semesterCount: Number(event.target.value || 1)
+                              }))
                             }
-                            value={quickSubjectForm.semesterId}
-                      >
-                        <option value="">Select semester</option>
-                        {selectedBranchStructure?.semesters?.map((semester) => (
-                          <option key={semester.id} value={semester.id}>
-                            {semester.semester}
-                          </option>
-                        ))}
-                      </select>
-                    </label>
-                    <label className="auth-field">
-                      <span>Subject Name</span>
-                      <input
-                        onChange={(event) =>
-                          setQuickSubjectForm((current) => ({ ...current, subjectName: event.target.value }))
-                        }
-                        placeholder="Mathematics-I"
-                        required
-                        type="text"
-                        value={quickSubjectForm.subjectName}
-                      />
-                    </label>
-                    <label className="auth-field">
-                      <span>Subject ID</span>
-                      <input
-                        onChange={(event) =>
-                          setQuickSubjectForm((current) => ({ ...current, subjectId: event.target.value }))
-                        }
-                        placeholder="mathematics-1"
-                        type="text"
-                        value={quickSubjectForm.subjectId}
-                      />
-                    </label>
-                  </div>
-                  <div className="panel-actions">
-                    <button className="open-college-button" disabled={quickCreateBusy} type="submit">
-                      {quickCreateBusy ? "Creating Subject..." : "Create Subject From Overview"}
-                    </button>
-                  </div>
-                </form>
-              ) : null}
-              {quickCreateMessage ? (
-                <p className={lastCreatedSubject ? "muted" : "auth-error"}>{quickCreateMessage}</p>
-              ) : null}
-              {lastCreatedSubject &&
-              selectedProgramStructure &&
-              selectedBranchStructure &&
-              selectedSemesterStructure ? (
-                <div className="overview-created-subject">
-                  <div>
-                    <h4>{lastCreatedSubject.name}</h4>
-                    <p className="muted">
-                      {selectedProgramStructure.name} | {selectedBranchStructure.name} |{" "}
-                      {selectedSemesterStructure.semester}
-                    </p>
-                  </div>
-                  <div className="notes-focus-wrap">
-                    {defaultSubjectCategories.map((category) => (
-                      <Link
-                        className="notes-focus-chip"
-                        key={category.id}
-                        to={`/dashboard/${selectedProgramStructure.id}/branch/${selectedBranchStructure.id}/${selectedSemesterStructure.id}/${lastCreatedSubject.subjectId}/${category.id}`}
-                      >
-                        {category.label}
-                      </Link>
-                    ))}
-                  </div>
+                            required
+                            type="number"
+                            value={branchForm.semesterCount}
+                          />
+                        </label>
+                        <label className="auth-field">
+                          <span>Branch Description</span>
+                          <input
+                            onChange={(event) =>
+                              setBranchForm((current) => ({
+                                ...current,
+                                branchDescription: event.target.value
+                              }))
+                            }
+                            placeholder="Core computing program with systems, software, and theory."
+                            type="text"
+                            value={branchForm.branchDescription}
+                          />
+                        </label>
+                      </div>
+                      <div className="panel-actions">
+                        <button className="open-college-button" disabled={branchBusy} type="submit">
+                          {branchBusy ? "Creating Branch..." : "Add Branch With Semesters"}
+                        </button>
+                      </div>
+                    </form>
+                  ) : null}
                 </div>
-              ) : null}
-            </div>
           </div>
         )}
       </SectionCard>
