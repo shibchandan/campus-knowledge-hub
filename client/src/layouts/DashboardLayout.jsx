@@ -255,7 +255,7 @@ export function DashboardLayout() {
                   style={{
                     position: "absolute",
                     top: "100%",
-                    left: 0,
+                    right: 0,
                     marginTop: "8px",
                     width: "max-content",
                     minWidth: "220px",
