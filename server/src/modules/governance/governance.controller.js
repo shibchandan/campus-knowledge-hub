@@ -5,6 +5,7 @@ import { User } from "../auth/auth.model.js";
 import { Notice } from "../notices/notice.model.js";
 import { Quiz } from "../quizzes/quiz.model.js";
 import { Resource } from "../resources/resource.model.js";
+import { Notification } from "../notifications/notification.model.js";
 import { sendAdminNotification } from "../../services/email.service.js";
 import { createAuditLog } from "../../services/audit.service.js";
 import { awardReputation } from "../../services/reputation.service.js";
@@ -390,6 +391,21 @@ export async function decideCollegeRequest(req, res, next) {
         text: `Hello ${result.request.representative.fullName},\n\nCongratulations! Your request to be the representative for ${result.request.collegeName} has been approved by an administrator.\n\nYou can now log in to the Representative Panel to manage resources, structures, notices, and quizzes for your college.\n\nNote: ${decisionNote || "No note provided."}\n\nBest regards,\nCampus Knowledge Hub`,
         html: `<p>Hello ${escapeHtml(result.request.representative.fullName)},</p><p>Congratulations! Your request to be the representative for <strong>${escapeHtml(result.request.collegeName)}</strong> has been approved by an administrator.</p><p>You can now log in to the Representative Panel to manage resources, structures, notices, and quizzes for your college.</p><p><strong>Note:</strong> ${escapeHtml(decisionNote || "No note provided.")}</p><p>Best regards,<br/>Campus Knowledge Hub</p>`
       });
+
+      // --- In-App Notification ---
+      try {
+        await Notification.create({
+          recipientId: result.request.representative._id,
+          collegeName: result.request.collegeName,
+          title: "Representative Request Approved",
+          message: `Your request to be the representative for ${result.request.collegeName} has been approved.`,
+          type: "success",
+          link: "/panel/representative"
+        });
+      } catch (notifErr) {
+        console.error("Failed to send representative approval notification:", notifErr);
+      }
+      // ---------------------------
     }
 
     res.json({

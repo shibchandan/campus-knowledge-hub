@@ -5,6 +5,7 @@ import { PageTransition } from "../components/PageTransition";
 import { useAuth } from "../auth/AuthContext";
 import { useCollege } from "../college/CollegeContext";
 import { useTheme } from "../theme/ThemeContext";
+import { NotificationDropdown } from "../components/NotificationDropdown";
 import { apiClient } from "../lib/apiClient";
 import { GlobalSearch } from "../components/GlobalSearch";
 
@@ -250,6 +251,7 @@ export function DashboardLayout() {
               Search
               <kbd style={{ marginLeft: "8px", fontSize: "0.7rem", background: "var(--glass-bg-hover)", padding: "2px 6px", borderRadius: "4px" }}>⌘K</kbd>
             </button>
+            <NotificationDropdown />
 
             <button className="theme-button" onClick={toggleTheme} type="button">
               {theme === "dark" ? "Light Mode" : "Dark Mode"}

@@ -3,6 +3,8 @@ import { ResourceReport } from "./resourceReport.model.js";
 import { ResourceAccessPurchase } from "./resourceAccess.model.js";
 import { MarketplacePurchase } from "../marketplace/marketplace.model.js";
 import { CollegeCourse } from "../governance/governance.model.js";
+import { User } from "../auth/auth.model.js";
+import { Notification } from "../notifications/notification.model.js";
 import path from "path";
 import { uploadDirectory } from "../../middleware/uploadMiddleware.js";
 import { createAuditLog } from "../../services/audit.service.js";
@@ -532,6 +534,28 @@ export async function uploadResource(req, res, next) {
         visibility: resource.visibility
       }
     });
+
+    // --- Trigger Notifications to Students ---
+    if (["public", "protected"].includes(cleanedVisibility)) {
+      try {
+        const query = { role: "student", collegeName: cleanedCollegeName };
+        const students = await User.find(query).select("_id");
+        if (students.length > 0) {
+          const notificationsToInsert = students.map((student) => ({
+            recipientId: student._id,
+            collegeName: cleanedCollegeName,
+            title: `New Resource: ${cleanedTitle}`,
+            message: `A new resource was added to ${cleanedCollegeName}.`,
+            type: "info",
+            link: `/dashboard/${cleanedProgramId}/branch/${cleanedBranchId}/${cleanedSemesterId}/${cleanedSubjectId}/${categoryKey}`
+          }));
+          await Notification.insertMany(notificationsToInsert, { ordered: false }).catch(() => {});
+        }
+      } catch (notifErr) {
+        console.error("Failed to send resource upload notifications:", notifErr);
+      }
+    }
+    // -----------------------------------------
 
     await awardReputation({
       userId: req.user.id,
