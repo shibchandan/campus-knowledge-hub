@@ -1,6 +1,6 @@
 import { useState, useEffect, useRef } from "react";
 import { NavLink, Outlet, useNavigate, useLocation } from "react-router-dom";
-import { AnimatePresence } from "framer-motion";
+import { AnimatePresence, motion } from "framer-motion";
 import { PageTransition } from "../components/PageTransition";
 import { useAuth } from "../auth/AuthContext";
 import { useCollege } from "../college/CollegeContext";
