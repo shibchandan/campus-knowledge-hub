@@ -128,11 +128,17 @@ async function processBatch(resources) {
   let updated = 0;
   let skipped = 0;
 
+  const bulkOps = [];
   await Promise.all(
     resources.map(async (resource) => {
       const text = await extractText(resource);
       if (text) {
-        await Resource.updateOne({ _id: resource._id }, { $set: { textContent: text } });
+        bulkOps.push({
+          updateOne: {
+            filter: { _id: resource._id },
+            update: { $set: { textContent: text } }
+          }
+        });
         console.log(`  ✓ Extracted ${text.length} chars — "${resource.title}"`);
         updated++;
       } else {
@@ -141,6 +147,10 @@ async function processBatch(resources) {
       }
     })
   );
+
+  if (bulkOps.length > 0) {
+    await Resource.bulkWrite(bulkOps, { ordered: false });
+  }
 
   return { updated, skipped };
 }
