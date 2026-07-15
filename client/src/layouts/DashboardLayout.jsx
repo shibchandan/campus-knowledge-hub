@@ -251,11 +251,12 @@ export function DashboardLayout() {
               Search
               <kbd style={{ marginLeft: "8px", fontSize: "0.7rem", background: "var(--glass-bg-hover)", padding: "2px 6px", borderRadius: "4px" }}>⌘K</kbd>
             </button>
-            <NotificationDropdown />
-
-            <button className="theme-button" onClick={toggleTheme} type="button">
-              {theme === "dark" ? "Light Mode" : "Dark Mode"}
-            </button>
+            <div style={{ display: "flex", gap: "8px", width: "100%" }}>
+              <NotificationDropdown />
+              <button className="theme-button" onClick={toggleTheme} type="button" style={{ flex: 1 }}>
+                {theme === "dark" ? "Light Mode" : "Dark Mode"}
+              </button>
+            </div>
 
             {user ? (
               <button className="logout-button" onClick={logout} type="button">

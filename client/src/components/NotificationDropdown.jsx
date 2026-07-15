@@ -82,15 +82,17 @@ export function NotificationDropdown() {
         className="notification-bell-button"
         onClick={() => setIsOpen(!isOpen)}
         style={{
-          background: "none",
-          border: "none",
+          background: "var(--glass-bg)",
+          border: "1px solid var(--glass-border)",
+          borderRadius: "8px",
           cursor: "pointer",
           position: "relative",
-          padding: "8px",
+          padding: "6px 12px",
           display: "flex",
           alignItems: "center",
           justifyContent: "center",
-          color: "inherit"
+          color: "var(--color-slate-400-adaptive)",
+          height: "36px"
         }}
         aria-label="Notifications"
       >
@@ -127,13 +129,15 @@ export function NotificationDropdown() {
           marginTop: "8px",
           width: "320px",
           backgroundColor: "var(--color-bg-primary)",
+          color: "var(--color-text-primary)",
           border: "1px solid var(--color-border)",
-          borderRadius: "8px",
-          boxShadow: "0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05)",
-          zIndex: 50,
+          borderRadius: "12px",
+          boxShadow: "0 10px 25px -5px rgba(0, 0, 0, 0.3), 0 8px 10px -6px rgba(0, 0, 0, 0.1)",
+          zIndex: 1000,
           display: "flex",
           flexDirection: "column",
-          maxHeight: "400px"
+          maxHeight: "400px",
+          overflow: "hidden"
         }}>
           <div style={{
             padding: "12px 16px",
