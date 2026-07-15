@@ -661,6 +661,12 @@ export function SubjectCategoryPage() {
     setError("");
     setSuccess("");
 
+    // Optimistic Update
+    const previousResources = [...resources];
+    const previousPagination = { ...pagination };
+    setResources(resources.filter(r => r._id !== resourceId));
+    setPagination(prev => ({ ...prev, totalItems: Math.max(0, prev.totalItems - 1) }));
+
     try {
       await apiClient.delete(`/resources/${resourceId}`, { data: { currentPassword } });
       setSuccess("Resource deleted.");
@@ -668,9 +674,14 @@ export function SubjectCategoryPage() {
         setEditingResourceId("");
         setEditForm(initialEditForm);
       }
-      await loadResources(pagination.page);
       showInfo("Resource deleted.");
+      // Silent sync behind the scenes
+      loadResources(pagination.page);
     } catch (requestError) {
+      // Rollback on failure
+      setResources(previousResources);
+      setPagination(previousPagination);
+      
       const message = requestError.response?.data?.message || "Failed to delete resource.";
       setError(message);
       showError(message);
@@ -765,8 +776,31 @@ export function SubjectCategoryPage() {
       showInfo("Please sign in or register to access resources and features.");
       return;
     }
-    setFeedbackBusyByResource((current) => ({ ...current, [resourceId]: true }));
+    
     setError("");
+
+    // Optimistic Update
+    const previousFeedback = feedbackByResource[resourceId];
+    setFeedbackByResource((current) => {
+      const fb = current[resourceId] || { upvotes: 0, downvotes: 0, myVote: "none", myStars: 0, starSum: 0, totalRatings: 0, comments: [] };
+      const newFb = { ...fb };
+      
+      if (vote !== undefined) {
+        if (fb.myVote === "upvote") newFb.upvotes = Math.max(0, newFb.upvotes - 1);
+        if (fb.myVote === "downvote") newFb.downvotes = Math.max(0, newFb.downvotes - 1);
+        if (vote === "upvote") newFb.upvotes += 1;
+        if (vote === "downvote") newFb.downvotes += 1;
+        newFb.myVote = vote;
+      }
+      
+      if (stars !== undefined) {
+         if (fb.myStars === 0 && stars > 0) newFb.totalRatings += 1;
+         if (fb.myStars > 0 && stars === 0) newFb.totalRatings = Math.max(0, newFb.totalRatings - 1);
+         newFb.starSum = newFb.starSum - (fb.myStars || 0) + stars;
+         newFb.myStars = stars;
+      }
+      return { ...current, [resourceId]: newFb };
+    });
 
     try {
       await apiClient.post("/ratings", {
@@ -775,17 +809,18 @@ export function SubjectCategoryPage() {
         vote,
         stars
       });
-      const response = await apiClient.get("/ratings/summary", {
+      // Silent sync
+      apiClient.get("/ratings/summary", {
         params: { resourceType: "resource", resourceId, commentLimit: 5 }
-      });
-      setFeedbackByResource((current) => ({ ...current, [resourceId]: response.data.data }));
-      showSuccess("Feedback saved.");
+      }).then(response => {
+        setFeedbackByResource((current) => ({ ...current, [resourceId]: response.data.data }));
+      }).catch(() => {});
     } catch (requestError) {
+      // Rollback
+      setFeedbackByResource((current) => ({ ...current, [resourceId]: previousFeedback }));
       const message = requestError.response?.data?.message || "Failed to submit feedback.";
       setError(message);
       showError(message);
-    } finally {
-      setFeedbackBusyByResource((current) => ({ ...current, [resourceId]: false }));
     }
   }
 
@@ -800,8 +835,21 @@ export function SubjectCategoryPage() {
       return;
     }
 
-    setFeedbackBusyByResource((current) => ({ ...current, [resourceId]: true }));
     setError("");
+
+    // Optimistic Update
+    const previousFeedback = feedbackByResource[resourceId];
+    setFeedbackByResource((current) => {
+      const fb = current[resourceId] || { comments: [] };
+      const newComment = {
+        _id: "temp_" + Date.now(),
+        user: { _id: user.id, fullName: user.fullName, avatarUrl: user.avatarUrl, role: user.role },
+        comment,
+        createdAt: new Date().toISOString()
+      };
+      return { ...current, [resourceId]: { ...fb, comments: [newComment, ...(fb.comments || [])] } };
+    });
+    setCommentInputs((current) => ({ ...current, [resourceId]: "" }));
 
     try {
       await apiClient.post("/ratings/comments", {
@@ -809,18 +857,19 @@ export function SubjectCategoryPage() {
         resourceId,
         comment
       });
-      setCommentInputs((current) => ({ ...current, [resourceId]: "" }));
-      const response = await apiClient.get("/ratings/summary", {
+      // Silent sync
+      apiClient.get("/ratings/summary", {
         params: { resourceType: "resource", resourceId, commentLimit: 5 }
-      });
-      setFeedbackByResource((current) => ({ ...current, [resourceId]: response.data.data }));
-      showSuccess("Comment posted.");
+      }).then(response => {
+        setFeedbackByResource((current) => ({ ...current, [resourceId]: response.data.data }));
+      }).catch(() => {});
     } catch (requestError) {
+      // Rollback
+      setFeedbackByResource((current) => ({ ...current, [resourceId]: previousFeedback }));
+      setCommentInputs((current) => ({ ...current, [resourceId]: comment })); // restore input
       const message = requestError.response?.data?.message || "Failed to add comment.";
       setError(message);
       showError(message);
-    } finally {
-      setFeedbackBusyByResource((current) => ({ ...current, [resourceId]: false }));
     }
   }
 
@@ -837,24 +886,33 @@ export function SubjectCategoryPage() {
     if (!currentPassword) {
       return;
     }
-    setFeedbackBusyByResource((current) => ({ ...current, [resourceId]: true }));
     setError("");
+
+    // Optimistic Update
+    const previousFeedback = feedbackByResource[resourceId];
+    setFeedbackByResource((current) => {
+      const fb = current[resourceId];
+      if (!fb) return current;
+      return { ...current, [resourceId]: { ...fb, comments: (fb.comments || []).filter(c => c._id !== commentId) } };
+    });
 
     try {
       await apiClient.delete(`/ratings/comments/${commentId}`, {
         data: { currentPassword }
       });
-      const response = await apiClient.get("/ratings/summary", {
-        params: { resourceType: "resource", resourceId, commentLimit: 5 }
-      });
-      setFeedbackByResource((current) => ({ ...current, [resourceId]: response.data.data }));
       showInfo("Comment deleted.");
+      // Silent sync
+      apiClient.get("/ratings/summary", {
+        params: { resourceType: "resource", resourceId, commentLimit: 5 }
+      }).then(response => {
+        setFeedbackByResource((current) => ({ ...current, [resourceId]: response.data.data }));
+      }).catch(() => {});
     } catch (requestError) {
+      // Rollback
+      setFeedbackByResource((current) => ({ ...current, [resourceId]: previousFeedback }));
       const message = requestError.response?.data?.message || "Failed to delete comment.";
       setError(message);
       showError(message);
-    } finally {
-      setFeedbackBusyByResource((current) => ({ ...current, [resourceId]: false }));
     }
   }
 
