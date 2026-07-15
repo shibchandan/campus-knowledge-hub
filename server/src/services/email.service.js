@@ -4,6 +4,13 @@ dns.setDefaultResultOrder("ipv4first");
 import nodemailer from "nodemailer";
 import { env } from "../config/env.js";
 import { User } from "../modules/auth/auth.model.js";
+import { CircuitBreaker } from "../utils/circuitBreaker.js";
+
+const emailCircuitBreaker = new CircuitBreaker("SMTP", {
+  failureThreshold: 3,
+  requestTimeout: 10000, // 10 seconds timeout for email dispatch
+  cooldownPeriod: 30000 // 30 seconds cooldown
+});
 
 let transporterPromise = null;
 
@@ -42,15 +49,26 @@ export async function sendEmail({ to, subject, text, html }) {
     return { delivered: false, fallback: true };
   }
 
-  await transporter.sendMail({
-    from: env.smtpFrom,
-    to,
-    subject,
-    text,
-    html
-  });
-
-  return { delivered: true, fallback: false };
+  return emailCircuitBreaker.fire(
+    async () => {
+      await transporter.sendMail({
+        from: env.smtpFrom,
+        to,
+        subject,
+        text,
+        html
+      });
+      return { delivered: true, fallback: false };
+    },
+    (err) => {
+      if (err) {
+        console.error(`[Email CircuitBreaker Error] ${err.message}`);
+      }
+      console.log(`[Email fallback] To: ${to}`);
+      console.log(`[Email fallback] Subject: ${subject}`);
+      return { delivered: false, fallback: true, circuitOpen: true };
+    }
+  );
 }
 
 export async function sendAdminNotification({ subject, text, html }) {

@@ -5,6 +5,13 @@ import { User } from "../auth/auth.model.js";
 import { CommunityGroup } from "../community/community.model.js";
 
 import { env } from "../../config/env.js";
+import { CircuitBreaker } from "../../utils/circuitBreaker.js";
+
+const razorpayCircuitBreaker = new CircuitBreaker("Razorpay", {
+  failureThreshold: 3,
+  requestTimeout: 8000, // 8 seconds timeout
+  cooldownPeriod: 60000 // 60 seconds cooldown
+});
 
 // Initialize razorpay securely. Throw an error if keys are missing during initialization to fail fast.
 if (!env.razorpayKeyId || !env.razorpayKeySecret) {
@@ -31,7 +38,12 @@ export async function createOrder(req, res, next) {
       receipt: `receipt_order_${Date.now()}`,
     };
 
-    const order = await razorpay.orders.create(options);
+    const order = await razorpayCircuitBreaker.fire(
+      () => razorpay.orders.create(options),
+      (err) => { 
+        throw new Error(err?.message ? `Payment Gateway Error: ${err.message}` : "Payment Gateway is currently unavailable. Please try again later."); 
+      }
+    );
 
     await Payment.create({
       user: req.user.id,
@@ -75,7 +87,12 @@ export async function verifyPayment(req, res, next) {
       return res.status(400).json({ success: false, message: "Invalid payment signature." });
     }
 
-    const order = await razorpay.orders.fetch(razorpay_order_id);
+    const order = await razorpayCircuitBreaker.fire(
+      () => razorpay.orders.fetch(razorpay_order_id),
+      (err) => { 
+        throw new Error(err?.message ? `Payment Gateway Error: ${err.message}` : "Payment Gateway is currently unavailable. Please try again later."); 
+      }
+    );
 
     if (order.amount !== payment.amount) {
       return res.status(400).json({ success: false, message: "Payment amount mismatch." });
