@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { NavLink, Outlet, useNavigate, useLocation } from "react-router-dom";
 import { AnimatePresence } from "framer-motion";
 import { PageTransition } from "../components/PageTransition";
@@ -60,6 +60,7 @@ export function DashboardLayout() {
   const location = useLocation();
 
   const [isContactOpen, setIsContactOpen] = useState(false);
+  const [isUserDropdownOpen, setIsUserDropdownOpen] = useState(false);
   const [contactEmail, setContactEmail] = useState(user?.email || "");
   const [contactSubject, setContactSubject] = useState("");
   const [contactMessage, setContactMessage] = useState("");
@@ -67,11 +68,23 @@ export function DashboardLayout() {
   const [contactError, setContactError] = useState("");
   const [contactSuccess, setContactSuccess] = useState("");
 
+  const userDropdownRef = useRef(null);
+
   useEffect(() => {
     if (user?.email) {
       setContactEmail(user.email);
     }
   }, [user?.email]);
+
+  useEffect(() => {
+    function handleClickOutside(event) {
+      if (userDropdownRef.current && !userDropdownRef.current.contains(event.target)) {
+        setIsUserDropdownOpen(false);
+      }
+    }
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => document.removeEventListener("mousedown", handleClickOutside);
+  }, []);
 
   async function handleContactSubmit(event) {
     event.preventDefault();
@@ -211,7 +224,7 @@ export function DashboardLayout() {
             <h3>{selectedCollege?.name || "Select College From Colleges Page"}</h3>
           </div>
 
-          <div className="user-chip">
+          <div className="user-chip" ref={userDropdownRef} style={{ position: "relative", cursor: "pointer" }} onClick={() => setIsUserDropdownOpen(!isUserDropdownOpen)}>
             {user?.avatarUrl ? (
               <img
                 alt={`${user.fullName} profile`}
@@ -223,18 +236,55 @@ export function DashboardLayout() {
                 {initials}
               </div>
             )}
-            <div>
-              <p className="user-name">
-                {user?.fullName || "Guest User"}
-                {user && (
-                  <span title="Reputation Points" style={{ marginLeft: "8px", fontSize: "0.85em", color: "#f59e0b" }}>
-                    ⭐ {user.reputationScore || 0}
-                  </span>
-                )}
+            <div style={{ paddingRight: "8px" }}>
+              <p className="user-name" style={{ margin: 0, fontWeight: "600", fontSize: "0.95rem" }}>
+                {user?.fullName?.split(" ")[0] || "Guest"}
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" style={{ marginLeft: "4px", verticalAlign: "middle" }}>
+                  <polyline points="6 9 12 15 18 9"></polyline>
+                </svg>
               </p>
-              <p className="muted">{user?.email || "Browse Mode"}</p>
-              <p className="topbar-meta">{user?.role || "visitor"} account</p>
             </div>
+
+            <AnimatePresence>
+              {isUserDropdownOpen && (
+                <motion.div
+                  initial={{ opacity: 0, y: -10 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  exit={{ opacity: 0, y: -10 }}
+                  transition={{ duration: 0.15 }}
+                  style={{
+                    position: "absolute",
+                    top: "100%",
+                    left: 0,
+                    marginTop: "8px",
+                    width: "max-content",
+                    minWidth: "220px",
+                    backgroundColor: "var(--color-bg-primary)",
+                    color: "var(--color-text-primary)",
+                    border: "1px solid var(--color-border)",
+                    borderRadius: "12px",
+                    boxShadow: "0 10px 25px -5px rgba(0, 0, 0, 0.3)",
+                    zIndex: 1000,
+                    padding: "16px",
+                    display: "flex",
+                    flexDirection: "column",
+                    gap: "4px"
+                  }}
+                  onClick={(e) => e.stopPropagation()}
+                >
+                  <p className="user-name" style={{ margin: 0, fontSize: "1rem" }}>
+                    {user?.fullName || "Guest User"}
+                    {user && (
+                      <span title="Reputation Points" style={{ marginLeft: "8px", fontSize: "0.85em", color: "#f59e0b" }}>
+                        ⭐ {user.reputationScore || 0}
+                      </span>
+                    )}
+                  </p>
+                  <p className="muted" style={{ margin: 0 }}>{user?.email || "Browse Mode"}</p>
+                  <p className="topbar-meta" style={{ margin: 0, marginTop: "4px" }}>{user?.role || "visitor"} account</p>
+                </motion.div>
+              )}
+            </AnimatePresence>
           </div>
 
           <div className="topbar-actions">
