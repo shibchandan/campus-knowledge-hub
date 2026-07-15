@@ -11,7 +11,13 @@ export function cacheMiddleware(durationSeconds = 300) {
       return next();
     }
 
-    const userPart = req.user ? `${req.user.role}:${req.user.collegeName || ""}` : "anonymous";
+    let userPart = "anonymous";
+    if (req.user) {
+      const isPremium = req.user.premiumUntil && new Date(req.user.premiumUntil) > new Date();
+      const accessTier = isPremium ? "Premium" : "Free";
+      const unlocksHash = req.user.unlockedAssignments ? req.user.unlockedAssignments.sort().join(",") : "";
+      userPart = `${req.user.role}:${req.user.collegeName || ""}:${accessTier}:${unlocksHash}`;
+    }
     const key = `${userPart}:${req.originalUrl || req.url}`;
     const cachedResponse = cache.get(key);
 
