@@ -31,5 +31,10 @@ export function securityHeaders(req, res, next) {
     res.setHeader("Strict-Transport-Security", "max-age=31536000; includeSubDomains");
   }
 
+  // Prevent mobile browsers from caching API responses (they serve stale data)
+  if (req.originalUrl && req.originalUrl.startsWith("/api/")) {
+    res.setHeader("Cache-Control", "no-store");
+  }
+
   return next();
 }

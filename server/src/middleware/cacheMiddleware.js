@@ -23,6 +23,7 @@ export function cacheMiddleware(durationSeconds = 300) {
 
     if (cachedResponse && cachedResponse.expiry > Date.now()) {
       res.setHeader("X-Cache", "HIT");
+      res.setHeader("Cache-Control", "no-store");
       return res.json(cachedResponse.data);
     }
 
@@ -36,6 +37,7 @@ export function cacheMiddleware(durationSeconds = 300) {
         });
       }
       res.setHeader("X-Cache", "MISS");
+      res.setHeader("Cache-Control", "no-store");
       return originalJson.call(this, body);
     };
 
