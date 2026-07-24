@@ -370,7 +370,7 @@ export function DashboardPage() {
         }));
     }
 
-    return academicPrograms;
+    return [];
   }, [approvedCourses, structures]);
 
   const filteredPrograms = useMemo(() => {
@@ -955,14 +955,11 @@ export function DashboardPage() {
                 Approved courses are available for this college. Open a course page to continue branch and semester setup.
               </p>
             ) : selectedCollege ? (
-              <div className="sample-preview-banner">
-                <span className="sample-preview-icon">💡</span>
-                <div>
-                  <strong>Sample Preview</strong>
-                  <p>These are example programs to show how your workspace will look. Add your own courses from the panel to replace them with real data.</p>
-                </div>
-              </div>
+              <p className="muted" style={{ textAlign: "center", padding: "1rem 0" }}>
+                No courses have been added for this college yet. An admin or representative can add courses from the management panel.
+              </p>
             ) : null}
+            {filteredPrograms.length > 0 && (
             <div className="list-toolbar">
               <input
                 className="college-search"
@@ -973,6 +970,7 @@ export function DashboardPage() {
               />
               <p className="muted">{filteredPrograms.length} programs visible</p>
             </div>
+            )}
             <div className="workspace-programs-list" style={{ display: "flex", flexDirection: "column", gap: "2rem" }}>
               {filteredPrograms.map((program) => (
                 <div key={program.id} className="workspace-program-block">
