@@ -1342,7 +1342,7 @@ export function SubjectCategoryPage() {
             <p className="muted">No resources uploaded in this category yet.</p>
           )
         ) : null}
-        <div className="panel-list">
+        <div style={{ display: "flex", flexDirection: "column", gap: "1.25rem", marginTop: "1rem" }}>
           {loading ? (
             <SkeletonCard count={3} />
           ) : (
