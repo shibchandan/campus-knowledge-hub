@@ -955,14 +955,14 @@ export function SubjectCategoryPage() {
     { label: programName || "Program", href: "/dashboard" },
     { label: branchName || "Branch", href: `/dashboard/${programId}/branch/${branchId}` },
     { label: subject.name || "Subject", href: `/dashboard/${programId}/branch/${branchId}/${semesterId}/${subjectId}` },
-    { label: categoryTitle || "Category", href: `/dashboard/${programId}/branch/${branchId}/${semesterId}/${subjectId}/${categoryId}` }
+    { label: category?.label || humanizeSlug(categoryId) || "Category", href: `/dashboard/${programId}/branch/${branchId}/${semesterId}/${subjectId}/${categoryId}` }
   ];
 
   return (
     <div className="page-stack">
       <Breadcrumbs items={breadcrumbItems} />
       <SectionCard
-        title={`${category.label} Resources`}
+        title={`${category?.label || humanizeSlug(categoryId)} Resources`}
         description={`${selectedCollege?.shortName || selectedCollege?.name || "College"} | ${resolvedSubject.name}`}
       >
         <div className="detail-header">
