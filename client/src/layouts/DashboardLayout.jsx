@@ -259,6 +259,7 @@ export function DashboardLayout() {
                     marginTop: "8px",
                     width: "max-content",
                     minWidth: "220px",
+                    maxWidth: "calc(100vw - 2rem)",
                     backgroundColor: "var(--color-bg-primary)",
                     color: "var(--color-text-primary)",
                     border: "1px solid var(--color-border)",

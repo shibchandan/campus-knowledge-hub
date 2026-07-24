@@ -179,6 +179,7 @@ body {
   margin: 0;
   min-width: 320px;
   min-height: 100vh;
+  overflow-x: hidden;
   letter-spacing: -0.015em;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
@@ -207,6 +208,7 @@ h3 {
   display: grid;
   grid-template-columns: 280px 1fr;
   min-height: 100vh;
+  overflow-x: hidden;
 }
 
 /* ============================================================
@@ -1462,15 +1464,15 @@ h3 {
 }
 
 .college-grid {
-  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+  grid-template-columns: repeat(auto-fit, minmax(min(280px, 100%), 1fr));
 }
 
 .branch-grid {
-  grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+  grid-template-columns: repeat(auto-fit, minmax(min(240px, 100%), 1fr));
 }
 
 .semester-grid {
-  grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+  grid-template-columns: repeat(auto-fit, minmax(min(260px, 100%), 1fr));
 }
 
 .resource-grid {
@@ -1754,7 +1756,7 @@ h3 {
 
 .panel-list {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+  grid-template-columns: repeat(auto-fill, minmax(min(320px, 100%), 1fr));
   gap: 1.25rem;
   margin-top: 1rem;
 }
@@ -3469,7 +3471,7 @@ h3 {
 
 .subject-grid-list {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+  grid-template-columns: repeat(auto-fill, minmax(min(280px, 100%), 1fr));
   gap: 12px;
 }
 
@@ -4386,7 +4388,7 @@ h3 {
 /* ── Enhanced Lecture Cards ── */
 .lecture-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(340px, 1fr));
+  grid-template-columns: repeat(auto-fill, minmax(min(340px, 100%), 1fr));
   gap: 16px;
 }
 
@@ -4856,7 +4858,7 @@ h3 {
 /* ── Enhanced Community Cards ── */
 .community-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+  grid-template-columns: repeat(auto-fill, minmax(min(320px, 100%), 1fr));
   gap: 16px;
 }
 
@@ -5009,7 +5011,7 @@ h3 {
 /* ✨ Enhanced Marketplace Cards ✨ */
 .marketplace-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+  grid-template-columns: repeat(auto-fill, minmax(min(320px, 100%), 1fr));
   gap: 16px;
 }
 

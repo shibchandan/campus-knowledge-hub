@@ -13,7 +13,7 @@
   bottom: 4rem;
   right: 0;
   margin-bottom: 1rem;
-  width: 350px;
+  width: min(350px, calc(100vw - 3rem));
   height: 550px;
   background-color: #0d111c;
   border: 1px solid #1e293b;
