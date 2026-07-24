@@ -5492,4 +5492,57 @@ html[data-theme="dark"] .analytics-card.gradient-success {
   .sidebar-collapse-toggle {
     display: none;
   }
+}
+
+/* ============================================================
+ * BREADCRUMBS
+ * ============================================================ */
+.breadcrumbs-container {
+  margin-bottom: 1.5rem;
+}
+
+.breadcrumbs-list {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  list-style: none !important;
+  padding: 0;
+  margin: 0;
+  gap: 0.5rem;
+}
+
+.breadcrumb-item {
+  display: flex;
+  align-items: center;
+  font-size: 0.875rem;
+  color: var(--glass-text-secondary);
+}
+
+.breadcrumb-item::marker {
+  content: none;
+}
+
+.breadcrumb-link {
+  color: var(--color-primary);
+  text-decoration: none;
+  transition: opacity 0.2s;
+  font-weight: var(--fw-sub);
+}
+
+.breadcrumb-link:hover {
+  opacity: 0.8;
+  text-decoration: underline;
+}
+
+.breadcrumb-separator {
+  margin: 0 0.15rem;
+  color: var(--glass-text-muted);
+  display: flex;
+  align-items: center;
+}
+
+.breadcrumb-current {
+  color: var(--glass-text-primary);
+  font-weight: var(--fw-head);
+  cursor: default;
 }
