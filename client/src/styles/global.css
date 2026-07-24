@@ -5413,9 +5413,9 @@ html[data-theme="dark"] .analytics-card.gradient-success {
 
 /* Sidebar Toggle Button */
 .sidebar-collapse-toggle {
-  position: fixed;
+  position: absolute;
   top: 32px;
-  left: 266px;
+  right: -14px;
   width: 28px;
   height: 28px;
   border-radius: 50%;
@@ -5447,9 +5447,7 @@ html[data-theme="dark"] .analytics-card.gradient-success {
     grid-template-columns: 88px 1fr;
   }
   
-  .shell.sidebar-collapsed .sidebar-collapse-toggle {
-    left: 74px;
-  }
+  /* Remove fixed left positioning since it's now absolute right */
   
   .shell.sidebar-collapsed .sidebar {
     padding: 28px 12px;
