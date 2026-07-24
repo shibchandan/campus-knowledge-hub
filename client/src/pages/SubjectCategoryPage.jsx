@@ -237,7 +237,7 @@ function ResourcePreview({ resource, onAccessAttempt }) {
         }}>
           <span style={{ fontSize: "1.5rem" }}>📄</span>
           <div style={{ flex: 1, minWidth: 0 }}>
-            <p style={{ margin: 0, fontSize: "0.85rem", fontWeight: 500, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
+            <p style={{ margin: 0, fontSize: "0.85rem", fontWeight: "var(--fw-sub)", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
               {resource.fileOriginalName || "PDF Document"}
             </p>
             <p className="muted" style={{ margin: 0, fontSize: "0.75rem" }}>Cloud-hosted PDF</p>
@@ -249,7 +249,7 @@ function ResourcePreview({ resource, onAccessAttempt }) {
             style={{
               padding: "6px 14px",
               fontSize: "0.8rem",
-              fontWeight: 600,
+              fontWeight: "var(--fw-head)",
               borderRadius: "6px",
               background: "rgba(99, 102, 241, 0.15)",
               color: "#818cf8",
@@ -1009,7 +1009,7 @@ export function SubjectCategoryPage() {
                 <path strokeLinecap="round" strokeLinejoin="round" d="M12 9v3.75m-9.303 3.376c-.866 1.5.217 3.374 1.948 3.374h14.71c1.73 0 2.813-1.874 1.948-3.374L13.949 3.378c-.866-1.5-3.032-1.5-3.898 0L2.697 16.126ZM12 15.75h.007v.008H12v-.008Z" />
               </svg>
               <div>
-                <strong style={{ display: "block", marginBottom: "4px", fontWeight: "600" }}>Copyright Warning & Upload Guidelines</strong>
+                <strong style={{ display: "block", marginBottom: "4px", fontWeight: "var(--fw-head)" }}>Copyright Warning & Upload Guidelines</strong>
                 <span style={{ fontSize: "0.85rem", opacity: 0.9, lineHeight: "1.4", display: "block" }}>
                   Please do NOT upload copyrighted textbooks, published papers, or third-party paid course materials. You are only permitted to upload student-created lecture notes, lab records, slides, or previous year questions (PYQs).
                   <br />
@@ -1030,7 +1030,7 @@ export function SubjectCategoryPage() {
                   color: uploadTab === "file" ? "#fff" : "var(--text-muted, #64748b)",
                   border: "none",
                   cursor: "pointer",
-                  fontWeight: "600"
+                  fontWeight: "var(--fw-head)"
                 }}
               >
                 📁 Upload File
@@ -1046,7 +1046,7 @@ export function SubjectCategoryPage() {
                   color: uploadTab === "link" ? "#fff" : "var(--text-muted, #64748b)",
                   border: "none",
                   cursor: "pointer",
-                  fontWeight: "600"
+                  fontWeight: "var(--fw-head)"
                 }}
               >
                 🔗 Share Link
@@ -1375,7 +1375,7 @@ export function SubjectCategoryPage() {
                           padding: "4px 8px",
                           borderRadius: "6px",
                           fontSize: "0.75rem",
-                          fontWeight: "600",
+                          fontWeight: "var(--fw-head)",
                           whiteSpace: "nowrap"
                         }}>
                           🔗 Web Link
@@ -1388,7 +1388,7 @@ export function SubjectCategoryPage() {
                           padding: "4px 8px",
                           borderRadius: "6px",
                           fontSize: "0.75rem",
-                          fontWeight: "600",
+                          fontWeight: "var(--fw-head)",
                           whiteSpace: "nowrap"
                         }}>
                           📁 File Upload
@@ -1425,7 +1425,7 @@ export function SubjectCategoryPage() {
                       border: "1px solid rgba(255,255,255,0.08)"
                     }}>
                       <div style={{ display: "flex", alignItems: "center", flexWrap: "wrap", gap: "6px" }}>
-                        <span style={{ fontSize: "0.8rem", fontWeight: 600, color: "#f59e0b" }}>
+                        <span style={{ fontSize: "0.8rem", fontWeight: "var(--fw-head)", color: "#f59e0b" }}>
                           ⭐ {feedbackMetrics.averageStars}/5
                         </span>
                         <span className="muted" style={{ fontSize: "0.75rem" }}>({feedbackMetrics.totalRatings})</span>
@@ -1510,7 +1510,7 @@ export function SubjectCategoryPage() {
                             fontSize: "0.75rem",
                             cursor: "pointer",
                             padding: "3px 8px",
-                            fontWeight: 500
+                            fontWeight: "var(--fw-sub)"
                           }}
                         >
                           💬 {feedbackMetrics.comments} {expandedComments[resource._id] ? "▲" : "▼"}

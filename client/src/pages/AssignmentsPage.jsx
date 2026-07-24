@@ -237,7 +237,7 @@ export function AssignmentsPage() {
                   }}
                   style={{ width: "1.2rem", height: "1.2rem", cursor: "pointer" }}
                 />
-                <label htmlFor="globalCheck" style={{ margin: 0, cursor: "pointer", color: "#f59e0b", fontWeight: "bold" }}>
+                <label htmlFor="globalCheck" style={{ margin: 0, cursor: "pointer", color: "#f59e0b", fontWeight: "var(--fw-head)" }}>
                   🌐 Post Globally to all colleges (Premium)
                 </label>
               </div>

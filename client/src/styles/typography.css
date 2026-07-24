@@ -1,0 +1,9 @@
+/* 
+  Typography Tokens 
+  Strict 3-weight system: 400 (body), 500 (sub/labels/buttons), 700 (headers)
+*/
+:root {
+  --fw-body: 400;
+  --fw-sub: 500;
+  --fw-head: 700;
+}

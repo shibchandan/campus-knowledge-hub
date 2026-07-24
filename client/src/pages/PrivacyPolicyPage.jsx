@@ -86,7 +86,7 @@ export function PrivacyPolicyPage() {
           
           <h1 style={{ 
             fontSize: "clamp(2.5rem, 5vw, 4rem)", 
-            fontWeight: "800", 
+            fontWeight: "var(--fw-head)", 
             margin: "0 0 1rem 0",
             background: "linear-gradient(to right, #60a5fa, #a78bfa)",
             WebkitBackgroundClip: "text",
@@ -145,7 +145,7 @@ export function PrivacyPolicyPage() {
                 alignItems: "center",
                 gap: "0.75rem",
                 fontSize: "0.95rem",
-                fontWeight: activeSection === section.id ? "600" : "400",
+                fontWeight: activeSection === section.id ? "var(--fw-head)" : "var(--fw-body)",
                 position: "relative",
                 transition: "all 0.2s"
               }}

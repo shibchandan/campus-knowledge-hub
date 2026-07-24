@@ -1,4 +1,6 @@
-export function StatGrid({ items }) {
+import React from "react";
+
+export const StatGrid = React.memo(function StatGrid({ items }) {
   return (
     <div className="stat-grid">
       {items.map((item) => (
@@ -10,4 +12,4 @@ export function StatGrid({ items }) {
       ))}
     </div>
   );
-}
+});

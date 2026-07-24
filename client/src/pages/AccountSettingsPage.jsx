@@ -61,6 +61,9 @@ export function AccountSettingsPage() {
   });
   const [collegeEmailOtp, setCollegeEmailOtp] = useState("");
   const [studentProofFile, setStudentProofFile] = useState(null);
+  const [studentProofUrl, setStudentProofUrl] = useState("");
+  const [studentProofName, setStudentProofName] = useState("");
+  const [uploadingProof, setUploadingProof] = useState(false);
   const [verificationBusy, setVerificationBusy] = useState(false);
   const [verificationSubmitLoading, setVerificationSubmitLoading] = useState(false);
   const [preferencesSaving, setPreferencesSaving] = useState(false);
@@ -373,30 +376,53 @@ export function AccountSettingsPage() {
     }
   }
 
+  async function handleProofFileChange(event) {
+    const file = event.target.files?.[0];
+    if (!file) return;
+
+    setUploadingProof(true);
+    setError("");
+
+    try {
+      const formData = new FormData();
+      formData.append("file", file);
+      const uploadRes = await apiClient.post("/resources/upload", formData, {
+        headers: { "Content-Type": "multipart/form-data" }
+      });
+      setStudentProofUrl(uploadRes.data.url);
+      setStudentProofName(file.name);
+    } catch (err) {
+      setError(err.response?.data?.message || "Failed to upload proof document.");
+      event.target.value = "";
+    } finally {
+      setUploadingProof(false);
+    }
+  }
+
   async function handleStudentVerificationSubmit(event) {
     event.preventDefault();
+    if (uploadingProof) {
+      setError("Please wait for the proof document to finish uploading.");
+      return;
+    }
     setVerificationSubmitLoading(true);
     setError("");
     setSuccess("");
 
     try {
-      const payload = new FormData();
-      payload.append("collegeName", studentVerificationForm.collegeName);
-      payload.append("collegeStudentId", studentVerificationForm.collegeStudentId);
-      payload.append("officialCollegeEmail", studentVerificationForm.officialCollegeEmail);
+      const payload = {
+        collegeName: studentVerificationForm.collegeName,
+        collegeStudentId: studentVerificationForm.collegeStudentId,
+        officialCollegeEmail: studentVerificationForm.officialCollegeEmail,
+        studentProofUrl: studentProofUrl,
+        studentProofName: studentProofName
+      };
 
-      if (studentProofFile) {
-        payload.append("studentProof", studentProofFile);
-      }
-
-      const response = await apiClient.post("/auth/student-verification/submit", payload, {
-        headers: {
-          "Content-Type": "multipart/form-data"
-        }
-      });
+      const response = await apiClient.post("/auth/student-verification/submit", payload);
 
       setSuccess(response.data.message || "Student verification submitted successfully.");
-      setStudentProofFile(null);
+      setStudentProofUrl("");
+      setStudentProofName("");
       await refreshCurrentUser();
     } catch (requestError) {
       setError(requestError.response?.data?.message || "Failed to submit student verification.");
@@ -598,11 +624,12 @@ export function AccountSettingsPage() {
                     />
                   </label>
                   <label className="auth-field">
-                    <span>Student Proof Document</span>
+                    <span>Student Proof Document {uploadingProof && "(Uploading...)"}</span>
                     <input
                       accept="image/*,.pdf"
-                      onChange={(event) => setStudentProofFile(event.target.files?.[0] || null)}
+                      onChange={handleProofFileChange}
                       type="file"
+                      disabled={uploadingProof}
                     />
                   </label>
                 </div>
@@ -1001,7 +1028,7 @@ export function AccountSettingsPage() {
           {user?.twoFactorEnabled ? (
             <div className="two-factor-settings-enabled">
               <div className="status-banner success" style={{ marginBottom: "1.5rem", padding: "1rem", borderRadius: "8px", background: "rgba(16, 185, 129, 0.1)", border: "1px solid rgba(16, 185, 129, 0.2)" }}>
-                <p style={{ color: "var(--color-emerald-500-adaptive, #059669)", fontWeight: "600" }}>✓ Two-Factor Authentication is currently Active</p>
+                <p style={{ color: "var(--color-emerald-500-adaptive, #059669)", fontWeight: "var(--fw-head)" }}>✓ Two-Factor Authentication is currently Active</p>
                 <p className="muted" style={{ fontSize: "0.875rem", marginTop: "0.25rem" }}>
                   Your account requires a code from your authenticator app when logging in.
                 </p>
@@ -1145,7 +1172,7 @@ export function AccountSettingsPage() {
                 border: "none",
                 padding: "0.5rem 1rem",
                 borderRadius: "6px",
-                fontWeight: "600",
+                fontWeight: "var(--fw-head)",
                 cursor: "pointer",
                 fontSize: "0.875rem"
               }}
@@ -1177,7 +1204,7 @@ export function AccountSettingsPage() {
                   border: "1px solid rgba(255, 255, 255, 0.1)",
                   padding: "0.5rem 1rem",
                   borderRadius: "6px",
-                  fontWeight: "500",
+                  fontWeight: "var(--fw-sub)",
                   cursor: "not-allowed",
                   fontSize: "0.875rem"
                 }}

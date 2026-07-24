@@ -79,11 +79,11 @@ export function QuizResultsPage() {
             <table style={{ width: '100%', borderCollapse: 'collapse', textAlign: 'left', minWidth: '600px' }}>
               <thead>
                 <tr style={{ borderBottom: '1px solid #e5e7eb', backgroundColor: '#f9fafb' }}>
-                  <th style={{ padding: '0.75rem', fontWeight: 600, color: '#374151' }}>Student Name</th>
-                  <th style={{ padding: '0.75rem', fontWeight: 600, color: '#374151' }}>College ID</th>
-                  <th style={{ padding: '0.75rem', fontWeight: 600, color: '#374151' }}>Correct</th>
-                  <th style={{ padding: '0.75rem', fontWeight: 600, color: '#374151' }}>Wrong</th>
-                  <th style={{ padding: '0.75rem', fontWeight: 600, color: '#374151' }}>Not Attempted</th>
+                  <th style={{ padding: '0.75rem', fontWeight: "var(--fw-head)", color: '#374151' }}>Student Name</th>
+                  <th style={{ padding: '0.75rem', fontWeight: "var(--fw-head)", color: '#374151' }}>College ID</th>
+                  <th style={{ padding: '0.75rem', fontWeight: "var(--fw-head)", color: '#374151' }}>Correct</th>
+                  <th style={{ padding: '0.75rem', fontWeight: "var(--fw-head)", color: '#374151' }}>Wrong</th>
+                  <th style={{ padding: '0.75rem', fontWeight: "var(--fw-head)", color: '#374151' }}>Not Attempted</th>
                 </tr>
               </thead>
               <tbody>
@@ -91,8 +91,8 @@ export function QuizResultsPage() {
                   <tr key={res._id} style={{ borderBottom: '1px solid #e5e7eb' }}>
                     <td style={{ padding: '0.75rem', color: '#111827' }}>{res.studentName}</td>
                     <td style={{ padding: '0.75rem', color: '#4b5563' }}>{res.collegeId}</td>
-                    <td style={{ padding: '0.75rem', color: '#10b981', fontWeight: 500 }}>{res.correctCount}</td>
-                    <td style={{ padding: '0.75rem', color: '#ef4444', fontWeight: 500 }}>{res.wrongCount}</td>
+                    <td style={{ padding: '0.75rem', color: '#10b981', fontWeight: "var(--fw-sub)" }}>{res.correctCount}</td>
+                    <td style={{ padding: '0.75rem', color: '#ef4444', fontWeight: "var(--fw-sub)" }}>{res.wrongCount}</td>
                     <td style={{ padding: '0.75rem', color: '#6b7280' }}>{res.unattemptedCount}</td>
                   </tr>
                 ))}

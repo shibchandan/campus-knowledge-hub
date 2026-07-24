@@ -148,7 +148,7 @@ export function GlobalSearch() {
     const parts = text.split(new RegExp(`(${highlight})`, 'gi'));
     return parts.map((part, i) => 
       part.toLowerCase() === highlight.toLowerCase() ? 
-        <strong key={i} style={{ color: "var(--color-primary)", fontWeight: "600" }}>{part}</strong> : part
+        <strong key={i} style={{ color: "var(--color-primary)", fontWeight: "var(--fw-head)" }}>{part}</strong> : part
     );
   };
 
@@ -205,7 +205,7 @@ export function GlobalSearch() {
 
         <div style={{ maxHeight: "400px", overflowY: "auto", padding: "8px 0" }}>
           {!debouncedQuery && recentSearches.length > 0 && (
-            <div style={{ padding: "8px 16px", fontSize: "0.75rem", fontWeight: "600", color: "var(--color-slate-400-adaptive)", textTransform: "uppercase", letterSpacing: "0.05em" }}>
+            <div style={{ padding: "8px 16px", fontSize: "0.75rem", fontWeight: "var(--fw-head)", color: "var(--color-slate-400-adaptive)", textTransform: "uppercase", letterSpacing: "0.05em" }}>
               Recent Searches
             </div>
           )}
@@ -223,7 +223,7 @@ export function GlobalSearch() {
                 }}
               >
                 <div>
-                  <div style={{ color: "white", fontSize: "0.9375rem", fontWeight: "500" }}>
+                  <div style={{ color: "white", fontSize: "0.9375rem", fontWeight: "var(--fw-sub)" }}>
                     {highlightText(item.label, debouncedQuery)}
                   </div>
                   {item.subLabel && <div style={{ color: "var(--color-slate-400-adaptive)", fontSize: "0.8125rem", marginTop: "2px" }}>{highlightText(item.subLabel, debouncedQuery)}</div>}

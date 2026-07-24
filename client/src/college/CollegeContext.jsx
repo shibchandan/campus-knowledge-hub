@@ -1,10 +1,12 @@
 import { createContext, useCallback, useContext, useEffect, useMemo, useState } from "react";
 import { apiClient } from "../lib/apiClient";
-import { useAuth } from "../auth/AuthContext";
+import { useAuthState } from "../auth/AuthContext";
 import { colleges } from "./collegeData";
 
 const COLLEGE_STORAGE_KEY = "campus-knowledge-hub-college";
-const CollegeContext = createContext(null);
+
+const CollegeStateContext = createContext(null);
+const CollegeDispatchContext = createContext(null);
 
 function readStoredCollege() {
   try {
@@ -27,10 +29,12 @@ function mergeColleges(...collegeGroups) {
 }
 
 export function CollegeProvider({ children }) {
-  const { user } = useAuth();
+  const { user } = useAuthState();
   const [availableColleges, setAvailableColleges] = useState(colleges);
   const [selectedCollege, setSelectedCollege] = useState(() => readStoredCollege());
+  
   const lockedCollegeName = user?.role === "student" ? user.collegeName?.trim() : "";
+  
   const visibleColleges = useMemo(() => {
     if (!lockedCollegeName) {
       return availableColleges;
@@ -116,50 +120,77 @@ export function CollegeProvider({ children }) {
     });
   }, [lockedCollegeName, selectedCollege]);
 
-  function selectCollegeById(collegeId) {
-    const college = availableColleges.find((item) => item.id === collegeId) || null;
+  const selectCollegeById = useCallback((collegeId) => {
+    setAvailableColleges((currentAvailable) => {
+      const college = currentAvailable.find((item) => item.id === collegeId) || null;
 
-    if (
-      lockedCollegeName &&
-      college &&
-      college.name.trim().toLowerCase() !== lockedCollegeName.toLowerCase()
-    ) {
-      return selectedCollege;
-    }
+      if (
+        lockedCollegeName &&
+        college &&
+        college.name.trim().toLowerCase() !== lockedCollegeName.toLowerCase()
+      ) {
+        return currentAvailable;
+      }
 
-    setSelectedCollege(college);
-    return college;
-  }
+      setSelectedCollege(college);
+      return currentAvailable;
+    });
+  }, [lockedCollegeName]);
 
-  function clearCollege() {
+  const clearCollege = useCallback(() => {
     if (lockedCollegeName) {
       return;
     }
     setSelectedCollege(null);
-  }
+  }, [lockedCollegeName]);
 
-  const value = useMemo(
+  const stateValue = useMemo(
     () => ({
       colleges: availableColleges,
       visibleColleges,
       selectedCollege,
       lockedCollegeName,
+    }),
+    [availableColleges, visibleColleges, lockedCollegeName, selectedCollege]
+  );
+
+  const dispatchValue = useMemo(
+    () => ({
       selectCollegeById,
       clearCollege,
       refreshColleges
     }),
-    [availableColleges, visibleColleges, lockedCollegeName, selectedCollege, refreshColleges]
+    [selectCollegeById, clearCollege, refreshColleges]
   );
 
-  return <CollegeContext.Provider value={value}>{children}</CollegeContext.Provider>;
+  return (
+    <CollegeStateContext.Provider value={stateValue}>
+      <CollegeDispatchContext.Provider value={dispatchValue}>
+        {children}
+      </CollegeDispatchContext.Provider>
+    </CollegeStateContext.Provider>
+  );
 }
 
-export function useCollege() {
-  const context = useContext(CollegeContext);
-
+export function useCollegeState() {
+  const context = useContext(CollegeStateContext);
   if (!context) {
-    throw new Error("useCollege must be used inside CollegeProvider");
+    throw new Error("useCollegeState must be used inside CollegeProvider");
   }
-
   return context;
+}
+
+export function useCollegeDispatch() {
+  const context = useContext(CollegeDispatchContext);
+  if (!context) {
+    throw new Error("useCollegeDispatch must be used inside CollegeProvider");
+  }
+  return context;
+}
+
+// Retained for backward compatibility
+export function useCollege() {
+  const state = useCollegeState();
+  const dispatch = useCollegeDispatch();
+  return { ...state, ...dispatch };
 }

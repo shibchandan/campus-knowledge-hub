@@ -3,6 +3,8 @@
 @tailwind components;
 @tailwind utilities;
 
+@import "./typography.css";
+
 :root {
 
   /* ============================================================
@@ -63,7 +65,7 @@
   /* Unified Button System */
   --btn-padding: 10px 18px;
   --btn-radius: 12px;
-  --btn-font-weight: 600;
+  --btn-font-weight: var(--fw-head);
   --btn-transition: all 0.25s ease;
 
   --btn-primary-bg: rgba(255, 255, 255, 0.15);
@@ -96,7 +98,7 @@
     linear-gradient(135deg, #eef2ff 0%, #f8fafc 45%, #f0fdf4 100%);
   background-attachment: fixed;
   line-height: 1.5;
-  font-weight: 400;
+  font-weight: var(--fw-body);
 }
 
 [data-theme="dark"] {
@@ -339,7 +341,7 @@ h3 {
 }
 .side-panel-card .panel-title {
   font-size: 11px;
-  font-weight: 600;
+  font-weight: var(--fw-head);
   letter-spacing: 0.08em;
   text-transform: uppercase;
   color: var(--accent-primary);
@@ -423,7 +425,7 @@ h3 {
   display: flex;
   align-items: center;
   justify-content: center;
-  font-weight: 600;
+  font-weight: var(--fw-head);
   font-size: 0.85rem;
   color: #ffffff;
   overflow: hidden;
@@ -442,7 +444,7 @@ h3 {
 
 .sidebar-user-name {
   font-size: 0.85rem;
-  font-weight: 600;
+  font-weight: var(--fw-head);
   color: var(--glass-text-primary);
   white-space: nowrap;
   overflow: hidden;
@@ -452,7 +454,7 @@ h3 {
 
 .sidebar-user-role {
   font-size: 0.72rem;
-  font-weight: 500;
+  font-weight: var(--fw-sub);
   color: var(--glass-text-muted);
   text-transform: capitalize;
 }
@@ -469,7 +471,7 @@ h3 {
   padding: 10px 16px;
   background: #0f172a;
   color: #ffffff;
-  font-weight: 600;
+  font-weight: var(--fw-head);
   cursor: pointer;
   font-size: 0.85rem;
   transition: all 0.2s ease;
@@ -495,7 +497,7 @@ h3 {
   letter-spacing: 0.16em;
   text-transform: uppercase;
   color: var(--color-eyebrow);
-  font-weight: 600;
+  font-weight: var(--fw-head);
 }
 
 .muted {
@@ -524,7 +526,7 @@ h3 {
 
 .nav-section-label {
   font-size: 0.65rem;
-  font-weight: 700;
+  font-weight: var(--fw-head);
   text-transform: uppercase;
   letter-spacing: 0.08em;
   color: var(--glass-text-muted);
@@ -539,7 +541,7 @@ h3 {
   border-radius: 12px;
   background: var(--glass-bg-subtle);
   border: 1px solid transparent;
-  font-weight: 500;
+  font-weight: var(--fw-sub);
   color: var(--glass-text-secondary);
   transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
 }
@@ -564,7 +566,7 @@ h3 {
   backdrop-filter: blur(12px);
   border-color: rgba(129, 140, 248, 0.4);
   color: #ffffff;
-  font-weight: 600;
+  font-weight: var(--fw-head);
   box-shadow: 0 4px 20px rgba(99, 102, 241, 0.35), inset 0 1px 0 rgba(255,255,255,0.15);
 }
 
@@ -606,12 +608,12 @@ h3 {
   letter-spacing: 0.1em;
   font-size: 0.7rem;
   color: #64748b;
-  font-weight: 600;
+  font-weight: var(--fw-head);
 }
 
 .college-chip h3 {
   font-size: 0.95rem;
-  font-weight: 600;
+  font-weight: var(--fw-head);
 }
 
 .user-chip {
@@ -643,7 +645,7 @@ h3 {
   border-radius: 50%;
   background: linear-gradient(135deg, #4f46e5, #6366f1);
   color: #ffffff;
-  font-weight: 700;
+  font-weight: var(--fw-head);
   font-size: 0.9rem;
 }
 
@@ -652,7 +654,7 @@ h3 {
 }
 
 .user-name {
-  font-weight: 600;
+  font-weight: var(--fw-head);
   font-size: 0.9rem;
 }
 
@@ -660,7 +662,7 @@ h3 {
   font-size: 0.75rem;
   text-transform: capitalize;
   color: #64748b;
-  font-weight: 500;
+  font-weight: var(--fw-sub);
 }
 
 .topbar-actions {
@@ -677,7 +679,7 @@ h3 {
   background: rgba(22, 18, 48, 0.85);
   color: rgba(255, 255, 255, 0.90);
   cursor: pointer;
-  font-weight: 600;
+  font-weight: var(--fw-head);
   font-size: 0.85rem;
   transition: background 0.15s ease;
 }
@@ -693,7 +695,7 @@ h3 {
   background: var(--glass-bg);
   color: var(--glass-text-secondary);
   cursor: pointer;
-  font-weight: 600;
+  font-weight: var(--fw-head);
   font-size: 0.85rem;
   backdrop-filter: var(--blur-sm);
   -webkit-backdrop-filter: var(--blur-sm);
@@ -806,7 +808,7 @@ h3 {
 
 .auth-tab.active {
   background: linear-gradient(135deg, #ffcf7c, #f2a65a);
-  font-weight: 700;
+  font-weight: var(--fw-head);
 }
 
 .auth-form {
@@ -831,7 +833,7 @@ h3 {
 }
 
 .auth-field span {
-  font-weight: 600;
+  font-weight: var(--fw-head);
 }
 
 .auth-field input,
@@ -917,7 +919,7 @@ h3 {
   background: transparent;
   color: #38516a;
   cursor: pointer;
-  font-weight: 600;
+  font-weight: var(--fw-head);
 }
 
 .auth-error {
@@ -983,7 +985,7 @@ h3 {
   background: transparent;
   color: inherit;
   cursor: pointer;
-  font-weight: 700;
+  font-weight: var(--fw-head);
   padding: 0;
 }
 
@@ -991,7 +993,7 @@ h3 {
   min-height: 100vh;
   display: grid;
   place-items: center;
-  font-weight: 700;
+  font-weight: var(--fw-head);
   color: #18212f;
 }
 
@@ -1039,7 +1041,7 @@ h3 {
   font-size: clamp(1.4rem, 2vw, 2rem);
   line-height: 1.15;
   margin-bottom: 8px;
-  font-weight: 700;
+  font-weight: var(--fw-head);
 }
 
 .overview-status-row {
@@ -1059,7 +1061,7 @@ h3 {
   border: 1px solid var(--glass-border-subtle);
   color: var(--glass-text-secondary);
   font-size: 0.82rem;
-  font-weight: 500;
+  font-weight: var(--fw-sub);
   backdrop-filter: var(--blur-sm);
   -webkit-backdrop-filter: var(--blur-sm);
   transition: transform 0.2s ease, box-shadow 0.2s ease;
@@ -1072,7 +1074,7 @@ h3 {
 
 .overview-status-pill strong {
   color: var(--glass-text-primary);
-  font-weight: 700;
+  font-weight: var(--fw-head);
 }
 
 .overview-stat-strip {
@@ -1145,7 +1147,7 @@ h3 {
   margin: 0;
   color: #64748b;
   font-size: 0.75rem;
-  font-weight: 700;
+  font-weight: var(--fw-head);
   letter-spacing: 0.08em;
   text-transform: uppercase;
 }
@@ -1154,7 +1156,7 @@ h3 {
   font-size: clamp(1.2rem, 1.6vw, 1.6rem);
   line-height: 1.15;
   margin-bottom: 8px;
-  font-weight: 700;
+  font-weight: var(--fw-head);
 }
 
 .overview-hero-side {
@@ -1185,7 +1187,7 @@ h3 {
   margin-bottom: 8px;
   color: #8f6127;
   font-size: 0.78rem;
-  font-weight: 700;
+  font-weight: var(--fw-head);
   letter-spacing: 0.12em;
   text-transform: uppercase;
 }
@@ -1232,7 +1234,7 @@ h3 {
 
 .overview-profile-summary a {
   color: #1d4d93;
-  font-weight: 600;
+  font-weight: var(--fw-head);
 }
 
 .overview-profile-highlights {
@@ -1277,7 +1279,7 @@ h3 {
   margin-bottom: 8px;
   color: #64748b;
   font-size: 0.82rem;
-  font-weight: 700;
+  font-weight: var(--fw-head);
   letter-spacing: 0.06em;
   text-transform: uppercase;
 }
@@ -1433,7 +1435,7 @@ h3 {
   letter-spacing: 0.14em;
   text-transform: uppercase;
   color: #8f6127;
-  font-weight: 700;
+  font-weight: var(--fw-head);
 }
 
 .card-header h2 {
@@ -1592,7 +1594,7 @@ h3 {
   background: #18212f;
   color: #f7f3ea;
   font-size: 0.82rem;
-  font-weight: 700;
+  font-weight: var(--fw-head);
   letter-spacing: 0.08em;
   text-transform: uppercase;
 }
@@ -1610,7 +1612,7 @@ h3 {
   background: rgba(242, 166, 90, 0.18);
   color: #9a5a13;
   font-size: 0.85rem;
-  font-weight: 700;
+  font-weight: var(--fw-head);
 }
 
 .subject-list {
@@ -1623,7 +1625,7 @@ h3 {
   background: rgba(24, 33, 47, 0.05);
   border: 1px solid rgba(24, 33, 47, 0.08);
   border-radius: 14px;
-  font-weight: 500;
+  font-weight: var(--fw-sub);
 }
 
 .subject-link {
@@ -1647,7 +1649,7 @@ h3 {
   border-radius: 14px;
   background: #18212f;
   color: #f7f3ea;
-  font-weight: 600;
+  font-weight: var(--fw-head);
 }
 
 .resource-card-top {
@@ -1665,7 +1667,7 @@ h3 {
   justify-content: center;
   border-radius: 999px;
   font-size: 0.82rem;
-  font-weight: 700;
+  font-weight: var(--fw-head);
 }
 
 .resource-badge {
@@ -1788,7 +1790,7 @@ h3 {
 .panel-card h3 {
   margin-bottom: 0.5rem;
   font-size: 1.15rem;
-  font-weight: 700;
+  font-weight: var(--fw-head);
   color: var(--color-text, #0f172a);
 }
 
@@ -1816,7 +1818,7 @@ h3 {
 .action-button {
   padding: 0.6rem 1rem;
   border-radius: 8px;
-  font-weight: 600;
+  font-weight: var(--fw-head);
   font-size: 0.85rem;
   border: none;
   cursor: pointer;
@@ -1877,7 +1879,7 @@ h3 {
   padding: 0.35rem 0.8rem;
   border-radius: 999px;
   font-size: 0.75rem;
-  font-weight: 700;
+  font-weight: var(--fw-head);
   text-transform: uppercase;
   letter-spacing: 0.5px;
   backdrop-filter: blur(4px);
@@ -1957,7 +1959,7 @@ h3 {
 .detail-card .overview-side-label {
   color: var(--color-eyebrow, #a78bfa);
   font-size: 0.875rem;
-  font-weight: 700;
+  font-weight: var(--fw-head);
   display: block;
   margin-bottom: 0.75rem;
   text-transform: uppercase;
@@ -1967,7 +1969,7 @@ h3 {
 .detail-card strong {
   font-size: 1.5rem;
   color: #f8fafc;
-  font-weight: 600;
+  font-weight: var(--fw-head);
   text-shadow: 0 2px 10px rgba(255, 255, 255, 0.1);
   display: block;
 }
@@ -2241,7 +2243,7 @@ h3 {
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  font-weight: 700;
+  font-weight: var(--fw-head);
   color: #f7f3ea;
   background: linear-gradient(135deg, #1e293b, #475569);
 }
@@ -2279,7 +2281,7 @@ h3 {
   color: #425166;
   padding: 10px 16px;
   cursor: pointer;
-  font-weight: 600;
+  font-weight: var(--fw-head);
   white-space: nowrap;
   flex-shrink: 0;
 }
@@ -2359,7 +2361,7 @@ h3 {
   background: rgba(24, 33, 47, 0.07);
   color: #213042;
   font-size: 0.85rem;
-  font-weight: 600;
+  font-weight: var(--fw-head);
 }
 
 .selector-field {
@@ -2386,7 +2388,7 @@ h3 {
   align-items: center;
   justify-content: center;
   font-size: 0.8rem;
-  font-weight: 700;
+  font-weight: var(--fw-head);
 }
 
 .selector-dropdown-panel {
@@ -3061,7 +3063,7 @@ h3 {
 .dense-admin .stat-card h3 {
   font-size: 1.4rem;
   margin-bottom: 2px;
-  font-weight: 700;
+  font-weight: var(--fw-head);
 }
 
 .dense-admin .stat-card .muted {
@@ -3082,7 +3084,7 @@ h3 {
 
 .dense-admin .auth-field span {
   font-size: 0.8rem;
-  font-weight: 500;
+  font-weight: var(--fw-sub);
 }
 
 .dense-admin .auth-field input,
@@ -3357,7 +3359,7 @@ h3 {
   color: var(--btn-secondary-text);
   border-radius: var(--btn-radius);
   padding: 8px 14px;
-  font-weight: 500;
+  font-weight: var(--fw-sub);
   cursor: pointer;
   transition: var(--btn-transition);
   display: flex;
@@ -3428,7 +3430,7 @@ h3 {
 .semester-header-info h3 {
   margin: 0;
   font-size: 1.1rem;
-  font-weight: 600;
+  font-weight: var(--fw-head);
 }
 
 .chevron-icon {
@@ -3443,7 +3445,7 @@ h3 {
   padding: 4px 10px;
   border-radius: 8px;
   font-size: 0.8rem;
-  font-weight: 500;
+  font-weight: var(--fw-sub);
   background: rgba(24, 33, 47, 0.06);
   color: #4b5563;
 }
@@ -3451,7 +3453,7 @@ h3 {
 .subject-count-badge.active {
   background: rgba(242, 166, 90, 0.1);
   color: #b56311;
-  font-weight: 600;
+  font-weight: var(--fw-head);
 }
 
 [data-theme="dark"] .subject-count-badge.active {
@@ -3527,7 +3529,7 @@ h3 {
 
 .category-count-badge {
   font-size: 0.68rem;
-  font-weight: 600;
+  font-weight: var(--fw-head);
   padding: 3px 10px;
   border-radius: 12px;
   letter-spacing: 0.02em;
@@ -3554,7 +3556,7 @@ h3 {
 .category-title {
   font-size: 0.95rem !important;
   margin: 0 0 4px !important;
-  font-weight: 700;
+  font-weight: var(--fw-head);
 }
 
 .category-desc {
@@ -3591,7 +3593,7 @@ h3 {
   width: 100%;
   padding: 8px 12px;
   font-size: 0.85rem;
-  font-weight: 600;
+  font-weight: var(--fw-head);
   text-align: center;
   border-radius: var(--btn-radius);
   border: none;
@@ -3655,7 +3657,7 @@ h3 {
   width: 100%;
   padding: 8px 12px;
   font-size: 0.85rem;
-  font-weight: 600;
+  font-weight: var(--fw-head);
   text-align: center;
   border-radius: var(--btn-radius);
   border: none;
@@ -3756,7 +3758,7 @@ h3 {
 
 .college-type-badge {
   font-size: 0.65rem;
-  font-weight: 700;
+  font-weight: var(--fw-head);
   text-transform: uppercase;
   letter-spacing: 0.08em;
   padding: 3px 10px;
@@ -3784,7 +3786,7 @@ h3 {
 
 .college-card-name {
   font-size: 0.95rem !important;
-  font-weight: 700;
+  font-weight: var(--fw-head);
   margin: 0 0 6px !important;
   line-height: 1.35;
 }
@@ -3814,7 +3816,7 @@ h3 {
 
 .college-open-label {
   font-size: 0.75rem;
-  font-weight: 600;
+  font-weight: var(--fw-head);
   color: rgba(216, 225, 239, 0.8);
   transition: color 0.2s ease;
 }
@@ -3908,7 +3910,7 @@ h3 {
 }
 
 .bullet-count {
-  font-weight: 700;
+  font-weight: var(--fw-head);
   color: var(--color-indigo-400-adaptive);
   margin-right: 2px;
 }
@@ -3981,7 +3983,7 @@ h3 {
 
 .branch-program-tag {
   font-size: 0.65rem;
-  font-weight: 700;
+  font-weight: var(--fw-head);
   text-transform: uppercase;
   letter-spacing: 0.08em;
   padding: 3px 10px;
@@ -3992,7 +3994,7 @@ h3 {
 
 .branch-card-name {
   font-size: 1rem !important;
-  font-weight: 700;
+  font-weight: var(--fw-head);
   margin: 0 0 6px !important;
   line-height: 1.35;
 }
@@ -4014,7 +4016,7 @@ h3 {
 
 .branch-open-label {
   font-size: 0.75rem;
-  font-weight: 600;
+  font-weight: var(--fw-head);
   color: rgba(216, 225, 239, 0.8);
   transition: color 0.2s ease;
 }
@@ -4145,7 +4147,7 @@ h3 {
   align-items: center;
   justify-content: center;
   font-size: 0.8rem;
-  font-weight: 700;
+  font-weight: var(--fw-head);
   flex-shrink: 0;
   background: rgba(99, 102, 241, 0.1);
   color: #6366f1;
@@ -4232,7 +4234,7 @@ h3 {
 
 .subject-card-name {
   font-size: 0.88rem;
-  font-weight: 600;
+  font-weight: var(--fw-head);
   color: #1e293b;
   line-height: 1.3;
 }
@@ -4255,7 +4257,7 @@ h3 {
 
 .subject-open-label {
   font-size: 0.7rem;
-  font-weight: 600;
+  font-weight: var(--fw-head);
   color: var(--color-slate-400-adaptive);
   transition: color 0.2s ease;
 }
@@ -4289,7 +4291,7 @@ h3 {
   color: var(--btn-secondary-text);
   border-radius: var(--btn-radius);
   padding: 8px 14px;
-  font-weight: 500;
+  font-weight: var(--fw-sub);
   cursor: pointer;
   transition: var(--btn-transition);
   display: flex;
@@ -4304,7 +4306,7 @@ h3 {
   color: var(--btn-secondary-text);
   border-radius: var(--btn-radius);
   padding: 8px 14px;
-  font-weight: 500;
+  font-weight: var(--fw-sub);
   cursor: pointer;
   transition: var(--btn-transition);
   display: flex;
@@ -4319,7 +4321,7 @@ h3 {
   color: var(--btn-secondary-text);
   border-radius: var(--btn-radius);
   padding: 8px 14px;
-  font-weight: 500;
+  font-weight: var(--fw-sub);
   cursor: pointer;
   transition: var(--btn-transition);
   display: flex;
@@ -4368,7 +4370,7 @@ h3 {
 
 .sample-preview-banner strong {
   font-size: 0.82rem;
-  font-weight: 700;
+  font-weight: var(--fw-head);
   color: #f59e0b;
   display: block;
   margin-bottom: 2px;
@@ -4445,7 +4447,7 @@ h3 {
 
 .lecture-subject-tag {
   font-size: 0.62rem;
-  font-weight: 700;
+  font-weight: var(--fw-head);
   text-transform: uppercase;
   letter-spacing: 0.08em;
   padding: 3px 10px;
@@ -4456,7 +4458,7 @@ h3 {
 
 .lecture-semester-tag {
   font-size: 0.62rem;
-  font-weight: 600;
+  font-weight: var(--fw-head);
   padding: 3px 8px;
   border-radius: 8px;
   background: rgba(99, 102, 241, 0.08);
@@ -4465,7 +4467,7 @@ h3 {
 
 .lecture-card-title {
   font-size: 1rem;
-  font-weight: 700;
+  font-weight: var(--fw-head);
   margin: 0 0 6px;
   line-height: 1.35;
   color: #1e293b;
@@ -4515,7 +4517,7 @@ h3 {
 
 .lecture-download-badge {
   font-size: 0.68rem;
-  font-weight: 600;
+  font-weight: var(--fw-head);
   padding: 2px 8px;
   border-radius: 6px;
   background: rgba(16, 185, 129, 0.08);
@@ -4524,7 +4526,7 @@ h3 {
 
 .lecture-watch-btn {
   font-size: 0.78rem;
-  font-weight: 600;
+  font-weight: var(--fw-head);
   color: #f59e0b;
   text-decoration: none;
   transition: color 0.2s ease;
@@ -4558,7 +4560,7 @@ h3 {
 .lecture-empty-state h3 {
   margin: 0 0 8px;
   font-size: 1.2rem;
-  font-weight: 700;
+  font-weight: var(--fw-head);
   color: #475569;
 }
 
@@ -4642,7 +4644,7 @@ h3 {
 
 .notes-stat-label {
   font-size: 0.72rem;
-  font-weight: 600;
+  font-weight: var(--fw-head);
   text-transform: uppercase;
   letter-spacing: 0.06em;
   color: #64748b;
@@ -4651,7 +4653,7 @@ h3 {
 
 .notes-stat-value {
   font-size: 1.6rem;
-  font-weight: 800;
+  font-weight: var(--fw-head);
   margin: 0 0 4px;
   color: #1e293b;
 }
@@ -4676,7 +4678,7 @@ h3 {
 
 .notes-filter-chip {
   font-size: 0.75rem;
-  font-weight: 600;
+  font-weight: var(--fw-head);
   padding: 5px 12px;
   border-radius: 20px;
   border: 1px solid rgba(24, 33, 47, 0.1);
@@ -4759,7 +4761,7 @@ h3 {
 
 .notes-card-category {
   font-size: 0.62rem;
-  font-weight: 700;
+  font-weight: var(--fw-head);
   text-transform: uppercase;
   letter-spacing: 0.06em;
   padding: 3px 10px;
@@ -4773,7 +4775,7 @@ h3 {
 
 .notes-card-title {
   font-size: 0.95rem;
-  font-weight: 700;
+  font-weight: var(--fw-head);
   margin: 0 0 4px;
   line-height: 1.35;
   color: #1e293b;
@@ -4831,7 +4833,7 @@ h3 {
 
 .notes-view-btn {
   font-size: 0.78rem;
-  font-weight: 600;
+  font-weight: var(--fw-head);
   color: #6366f1;
   text-decoration: none;
   transition: color 0.2s ease;
@@ -4907,7 +4909,7 @@ h3 {
 
 .community-channel-tag {
   font-size: 0.62rem;
-  font-weight: 700;
+  font-weight: var(--fw-head);
   text-transform: uppercase;
   letter-spacing: 0.06em;
   padding: 3px 10px;
@@ -4916,7 +4918,7 @@ h3 {
 
 .community-semester-tag {
   font-size: 0.62rem;
-  font-weight: 600;
+  font-weight: var(--fw-head);
   padding: 3px 8px;
   border-radius: 8px;
   background: rgba(99, 102, 241, 0.08);
@@ -4926,7 +4928,7 @@ h3 {
 
 .community-card-title {
   font-size: 0.95rem;
-  font-weight: 700;
+  font-weight: var(--fw-head);
   margin: 0 0 4px;
   line-height: 1.35;
   color: #1e293b;
@@ -4975,7 +4977,7 @@ h3 {
 
 .community-replies-badge {
   font-size: 0.7rem;
-  font-weight: 600;
+  font-weight: var(--fw-head);
   padding: 3px 10px;
   border-radius: 12px;
   background: rgba(148, 163, 184, 0.15);
@@ -4989,7 +4991,7 @@ h3 {
 
 .community-join-btn {
   font-size: 0.78rem;
-  font-weight: 600;
+  font-weight: var(--fw-head);
   text-decoration: none;
   background: none;
   border: none;
@@ -5060,7 +5062,7 @@ h3 {
 
 .marketplace-type-tag {
   font-size: 0.62rem;
-  font-weight: 700;
+  font-weight: var(--fw-head);
   text-transform: uppercase;
   letter-spacing: 0.06em;
   padding: 3px 10px;
@@ -5069,7 +5071,7 @@ h3 {
 
 .marketplace-price-tag {
   font-size: 0.62rem;
-  font-weight: 600;
+  font-weight: var(--fw-head);
   padding: 3px 8px;
   border-radius: 8px;
   background: rgba(16, 185, 129, 0.1);
@@ -5084,7 +5086,7 @@ h3 {
 
 .marketplace-card-title {
   font-size: 0.95rem;
-  font-weight: 700;
+  font-weight: var(--fw-head);
   margin: 0 0 4px;
   line-height: 1.35;
   color: #1e293b;
@@ -5158,7 +5160,7 @@ h3 {
   color: #475569;
   padding: 12px 18px;
   cursor: pointer;
-  font-weight: 600;
+  font-weight: var(--fw-head);
   font-family: inherit;
   transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
   font-size: 0.95rem;
@@ -5252,7 +5254,7 @@ h3 {
   color: #425166;
   padding: 10px 16px;
   cursor: pointer;
-  font-weight: 600;
+  font-weight: var(--fw-head);
   font-size: 0.9rem;
   white-space: nowrap;
   flex-shrink: 0;
@@ -5328,7 +5330,7 @@ h3 {
 
 .analytics-label {
   font-size: 0.85rem;
-  font-weight: 600;
+  font-weight: var(--fw-head);
   color: var(--text-color);
   opacity: 0.7;
   margin: 0 0 4px 0;
@@ -5338,7 +5340,7 @@ h3 {
 
 .analytics-value {
   font-size: 1.8rem;
-  font-weight: 700;
+  font-weight: var(--fw-head);
   margin: 0 0 4px 0;
   color: var(--primary-color);
 }
@@ -5353,19 +5355,19 @@ h3 {
 .analytics-note.warning {
   color: #d97706; /* Amber */
   opacity: 1;
-  font-weight: 600;
+  font-weight: var(--fw-head);
 }
 
 .analytics-note.success {
   color: #10b981; /* Emerald */
   opacity: 1;
-  font-weight: 600;
+  font-weight: var(--fw-head);
 }
 
 .analytics-note.danger {
   color: #ef4444; /* Red */
   opacity: 1;
-  font-weight: 600;
+  font-weight: var(--fw-head);
 }
 
 /* Gradients for Premium Look */

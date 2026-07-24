@@ -1,31 +1,33 @@
 import { useState, useEffect, useRef } from "react";
-import { NavLink, Outlet, useNavigate, useLocation } from "react-router-dom";
+import { Outlet, useNavigate, useLocation } from "react-router-dom";
 import { AnimatePresence, motion } from "framer-motion";
 import { PageTransition } from "../components/PageTransition";
 import { useAuth } from "../auth/AuthContext";
 import { useCollege } from "../college/CollegeContext";
 import { useTheme } from "../theme/ThemeContext";
 import { NotificationDropdown } from "../components/NotificationDropdown";
-import { apiClient } from "../lib/apiClient";
 import { GlobalSearch } from "../components/GlobalSearch";
+import { ContactAdminModal } from "../components/ContactAdminModal";
+import { UserDropdown } from "../components/UserDropdown";
+import { PrefetchLink } from "../components/PrefetchLink";
 
 const navSections = [
   {
     label: "Main",
     links: [
-      { to: "/colleges", label: "Colleges", icon: "🏛️" },
+      { to: "/colleges", label: "Colleges", icon: "🏛️", prefetchRoute: "/governance/public-colleges" },
       { to: "/panel", label: "Panel", icon: "⚙️" },
-      { to: "/account", label: "Account", icon: "👤" }
+      { to: "/account", label: "Account", icon: "👤", prefetchRoute: "/settings/me" }
     ]
   },
   {
     label: "Academic",
     links: [
-      { to: "/dashboard", label: "Overview", icon: "📊" },
-      { to: "/lectures", label: "Lectures", icon: "🎬" },
-      { to: "/notes", label: "Notes & PYQs", icon: "📝" },
-      { to: "/quizzes", label: "Quizzes", icon: "✅" },
-      { to: "/assignments", label: "Live Assignments", icon: "⏳" }
+      { to: "/dashboard", label: "Overview", icon: "📊", prefetchRoute: "/academic/stats" },
+      { to: "/lectures", label: "Lectures", icon: "🎬", prefetchRoute: "/academic/lectures" },
+      { to: "/notes", label: "Notes & PYQs", icon: "📝", prefetchRoute: "/academic/resources" },
+      { to: "/quizzes", label: "Quizzes", icon: "✅", prefetchRoute: "/academic/quizzes" },
+      { to: "/assignments", label: "Live Assignments", icon: "⏳", prefetchRoute: "/academic/assignments" }
     ]
   },
   {
@@ -33,8 +35,8 @@ const navSections = [
     links: [
       { to: "/ai-studio", label: "AI Studio", icon: "🤖" },
       { to: "/integrity", label: "Integrity", icon: "🛡️" },
-      { to: "/marketplace", label: "Marketplace", icon: "🛒" },
-      { to: "/community", label: "Community", icon: "💬" }
+      { to: "/marketplace", label: "Marketplace", icon: "🛒", prefetchRoute: "/marketplace/items" },
+      { to: "/community", label: "Community", icon: "💬", prefetchRoute: "/community/threads" }
     ]
   }
 ];
@@ -60,55 +62,6 @@ export function DashboardLayout() {
   const location = useLocation();
 
   const [isContactOpen, setIsContactOpen] = useState(false);
-  const [isUserDropdownOpen, setIsUserDropdownOpen] = useState(false);
-  const [contactEmail, setContactEmail] = useState(user?.email || "");
-  const [contactSubject, setContactSubject] = useState("");
-  const [contactMessage, setContactMessage] = useState("");
-  const [contactSubmitting, setContactSubmitting] = useState(false);
-  const [contactError, setContactError] = useState("");
-  const [contactSuccess, setContactSuccess] = useState("");
-
-  const userDropdownRef = useRef(null);
-
-  useEffect(() => {
-    if (user?.email) {
-      setContactEmail(user.email);
-    }
-  }, [user?.email]);
-
-  useEffect(() => {
-    function handleClickOutside(event) {
-      if (userDropdownRef.current && !userDropdownRef.current.contains(event.target)) {
-        setIsUserDropdownOpen(false);
-      }
-    }
-    document.addEventListener("mousedown", handleClickOutside);
-    return () => document.removeEventListener("mousedown", handleClickOutside);
-  }, []);
-
-  async function handleContactSubmit(event) {
-    event.preventDefault();
-    setContactSubmitting(true);
-    setContactError("");
-    setContactSuccess("");
-    try {
-      await apiClient.post("/auth/contact-admin", {
-        email: contactEmail,
-        subject: contactSubject,
-        message: contactMessage
-      });
-      setContactSuccess("Your message has been sent to the administrators!");
-      setContactSubject("");
-      setContactMessage("");
-      if (!user) {
-        setContactEmail("");
-      }
-    } catch (err) {
-      setContactError(err.response?.data?.message || "Failed to send message.");
-    } finally {
-      setContactSubmitting(false);
-    }
-  }
 
   const initials = user?.fullName
     ? user.fullName
@@ -160,16 +113,17 @@ export function DashboardLayout() {
             <div className="nav-section" key={section.label}>
               <p className="nav-section-label">{section.label}</p>
               {section.links.map((link) => (
-                <NavLink
+                <PrefetchLink
                   key={link.to}
                   to={link.to}
+                  prefetchRoute={link.prefetchRoute}
                   onClick={() => setIsSidebarOpen(false)}
                   className={({ isActive }) => (isActive ? "nav-link active" : "nav-link")}
                   title={isSidebarCollapsed ? link.label : undefined}
                 >
                   <span className="nav-link-icon">{link.icon}</span>
                   <span className="nav-link-text">{link.label}</span>
-                </NavLink>
+                </PrefetchLink>
               ))}
             </div>
           ))}
@@ -224,69 +178,7 @@ export function DashboardLayout() {
             <h3>{selectedCollege?.name || "Select College From Colleges Page"}</h3>
           </div>
 
-          <div className="user-chip" ref={userDropdownRef} style={{ position: "relative", cursor: "pointer" }} onClick={() => setIsUserDropdownOpen(!isUserDropdownOpen)}>
-            {user?.avatarUrl ? (
-              <img
-                alt={`${user.fullName} profile`}
-                className="user-logo user-logo-image"
-                src={user.avatarUrl}
-              />
-            ) : (
-              <div className="user-logo" aria-hidden="true">
-                {initials}
-              </div>
-            )}
-            <div style={{ paddingRight: "8px" }}>
-              <p className="user-name" style={{ margin: 0, fontWeight: "600", fontSize: "0.95rem" }}>
-                {user?.fullName?.split(" ")[0] || "Guest"}
-                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" style={{ marginLeft: "4px", verticalAlign: "middle" }}>
-                  <polyline points="6 9 12 15 18 9"></polyline>
-                </svg>
-              </p>
-            </div>
-
-            <AnimatePresence>
-              {isUserDropdownOpen && (
-                <motion.div
-                  initial={{ opacity: 0, y: -10 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  exit={{ opacity: 0, y: -10 }}
-                  transition={{ duration: 0.15 }}
-                  style={{
-                    position: "absolute",
-                    top: "100%",
-                    right: 0,
-                    marginTop: "8px",
-                    width: "max-content",
-                    minWidth: "220px",
-                    maxWidth: "calc(100vw - 2rem)",
-                    backgroundColor: "var(--color-bg-primary)",
-                    color: "var(--color-text-primary)",
-                    border: "1px solid var(--color-border)",
-                    borderRadius: "12px",
-                    boxShadow: "0 10px 25px -5px rgba(0, 0, 0, 0.3)",
-                    zIndex: 1000,
-                    padding: "16px",
-                    display: "flex",
-                    flexDirection: "column",
-                    gap: "4px"
-                  }}
-                  onClick={(e) => e.stopPropagation()}
-                >
-                  <p className="user-name" style={{ margin: 0, fontSize: "1rem" }}>
-                    {user?.fullName || "Guest User"}
-                    {user && (
-                      <span title="Reputation Points" style={{ marginLeft: "8px", fontSize: "0.85em", color: "#f59e0b" }}>
-                        ⭐ {user.reputationScore || 0}
-                      </span>
-                    )}
-                  </p>
-                  <p className="muted" style={{ margin: 0 }}>{user?.email || "Browse Mode"}</p>
-                  <p className="topbar-meta" style={{ margin: 0, marginTop: "4px" }}>{user?.role || "visitor"} account</p>
-                </motion.div>
-              )}
-            </AnimatePresence>
-          </div>
+          <UserDropdown />
 
           <div className="topbar-actions">
             <button
@@ -320,7 +212,7 @@ export function DashboardLayout() {
             )}
           </div>
         </div>
-        <AnimatePresence mode="wait" onExitComplete={() => window.scrollTo(0, 0)}>
+        <AnimatePresence mode="wait" initial={false} onExitComplete={() => window.scrollTo(0, 0)}>
           <PageTransition key={location.pathname}>
             <Outlet />
           </PageTransition>
@@ -353,7 +245,7 @@ export function DashboardLayout() {
               color: "#3b82f6",
               cursor: "pointer",
               fontSize: "0.875rem",
-              fontWeight: "500",
+              fontWeight: "var(--fw-sub)",
               textDecoration: "underline",
               padding: 0
             }}
@@ -364,128 +256,7 @@ export function DashboardLayout() {
         </footer>
       </main>
 
-      {isContactOpen ? (
-        <div style={{
-          position: "fixed",
-          top: 0,
-          left: 0,
-          right: 0,
-          bottom: 0,
-          background: theme === "light" ? "rgba(255, 255, 255, 0.4)" : "rgba(0, 0, 0, 0.6)",
-          backdropFilter: "blur(4px)",
-          display: "flex",
-          justifyContent: "center",
-          alignItems: "center",
-          zIndex: 9999,
-          padding: "1rem"
-        }}>
-          <div className="section-card" style={{
-            width: "100%",
-            maxWidth: "500px",
-            background: "var(--glass-bg)",
-            border: "1px solid var(--glass-border)",
-            boxShadow: "0 20px 25px -5px rgba(0, 0, 0, 0.3)",
-            borderRadius: "16px",
-            overflow: "hidden"
-          }}>
-            <div style={{
-              padding: "1.5rem",
-              borderBottom: "1px solid var(--glass-border)",
-              display: "flex",
-              justifyContent: "space-between",
-              alignItems: "center"
-            }}>
-              <h2 style={{ margin: 0, fontSize: "1.25rem", color: "var(--text-color)" }}>Contact Administrators</h2>
-              <button
-                onClick={() => {
-                  setIsContactOpen(false);
-                  setContactError("");
-                  setContactSuccess("");
-                }}
-                style={{
-                  background: "none",
-                  border: "none",
-                  color: "var(--color-slate-400-adaptive)",
-                  cursor: "pointer",
-                  fontSize: "1.5rem",
-                  lineHeight: 1,
-                  padding: 0
-                }}
-                type="button"
-              >
-                ×
-              </button>
-            </div>
-            
-            <form onSubmit={handleContactSubmit} style={{ padding: "1.5rem", display: "flex", flexDirection: "column", gap: "1rem" }}>
-              {contactError ? <p className="auth-error" style={{ margin: 0 }}>{contactError}</p> : null}
-              {contactSuccess ? <p className="success-note" style={{ margin: 0 }}>{contactSuccess}</p> : null}
-              
-              <label className="auth-field">
-                <span>Your Email Address</span>
-                <input
-                  type="email"
-                  value={contactEmail}
-                  onChange={(e) => setContactEmail(e.target.value)}
-                  placeholder="you@example.com"
-                  required
-                  disabled={Boolean(user?.email)}
-                />
-              </label>
-              
-              <label className="auth-field">
-                <span>Subject</span>
-                <input
-                  type="text"
-                  value={contactSubject}
-                  onChange={(e) => setContactSubject(e.target.value)}
-                  placeholder="What is this regarding?"
-                  required
-                />
-              </label>
-              
-              <label className="auth-field">
-                <span>Message</span>
-                <textarea
-                  value={contactMessage}
-                  onChange={(e) => setContactMessage(e.target.value)}
-                  placeholder="Enter your message to the administration team..."
-                  required
-                  rows={4}
-                  style={{
-                    width: "100%",
-                    padding: "0.75rem",
-                    borderRadius: "8px",
-                    background: "var(--glass-bg)",
-                    border: "1px solid var(--glass-border)",
-                    color: "var(--glass-text-primary)",
-                    fontFamily: "inherit",
-                    resize: "none"
-                  }}
-                />
-              </label>
-              
-              <div style={{ display: "flex", gap: "1rem", marginTop: "0.5rem" }}>
-                <button className="auth-submit" disabled={contactSubmitting} type="submit" style={{ flex: 1, margin: 0 }}>
-                  {contactSubmitting ? "Sending..." : "Send Message"}
-                </button>
-                <button
-                  className="action-button neutral"
-                  onClick={() => {
-                    setIsContactOpen(false);
-                    setContactError("");
-                    setContactSuccess("");
-                  }}
-                  type="button"
-                  style={{ padding: "0 1.5rem" }}
-                >
-                  Cancel
-                </button>
-              </div>
-            </form>
-          </div>
-        </div>
-      ) : null}
+      <ContactAdminModal isOpen={isContactOpen} onClose={() => setIsContactOpen(false)} />
 
       <GlobalSearch />
     </div>

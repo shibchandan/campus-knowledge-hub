@@ -79,7 +79,7 @@ export function ConfirmProvider({ children }) {
                 boxShadow: "0 20px 25px -5px rgba(0, 0, 0, 0.3)",
               }}
             >
-              <h2 style={{ marginTop: 0, marginBottom: "0.5rem", fontSize: "1.25rem", fontWeight: "600" }}>
+              <h2 style={{ marginTop: 0, marginBottom: "0.5rem", fontSize: "1.25rem", fontWeight: "var(--fw-head)" }}>
                 {options.title || "Confirm Action"}
               </h2>
               <p style={{ margin: 0, marginBottom: "1.5rem", color: "var(--color-slate-400-adaptive, #94a3b8)", fontSize: "0.95rem", lineHeight: 1.5 }}>
@@ -98,7 +98,7 @@ export function ConfirmProvider({ children }) {
                     background: "rgba(255,255,255,0.05)",
                     cursor: "pointer",
                     fontSize: "0.875rem",
-                    fontWeight: 500,
+                    fontWeight: "var(--fw-sub)",
                   }}
                 >
                   {options.cancelText || "Cancel"}
@@ -114,7 +114,7 @@ export function ConfirmProvider({ children }) {
                     color: "white",
                     cursor: "pointer",
                     fontSize: "0.875rem",
-                    fontWeight: 600,
+                    fontWeight: "var(--fw-head)",
                   }}
                 >
                   {options.confirmText || "Confirm"}

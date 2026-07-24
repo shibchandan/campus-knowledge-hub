@@ -101,7 +101,7 @@ function renderRichText(text = "") {
                     <th key={hIdx} style={{
                       padding: "8px 10px",
                       textAlign: "left",
-                      fontWeight: "600",
+                      fontWeight: "var(--fw-head)",
                       color: "#f8fafc",
                       borderBottom: "1px solid rgba(255, 255, 255, 0.08)"
                     }}>
@@ -1275,8 +1275,8 @@ export function DashboardPage() {
                             }}>
                               <thead>
                                 <tr style={{ background: "rgba(255, 255, 255, 0.06)" }}>
-                                  <th style={{ padding: "12px 14px", textAlign: "left", fontWeight: "600", color: "#ffffff", borderBottom: "1px solid rgba(255, 255, 255, 0.08)" }}>Branch</th>
-                                  <th style={{ padding: "12px 14px", textAlign: "left", fontWeight: "600", color: "#ffffff", borderBottom: "1px solid rgba(255, 255, 255, 0.08)" }}>Avg/Highest Package</th>
+                                  <th style={{ padding: "12px 14px", textAlign: "left", fontWeight: "var(--fw-head)", color: "#ffffff", borderBottom: "1px solid rgba(255, 255, 255, 0.08)" }}>Branch</th>
+                                  <th style={{ padding: "12px 14px", textAlign: "left", fontWeight: "var(--fw-head)", color: "#ffffff", borderBottom: "1px solid rgba(255, 255, 255, 0.08)" }}>Avg/Highest Package</th>
                                 </tr>
                               </thead>
                               <tbody>
@@ -1311,7 +1311,7 @@ export function DashboardPage() {
                               padding: "6px 12px",
                               borderRadius: "8px",
                               fontSize: "0.85rem",
-                              fontWeight: "600",
+                              fontWeight: "var(--fw-head)",
                               transition: "all 0.2s ease"
                             }}
                           >
@@ -1337,8 +1337,8 @@ export function DashboardPage() {
                             }}>
                               <thead>
                                 <tr style={{ background: "rgba(255, 255, 255, 0.06)" }}>
-                                  <th style={{ padding: "12px 14px", textAlign: "left", fontWeight: "600", color: "#ffffff", borderBottom: "1px solid rgba(255, 255, 255, 0.08)" }}>Branch</th>
-                                  <th style={{ padding: "12px 14px", textAlign: "left", fontWeight: "600", color: "#ffffff", borderBottom: "1px solid rgba(255, 255, 255, 0.08)" }}>Closing Rank/Score</th>
+                                  <th style={{ padding: "12px 14px", textAlign: "left", fontWeight: "var(--fw-head)", color: "#ffffff", borderBottom: "1px solid rgba(255, 255, 255, 0.08)" }}>Branch</th>
+                                  <th style={{ padding: "12px 14px", textAlign: "left", fontWeight: "var(--fw-head)", color: "#ffffff", borderBottom: "1px solid rgba(255, 255, 255, 0.08)" }}>Closing Rank/Score</th>
                                 </tr>
                               </thead>
                               <tbody>

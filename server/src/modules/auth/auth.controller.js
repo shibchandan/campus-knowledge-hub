@@ -305,19 +305,21 @@ export async function register(req, res, next) {
     }
 
     if (payload.role === "student") {
-      if (!req.file) {
+      if (!req.file && !payload.studentProofUrl) {
         const error = new Error("Student proof document is required for student registration.");
         error.statusCode = 400;
         throw error;
       }
 
-      if (!isAllowedStudentProof(req.file)) {
-        const error = new Error("Student proof must be an image or PDF document.");
-        error.statusCode = 400;
-        throw error;
-      }
+      if (req.file) {
+        if (!isAllowedStudentProof(req.file)) {
+          const error = new Error("Student proof must be an image or PDF document.");
+          error.statusCode = 400;
+          throw error;
+        }
 
-      await scanFileForMalware(req.file.path);
+        await scanFileForMalware(req.file.path);
+      }
     }
 
     const user = await User.create({
@@ -325,10 +327,10 @@ export async function register(req, res, next) {
       role: requestedRepresentative ? "student" : payload.role,
       representativeRequestStatus: requestedRepresentative ? "pending" : "none",
       studentVerificationStatus: payload.role === "student" ? "pending" : "none",
-      studentProofOriginalName: req.file?.originalname || "",
+      studentProofOriginalName: req.file?.originalname || payload.studentProofName || "",
       studentProofStoredName: req.file?.filename || "",
       studentProofMimeType: req.file?.mimetype || "",
-      studentProofUrl: "",
+      studentProofUrl: payload.studentProofUrl || "",
       officialCollegeEmailVerified: false
     });
 
@@ -930,7 +932,7 @@ export async function submitStudentVerification(req, res, next) {
       throw error;
     }
 
-    if (!req.file && !user.studentProofStoredName) {
+    if (!req.file && !user.studentProofStoredName && !payload.studentProofUrl && !user.studentProofUrl) {
       const error = new Error("Upload a student proof document to continue verification.");
       error.statusCode = 400;
       throw error;
@@ -965,6 +967,10 @@ export async function submitStudentVerification(req, res, next) {
       user.studentProofStoredName = req.file.filename;
       user.studentProofMimeType = req.file.mimetype;
       user.studentProofUrl = "";
+    } else if (payload.studentProofUrl) {
+      user.studentProofUrl = payload.studentProofUrl;
+      user.studentProofOriginalName = payload.studentProofName || user.studentProofOriginalName;
+      user.studentProofStoredName = "";
     }
 
     await user.save();

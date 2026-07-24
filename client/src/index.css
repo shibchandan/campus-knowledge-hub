@@ -47,7 +47,7 @@
 }
 .breadcrumb-current {
   color: var(--color-text-main);
-  font-weight: 500;
+  font-weight: var(--fw-sub);
   max-width: 250px;
   overflow: hidden;
   text-overflow: ellipsis;

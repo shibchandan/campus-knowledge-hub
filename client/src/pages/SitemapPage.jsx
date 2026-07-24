@@ -41,7 +41,7 @@ export function SitemapPage() {
                     color: "var(--color-indigo-400-adaptive)", 
                     textDecoration: "none", 
                     fontSize: "1.1rem",
-                    fontWeight: "500",
+                    fontWeight: "var(--fw-sub)",
                     display: "inline-block",
                     padding: "0.25rem 0"
                   }}

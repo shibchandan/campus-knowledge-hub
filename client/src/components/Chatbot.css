@@ -75,7 +75,7 @@
 
 .cb-title {
   color: white;
-  font-weight: 600;
+  font-weight: var(--fw-head);
   font-size: 0.9375rem;
   margin: 0;
   line-height: 1.2;
@@ -84,7 +84,7 @@
 .cb-subtitle {
   color: #94a3b8;
   font-size: 0.75rem;
-  font-weight: 500;
+  font-weight: var(--fw-sub);
   margin: 0;
   margin-top: 0.125rem;
 }
@@ -289,7 +289,7 @@
   background-color: #f43f5e;
   color: white;
   font-size: 0.75rem;
-  font-weight: 700;
+  font-weight: var(--fw-head);
   border-radius: 9999px;
   border: 2px solid #0B1120;
 }
@@ -316,7 +316,7 @@
 
 .cb-sources-label {
   font-size: 0.7rem;
-  font-weight: 600;
+  font-weight: var(--fw-head);
   color: #64748b;
   text-transform: uppercase;
   letter-spacing: 0.05em;
@@ -338,7 +338,7 @@
   border: 1px solid rgba(99, 102, 241, 0.25);
   color: #818cf8;
   font-size: 0.7rem;
-  font-weight: 500;
+  font-weight: var(--fw-sub);
   text-decoration: none;
   white-space: nowrap;
   transition: all 0.15s;

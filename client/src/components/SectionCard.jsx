@@ -1,4 +1,6 @@
-export function SectionCard({ title, description, children, variant = "default" }) {
+import React from "react";
+
+export const SectionCard = React.memo(function SectionCard({ title, description, children, variant = "default" }) {
   const cardClass = variant === "hero" ? "card hero-card" : "card";
   return (
     <section className={cardClass}>
@@ -12,4 +14,4 @@ export function SectionCard({ title, description, children, variant = "default" 
       {children}
     </section>
   );
-}
+});

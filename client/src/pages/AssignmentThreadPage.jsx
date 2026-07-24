@@ -118,23 +118,54 @@ export function AssignmentThreadPage() {
     }
 
     setReplying(true);
+    
+    const previousAssignment = { ...assignment };
+    const currentMessage = replyMessage;
+    const currentAttachmentUrl = replyAttachmentUrl;
+    const currentAttachmentName = replyAttachmentName;
+    
+    // Optimistic Update
+    const optimisticReply = {
+      _id: "temp-" + Date.now(),
+      sender: {
+        _id: user.id,
+        fullName: user.fullName,
+        avatarUrl: user.avatarUrl,
+        role: user.role
+      },
+      message: currentMessage,
+      attachmentUrl: currentAttachmentUrl,
+      attachmentName: currentAttachmentName,
+      createdAt: new Date().toISOString()
+    };
+    
+    setAssignment(prev => ({
+      ...prev,
+      thread: [...(prev.thread || []), optimisticReply]
+    }));
+
+    setReplyMessage("");
+    setReplyAttachmentUrl("");
+    setReplyAttachmentName("");
+    if (fileInputRef.current) fileInputRef.current.value = "";
+
     try {
       await apiClient.post(`/assignments/${id}/reply`, { 
-        message: replyMessage,
-        attachmentUrl: replyAttachmentUrl,
-        attachmentName: replyAttachmentName
+        message: currentMessage,
+        attachmentUrl: currentAttachmentUrl,
+        attachmentName: currentAttachmentName
       });
-      
-      setReplyMessage("");
-      setReplyAttachmentUrl("");
-      setReplyAttachmentName("");
-      if (fileInputRef.current) fileInputRef.current.value = "";
-      
       showSuccess("Reply posted!");
-      // Reload
+      
+      // Refresh to get real IDs and timestamps
       const response = await apiClient.get(`/assignments/${id}`);
       setAssignment(response.data.data);
     } catch (error) {
+      // Revert on failure
+      setAssignment(previousAssignment);
+      setReplyMessage(currentMessage);
+      setReplyAttachmentUrl(currentAttachmentUrl);
+      setReplyAttachmentName(currentAttachmentName);
       showError(error.response?.data?.message || "Failed to post reply.");
     } finally {
       setReplying(false);
@@ -250,7 +281,7 @@ export function AssignmentThreadPage() {
         opacity: 0.05, transform: "rotate(-30deg) scale(1.5)"
       }}>
         {Array.from({ length: 100 }).map((_, i) => (
-          <span key={i} style={{ padding: "2rem", fontSize: "1.2rem", fontWeight: "bold", whiteSpace: "nowrap" }}>
+          <span key={i} style={{ padding: "2rem", fontSize: "1.2rem", fontWeight: "var(--fw-head)", whiteSpace: "nowrap" }}>
             {user?.email} - {user?.id}
           </span>
         ))}

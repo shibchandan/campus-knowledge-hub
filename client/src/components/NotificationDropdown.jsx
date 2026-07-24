@@ -79,20 +79,17 @@ export function NotificationDropdown() {
   return (
     <div className="notification-dropdown-container" ref={dropdownRef} style={{ position: "relative" }}>
       <button
-        className="notification-bell-button"
+        className="theme-button"
         onClick={() => setIsOpen(!isOpen)}
         style={{
-          background: "var(--glass-bg)",
-          border: "1px solid var(--glass-border)",
-          borderRadius: "8px",
-          cursor: "pointer",
           position: "relative",
-          padding: "6px 12px",
           display: "flex",
           alignItems: "center",
           justifyContent: "center",
-          color: "var(--color-slate-400-adaptive)",
-          height: "36px"
+          width: "40px",
+          height: "40px",
+          padding: "8px",
+          borderRadius: "50%",
         }}
         aria-label="Notifications"
       >
@@ -108,7 +105,7 @@ export function NotificationDropdown() {
             backgroundColor: "#ef4444",
             color: "white",
             fontSize: "0.7rem",
-            fontWeight: "bold",
+            fontWeight: "var(--fw-head)",
             borderRadius: "50%",
             width: "18px",
             height: "18px",
@@ -128,9 +125,11 @@ export function NotificationDropdown() {
           right: 0,
           marginTop: "8px",
           width: "320px",
-          backgroundColor: "var(--color-bg-primary)",
-          color: "var(--color-text-primary)",
-          border: "1px solid var(--color-border)",
+          maxWidth: "calc(100vw - 32px)",
+          backgroundColor: "var(--glass-bg-strong)",
+          backdropFilter: "blur(16px)",
+          color: "var(--glass-text-primary)",
+          border: "1px solid var(--glass-border)",
           borderRadius: "12px",
           boxShadow: "0 10px 25px -5px rgba(0, 0, 0, 0.3), 0 8px 10px -6px rgba(0, 0, 0, 0.1)",
           zIndex: 1000,
@@ -141,7 +140,7 @@ export function NotificationDropdown() {
         }}>
           <div style={{
             padding: "12px 16px",
-            borderBottom: "1px solid var(--color-border)",
+            borderBottom: "1px solid var(--glass-border)",
             display: "flex",
             justifyContent: "space-between",
             alignItems: "center"
@@ -153,7 +152,7 @@ export function NotificationDropdown() {
                 style={{
                   background: "none",
                   border: "none",
-                  color: "var(--color-primary-light)",
+                  color: "var(--color-primary)",
                   cursor: "pointer",
                   fontSize: "0.8rem",
                   padding: 0
@@ -166,7 +165,7 @@ export function NotificationDropdown() {
           
           <div style={{ overflowY: "auto", flex: 1 }}>
             {notifications.length === 0 ? (
-              <div style={{ padding: "32px 16px", textAlign: "center", color: "var(--color-slate-500-adaptive)" }}>
+              <div style={{ padding: "32px 16px", textAlign: "center", color: "var(--glass-text-secondary)" }}>
                 <p>No notifications yet</p>
               </div>
             ) : (
@@ -176,8 +175,8 @@ export function NotificationDropdown() {
                   onClick={() => !notif.isRead && markAsRead(notif._id)}
                   style={{
                     padding: "12px 16px",
-                    borderBottom: "1px solid var(--color-border)",
-                    backgroundColor: notif.isRead ? "transparent" : "var(--color-bg-secondary)",
+                    borderBottom: "1px solid var(--glass-border)",
+                    backgroundColor: notif.isRead ? "transparent" : "var(--glass-bg-hover)",
                     cursor: notif.isRead ? "default" : "pointer",
                     display: "flex",
                     gap: "12px",
@@ -188,10 +187,10 @@ export function NotificationDropdown() {
                     {getIconForType(notif.type)}
                   </div>
                   <div style={{ flex: 1 }}>
-                    <h4 style={{ margin: "0 0 4px 0", fontSize: "0.9rem", color: "var(--color-text-primary)" }}>
+                    <h4 style={{ margin: "0 0 4px 0", fontSize: "0.9rem", color: "var(--glass-text-primary)" }}>
                       {notif.title}
                     </h4>
-                    <p style={{ margin: "0 0 6px 0", fontSize: "0.85rem", color: "var(--color-text-secondary)", lineHeight: 1.4 }}>
+                    <p style={{ margin: "0 0 6px 0", fontSize: "0.85rem", color: "var(--glass-text-secondary)", lineHeight: 1.4 }}>
                       {notif.message}
                     </p>
                     <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>

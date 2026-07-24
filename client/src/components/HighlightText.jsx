@@ -7,7 +7,7 @@ export function HighlightText({ text, highlight }) {
     <>
       {parts.map((part, i) => 
         part.toLowerCase() === highlight.toLowerCase() ? (
-          <strong key={i} style={{ color: "var(--color-primary)", fontWeight: "600", background: "rgba(167, 139, 250, 0.15)", padding: "0 2px", borderRadius: "2px" }}>
+          <strong key={i} style={{ color: "var(--color-primary)", fontWeight: "var(--fw-head)", background: "rgba(167, 139, 250, 0.15)", padding: "0 2px", borderRadius: "2px" }}>
             {part}
           </strong>
         ) : (

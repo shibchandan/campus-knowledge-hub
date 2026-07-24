@@ -29,7 +29,7 @@ const CustomTooltip = ({ active, payload, label }) => {
         fontSize: "0.85rem",
         zIndex: 1000
       }}>
-        <p className="label" style={{ fontWeight: 600, marginBottom: "4px" }}>{label || payload[0].name}</p>
+        <p className="label" style={{ fontWeight: "var(--fw-head)", marginBottom: "4px" }}>{label || payload[0].name}</p>
         {payload.map((entry, index) => (
           <p key={`item-${index}`} style={{ color: entry.color || entry.fill, margin: 0 }}>
             {`${entry.name}: ${entry.value}`}
@@ -41,7 +41,7 @@ const CustomTooltip = ({ active, payload, label }) => {
   return null;
 };
 
-export function CustomPieChart({ data, dataKey = "value", nameKey = "name", height = 300 }) {
+export const CustomPieChart = React.memo(function CustomPieChart({ data, dataKey = "value", nameKey = "name", height = 300 }) {
   if (!data || data.length === 0) {
     return (
       <div style={{ height, display: "flex", alignItems: "center", justifyContent: "center", color: "var(--color-text-muted)" }}>
@@ -74,9 +74,9 @@ export function CustomPieChart({ data, dataKey = "value", nameKey = "name", heig
       </ResponsiveContainer>
     </div>
   );
-}
+});
 
-export function CustomBarChart({ data, xAxisKey = "name", bars = [], height = 300 }) {
+export const CustomBarChart = React.memo(function CustomBarChart({ data, xAxisKey = "name", bars = [], height = 300 }) {
   if (!data || data.length === 0) {
     return (
       <div style={{ height, display: "flex", alignItems: "center", justifyContent: "center", color: "var(--color-text-muted)" }}>
@@ -101,9 +101,9 @@ export function CustomBarChart({ data, xAxisKey = "name", bars = [], height = 30
       </ResponsiveContainer>
     </div>
   );
-}
+});
 
-export function CustomLineChart({ data, xAxisKey = "name", lines = [], height = 300 }) {
+export const CustomLineChart = React.memo(function CustomLineChart({ data, xAxisKey = "name", lines = [], height = 300 }) {
   if (!data || data.length === 0) {
     return (
       <div style={{ height, display: "flex", alignItems: "center", justifyContent: "center", color: "var(--color-text-muted)" }}>
@@ -137,9 +137,9 @@ export function CustomLineChart({ data, xAxisKey = "name", lines = [], height = 
       </ResponsiveContainer>
     </div>
   );
-}
+});
 
-export function ChartCard({ title, subtitle, children, icon }) {
+export const ChartCard = React.memo(function ChartCard({ title, subtitle, children, icon }) {
   return (
     <div className="section-card" style={{ display: "flex", flexDirection: "column", height: "100%", minHeight: "380px" }}>
       <div style={{ display: "flex", alignItems: "center", gap: "0.75rem", marginBottom: "1.5rem" }}>
@@ -159,7 +159,7 @@ export function ChartCard({ title, subtitle, children, icon }) {
           </div>
         )}
         <div>
-          <h3 style={{ margin: 0, fontSize: "1.1rem", fontWeight: 600, color: "var(--color-text-primary, #f8fafc)" }}>
+          <h3 style={{ margin: 0, fontSize: "1.1rem", fontWeight: "var(--fw-head)", color: "var(--color-text-primary, #f8fafc)" }}>
             {title}
           </h3>
           {subtitle && (
@@ -174,4 +174,4 @@ export function ChartCard({ title, subtitle, children, icon }) {
       </div>
     </div>
   );
-}
+});

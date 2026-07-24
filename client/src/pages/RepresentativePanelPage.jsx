@@ -1569,7 +1569,7 @@ export function RepresentativePanelPage() {
             </label>
           </div>
           <div className="auth-field" style={{ display: "flex", flexDirection: "column", gap: "0.5rem" }}>
-            <span style={{ fontSize: "0.9rem", fontWeight: "600", color: "#f8fafc" }}>Cut Off Summary (Text / General Details)</span>
+            <span style={{ fontSize: "0.9rem", fontWeight: "var(--fw-head)", color: "#f8fafc" }}>Cut Off Summary (Text / General Details)</span>
             <textarea
               onChange={(event) =>
                 setProfileForm((current) => ({ ...current, cutOffSummary: event.target.value }))
@@ -1590,7 +1590,7 @@ export function RepresentativePanelPage() {
             />
           </div>
           <div className="auth-field" style={{ display: "flex", flexDirection: "column", gap: "0.5rem", marginTop: "1rem" }}>
-            <span style={{ fontSize: "0.9rem", fontWeight: "600", color: "#f8fafc" }}>Cut Off Mapping (Branch-wise List)</span>
+            <span style={{ fontSize: "0.9rem", fontWeight: "var(--fw-head)", color: "#f8fafc" }}>Cut Off Mapping (Branch-wise List)</span>
             <div style={{
               background: "rgba(255, 255, 255, 0.02)",
               border: "1px solid rgba(255, 255, 255, 0.05)",
@@ -1637,7 +1637,7 @@ export function RepresentativePanelPage() {
                           alignItems: "center",
                           justifyContent: "center",
                           fontSize: "1.2rem",
-                          fontWeight: "bold",
+                          fontWeight: "var(--fw-head)",
                           transition: "all 0.2s ease"
                         }}
                         title="Remove row"
@@ -1660,7 +1660,7 @@ export function RepresentativePanelPage() {
           </div>
 
           <div className="auth-field" style={{ display: "flex", flexDirection: "column", gap: "0.5rem", marginTop: "1rem" }}>
-            <span style={{ fontSize: "0.9rem", fontWeight: "600", color: "#f8fafc" }}>Placement Report Summary (Text / General Details)</span>
+            <span style={{ fontSize: "0.9rem", fontWeight: "var(--fw-head)", color: "#f8fafc" }}>Placement Report Summary (Text / General Details)</span>
             <textarea
               onChange={(event) =>
                 setProfileForm((current) => ({ ...current, placementReport: event.target.value }))
@@ -1681,7 +1681,7 @@ export function RepresentativePanelPage() {
             />
           </div>
           <div className="auth-field" style={{ display: "flex", flexDirection: "column", gap: "0.5rem", marginTop: "1rem" }}>
-            <span style={{ fontSize: "0.9rem", fontWeight: "600", color: "#f8fafc" }}>Placement Mapping (Branch-wise List)</span>
+            <span style={{ fontSize: "0.9rem", fontWeight: "var(--fw-head)", color: "#f8fafc" }}>Placement Mapping (Branch-wise List)</span>
             <div style={{
               background: "rgba(255, 255, 255, 0.02)",
               border: "1px solid rgba(255, 255, 255, 0.05)",
@@ -1728,7 +1728,7 @@ export function RepresentativePanelPage() {
                           alignItems: "center",
                           justifyContent: "center",
                           fontSize: "1.2rem",
-                          fontWeight: "bold",
+                          fontWeight: "var(--fw-head)",
                           transition: "all 0.2s ease"
                         }}
                         title="Remove row"
@@ -1829,7 +1829,7 @@ export function RepresentativePanelPage() {
                 type="submit" 
                 className="btn btn-danger" 
                 disabled={transferring || !transferEmail}
-                style={{ backgroundColor: '#ef4444', color: 'white', padding: '0.75rem 1.5rem', borderRadius: '8px', border: 'none', fontWeight: '600', cursor: transferring ? 'not-allowed' : 'pointer' }}
+                style={{ backgroundColor: '#ef4444', color: 'white', padding: '0.75rem 1.5rem', borderRadius: '8px', border: 'none', fontWeight: "var(--fw-head)", cursor: transferring ? 'not-allowed' : 'pointer' }}
               >
                 {transferring ? "Transferring..." : "Transfer Rights"}
               </button>

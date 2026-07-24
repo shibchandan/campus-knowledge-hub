@@ -338,10 +338,10 @@ export function CommunityPage() {
           background: "var(--color-bg-primary)"
         }}>
           <div style={{ padding: "1rem", borderBottom: "1px solid var(--color-border)", display: "flex", gap: "0.5rem" }}>
-            <button onClick={() => setShowCreateModal(true)} style={{ flex: 1, padding: "0.5rem", background: "#3b82f6", color: "white", border: "none", borderRadius: "6px", cursor: "pointer", fontWeight: "bold" }}>
+            <button onClick={() => setShowCreateModal(true)} style={{ flex: 1, padding: "0.5rem", background: "#3b82f6", color: "white", border: "none", borderRadius: "6px", cursor: "pointer", fontWeight: "var(--fw-head)" }}>
               + Create
             </button>
-            <button onClick={() => setShowJoinModal(true)} style={{ flex: 1, padding: "0.5rem", background: "transparent", color: "#3b82f6", border: "1px solid #3b82f6", borderRadius: "6px", cursor: "pointer", fontWeight: "bold" }}>
+            <button onClick={() => setShowJoinModal(true)} style={{ flex: 1, padding: "0.5rem", background: "transparent", color: "#3b82f6", border: "1px solid #3b82f6", borderRadius: "6px", cursor: "pointer", fontWeight: "var(--fw-head)" }}>
               Join Link
             </button>
           </div>
@@ -388,7 +388,7 @@ export function CommunityPage() {
                 </div>
                 <div style={{ display: "flex", gap: "1rem" }}>
                   {user?.id === activeGroup.createdBy && (
-                    <button onClick={() => setShowUpgradeModal(true)} style={{ background: "#10b981", color: "white", border: "none", padding: "0.5rem 1rem", borderRadius: "8px", cursor: "pointer", fontWeight: "bold" }}>
+                    <button onClick={() => setShowUpgradeModal(true)} style={{ background: "#10b981", color: "white", border: "none", padding: "0.5rem 1rem", borderRadius: "8px", cursor: "pointer", fontWeight: "var(--fw-head)" }}>
                       ⚡ Upgrade Capacity
                     </button>
                   )}
@@ -493,7 +493,7 @@ export function CommunityPage() {
                       disabled={sending || !messageText.trim()}
                       style={{
                         padding: "0 1.5rem", borderRadius: "24px", background: "#3b82f6", color: "white",
-                        border: "none", cursor: "pointer", fontWeight: "bold", opacity: (!messageText.trim() || sending) ? 0.5 : 1
+                        border: "none", cursor: "pointer", fontWeight: "var(--fw-head)", opacity: (!messageText.trim() || sending) ? 0.5 : 1
                       }}
                     >
                       Send
@@ -566,7 +566,7 @@ export function CommunityPage() {
               </div>
               <div style={{ display: "flex", gap: "1rem", marginTop: "1rem" }}>
                 <button type="button" onClick={() => setShowUpgradeModal(false)} style={{ flex: 1, padding: "0.75rem", background: "transparent", border: "1px solid var(--color-border)", color: "white", borderRadius: "8px", cursor: "pointer" }}>Cancel</button>
-                <button type="submit" style={{ flex: 1, padding: "0.75rem", background: "#10b981", border: "none", color: "white", borderRadius: "8px", cursor: "pointer", fontWeight: "bold" }}>Pay ₹{ (upgradeSlots / 100) * 25 }</button>
+                <button type="submit" style={{ flex: 1, padding: "0.75rem", background: "#10b981", border: "none", color: "white", borderRadius: "8px", cursor: "pointer", fontWeight: "var(--fw-head)" }}>Pay ₹{ (upgradeSlots / 100) * 25 }</button>
               </div>
             </form>
           </div>
@@ -612,7 +612,7 @@ export function CommunityPage() {
                       </button>
                     )}
                     {m._id === activeGroup.createdBy && (
-                      <span style={{ fontSize: "0.75rem", background: "#f59e0b", color: "black", padding: "0.1rem 0.4rem", borderRadius: "4px", fontWeight: "bold" }}>Admin</span>
+                      <span style={{ fontSize: "0.75rem", background: "#f59e0b", color: "black", padding: "0.1rem 0.4rem", borderRadius: "4px", fontWeight: "var(--fw-head)" }}>Admin</span>
                     )}
                   </div>
                 ))}
@@ -621,11 +621,11 @@ export function CommunityPage() {
 
             <div style={{ display: "flex", gap: "1rem", marginTop: "2rem" }}>
               {user?.id === activeGroup.createdBy ? (
-                <button onClick={handleDeleteGroup} style={{ flex: 1, padding: "0.75rem", background: "#ef4444", border: "none", color: "white", borderRadius: "8px", cursor: "pointer", fontWeight: "bold" }}>
+                <button onClick={handleDeleteGroup} style={{ flex: 1, padding: "0.75rem", background: "#ef4444", border: "none", color: "white", borderRadius: "8px", cursor: "pointer", fontWeight: "var(--fw-head)" }}>
                   Delete Group
                 </button>
               ) : (
-                <button onClick={handleLeaveGroup} style={{ flex: 1, padding: "0.75rem", background: "#ef4444", border: "none", color: "white", borderRadius: "8px", cursor: "pointer", fontWeight: "bold" }}>
+                <button onClick={handleLeaveGroup} style={{ flex: 1, padding: "0.75rem", background: "#ef4444", border: "none", color: "white", borderRadius: "8px", cursor: "pointer", fontWeight: "var(--fw-head)" }}>
                   Leave Group
                 </button>
               )}
