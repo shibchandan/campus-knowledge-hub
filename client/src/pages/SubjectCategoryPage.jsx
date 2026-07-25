@@ -224,47 +224,46 @@ function ResourcePreview({ resource, onAccessAttempt }) {
   }
 
   if (resource.fileMimeType?.includes("pdf")) {
-    if (resource.storageProvider === "cloudflare-r2" || resource.storageProvider === "cloudinary") {
-      return (
-        <div style={{
-          display: "flex",
-          alignItems: "center",
-          gap: "12px",
-          padding: "12px 16px",
-          background: "rgba(255,255,255,0.03)",
-          borderRadius: "8px",
-          border: "1px solid rgba(255,255,255,0.08)"
-        }}>
-          <span style={{ fontSize: "1.5rem" }}>📄</span>
-          <div style={{ flex: 1, minWidth: 0 }}>
-            <p style={{ margin: 0, fontSize: "0.85rem", fontWeight: "var(--fw-sub)", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
-              {resource.fileOriginalName || "PDF Document"}
-            </p>
-            <p className="muted" style={{ margin: 0, fontSize: "0.75rem" }}>Cloud-hosted PDF</p>
-          </div>
-          <a
-            href={previewSrc}
-            target="_blank"
-            rel="noopener noreferrer"
-            style={{
-              padding: "6px 14px",
-              fontSize: "0.8rem",
-              fontWeight: "var(--fw-head)",
-              borderRadius: "6px",
-              background: "rgba(99, 102, 241, 0.15)",
-              color: "#818cf8",
-              border: "1px solid rgba(99, 102, 241, 0.25)",
-              textDecoration: "none",
-              whiteSpace: "nowrap",
-              transition: "all 0.2s ease"
-            }}
-          >
-            Open PDF ↗
-          </a>
+    return (
+      <div style={{
+        display: "flex",
+        alignItems: "center",
+        gap: "12px",
+        padding: "12px 16px",
+        background: "rgba(255,255,255,0.03)",
+        borderRadius: "8px",
+        border: "1px solid rgba(255,255,255,0.08)"
+      }}>
+        <span style={{ fontSize: "1.5rem" }}>📄</span>
+        <div style={{ flex: 1, minWidth: 0 }}>
+          <p style={{ margin: 0, fontSize: "0.85rem", fontWeight: "var(--fw-sub)", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
+            {resource.fileOriginalName || "PDF Document"}
+          </p>
+          <p className="muted" style={{ margin: 0, fontSize: "0.75rem" }}>
+            {resource.storageProvider === "cloudflare-r2" ? "Cloud-hosted PDF" : "PDF Document"}
+          </p>
         </div>
-      );
-    }
-    return <iframe className="resource-pdf" src={previewSrc} title={resource.title} />;
+        <a
+          href={previewSrc}
+          target="_blank"
+          rel="noopener noreferrer"
+          style={{
+            padding: "6px 14px",
+            fontSize: "0.8rem",
+            fontWeight: "var(--fw-head)",
+            borderRadius: "6px",
+            background: "rgba(99, 102, 241, 0.15)",
+            color: "#818cf8",
+            border: "1px solid rgba(99, 102, 241, 0.25)",
+            textDecoration: "none",
+            whiteSpace: "nowrap",
+            transition: "all 0.2s ease"
+          }}
+        >
+          Open PDF ↗
+        </a>
+      </div>
+    );
   }
 
   if (resource.fileUrl) {
