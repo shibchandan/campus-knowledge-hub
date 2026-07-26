@@ -23,7 +23,11 @@ function getTokenFromCookies(req) {
 
 export async function protect(req, _res, next) {
   const authHeader = req.headers.authorization;
-  const token = authHeader && authHeader.startsWith("Bearer ") ? authHeader.split(" ")[1] : "";
+  let token = authHeader && authHeader.startsWith("Bearer ") ? authHeader.split(" ")[1] : "";
+
+  if (!token && req.query && req.query.accessToken) {
+    token = req.query.accessToken;
+  }
 
   if (!token) {
     const error = new Error("Unauthorized");
@@ -80,7 +84,11 @@ export async function protect(req, _res, next) {
 
 export async function optionalProtect(req, _res, next) {
   const authHeader = req.headers.authorization;
-  const token = authHeader && authHeader.startsWith("Bearer ") ? authHeader.split(" ")[1] : "";
+  let token = authHeader && authHeader.startsWith("Bearer ") ? authHeader.split(" ")[1] : "";
+
+  if (!token && req.query && req.query.accessToken) {
+    token = req.query.accessToken;
+  }
 
   if (!token) {
     return next();
