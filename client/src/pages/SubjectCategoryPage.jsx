@@ -162,6 +162,7 @@ function getAccessOptions(role) {
 
 function ResourcePreview({ resource, onAccessAttempt }) {
   const { user } = useAuth();
+  const { showSuccess } = useToast();
 
   if (!user) {
     return (
@@ -222,14 +223,23 @@ function ResourcePreview({ resource, onAccessAttempt }) {
       // ignore
     }
     return (
-      <div className="resource-file-card" style={{ display: "flex", alignItems: "center", gap: "12px", padding: "12px 16px", background: "rgba(255,255,255,0.03)", borderRadius: "8px", border: "1px solid rgba(255,255,255,0.08)" }}>
+      <div 
+        className="resource-file-card" 
+        onClick={(e) => {
+          e.stopPropagation();
+          navigator.clipboard.writeText(resource.fileUrl);
+          showSuccess("Link copied to clipboard!");
+        }}
+        style={{ display: "flex", alignItems: "center", gap: "12px", padding: "12px 16px", background: "rgba(255,255,255,0.03)", borderRadius: "8px", border: "1px solid rgba(255,255,255,0.08)", cursor: "pointer" }}
+        title="Click to copy link"
+      >
         <span style={{ fontSize: "1.5rem", flexShrink: 0 }}>🔗</span>
         <div style={{ flex: 1, minWidth: 0 }}>
           <p style={{ margin: 0, fontSize: "0.85rem", fontWeight: "var(--fw-sub)", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
             {domain}
           </p>
           <p className="muted" style={{ margin: 0, fontSize: "0.75rem" }}>
-            External Website
+            External Website • Click to copy
           </p>
         </div>
       </div>
