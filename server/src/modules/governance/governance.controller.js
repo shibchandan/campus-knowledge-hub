@@ -181,7 +181,14 @@ export async function createCollegeRequest(req, res, next) {
 export async function getPublicColleges(req, res, next) {
   try {
     const [userColleges, courseColleges, profileColleges, takenColleges] = await Promise.all([
-      User.distinct("collegeName", { collegeName: { $ne: null, $ne: "" } }),
+      User.distinct("collegeName", { 
+        collegeName: { $ne: null, $ne: "" },
+        $or: [
+          { role: "representative" },
+          { role: "admin" },
+          { studentVerificationStatus: "verified" }
+        ]
+      }),
       CollegeCourse.distinct("collegeName", { collegeName: { $ne: null, $ne: "" } }),
       CollegeProfile.distinct("collegeName", { collegeName: { $ne: null, $ne: "" } }),
       User.distinct("collegeNameNormalized", { role: "representative" })

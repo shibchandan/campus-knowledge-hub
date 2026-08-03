@@ -358,6 +358,8 @@ export function validateStudentVerificationSubmissionPayload(payload) {
     "official college email"
   );
 
+  const requestRepresentative = Boolean(payload.requestRepresentative);
+
   if (!collegeName) {
     throw createHttpError("College name is required for student verification.");
   }
@@ -369,6 +371,7 @@ export function validateStudentVerificationSubmissionPayload(payload) {
   return {
     collegeName,
     collegeStudentId,
-    officialCollegeEmail
+    officialCollegeEmail,
+    requestRepresentative
   };
 }

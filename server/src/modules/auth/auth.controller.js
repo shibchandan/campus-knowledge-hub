@@ -945,6 +945,10 @@ export async function submitStudentVerification(req, res, next) {
     user.officialCollegeEmail = payload.officialCollegeEmail;
     user.studentVerificationStatus = "pending";
 
+    if (payload.requestRepresentative) {
+      user.representativeRequestStatus = "pending";
+    }
+
     if (emailChanged) {
       user.officialCollegeEmailVerified = false;
       user.collegeEmailOtpHash = "";
@@ -988,6 +992,10 @@ export async function submitStudentVerification(req, res, next) {
     });
 
     await notifyAdminsAboutStudentVerification(user);
+
+    if (payload.requestRepresentative) {
+      await notifyAdminsAboutRepresentativeRequest(user);
+    }
 
     res.json({
       success: true,

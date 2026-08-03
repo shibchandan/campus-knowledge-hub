@@ -37,8 +37,10 @@ export function AccountSettingsPage() {
   const [studentVerificationForm, setStudentVerificationForm] = useState({
     collegeName: user?.collegeName || "",
     collegeStudentId: user?.collegeStudentId || "",
-    officialCollegeEmail: user?.officialCollegeEmail || ""
+    officialCollegeEmail: user?.officialCollegeEmail || "",
+    requestRepresentative: false
   });
+  const [isCustomCollege, setIsCustomCollege] = useState(false);
   const [passwordForm, setPasswordForm] = useState({
     currentPassword: "",
     newPassword: "",
@@ -472,7 +474,8 @@ export function AccountSettingsPage() {
         collegeStudentId: studentVerificationForm.collegeStudentId,
         officialCollegeEmail: studentVerificationForm.officialCollegeEmail,
         studentProofUrl: studentProofUrl,
-        studentProofName: studentProofName
+        studentProofName: studentProofName,
+        requestRepresentative: studentVerificationForm.requestRepresentative
       };
 
       const response = await apiClient.post("/auth/student-verification/submit", payload);
@@ -674,6 +677,37 @@ export function AccountSettingsPage() {
                             Change
                           </button>
                         </div>
+                      ) : isCustomCollege ? (
+                        <div>
+                          <div style={{ position: "relative" }}>
+                            <input
+                              type="text"
+                              value={studentVerificationForm.collegeName}
+                              onChange={(e) => setStudentVerificationForm(c => ({...c, collegeName: e.target.value}))}
+                              placeholder="Type your college name..."
+                              required
+                            />
+                            <button
+                              type="button"
+                              onClick={() => {
+                                setIsCustomCollege(false);
+                                setStudentVerificationForm(c => ({...c, collegeName: "", requestRepresentative: false}));
+                              }}
+                              style={{ position: "absolute", right: "10px", top: "50%", transform: "translateY(-50%)", background: "none", border: "none", cursor: "pointer", color: "var(--color-slate-400-adaptive)", fontSize: "0.85rem", textDecoration: "underline" }}
+                            >
+                              Cancel
+                            </button>
+                          </div>
+                          <label style={{ display: "flex", alignItems: "center", gap: "8px", marginTop: "12px", cursor: "pointer", fontSize: "0.85rem", color: "var(--text-secondary)" }}>
+                            <input
+                              type="checkbox"
+                              checked={studentVerificationForm.requestRepresentative}
+                              onChange={(e) => setStudentVerificationForm(c => ({ ...c, requestRepresentative: e.target.checked }))}
+                              style={{ width: "auto", margin: 0 }}
+                            />
+                            Request to become the College Representative
+                          </label>
+                        </div>
                       ) : (
                         <>
                           <div style={{ position: "relative" }}>
@@ -758,11 +792,24 @@ export function AccountSettingsPage() {
                               ) : (
                                 <div style={{ padding: "14px", textAlign: "center", color: "var(--color-slate-400-adaptive)", fontSize: "0.85rem" }}>
                                   {collegeSearchQuery
-                                    ? <><p style={{ margin: "0 0 6px" }}>No colleges found for "{collegeSearchQuery}"</p><p className="muted" style={{ margin: 0, fontSize: "0.8rem" }}>A College Representative needs to register your college first.</p></>
+                                    ? <><p style={{ margin: "0 0 6px" }}>No colleges found for "{collegeSearchQuery}"</p><p className="muted" style={{ margin: 0, fontSize: "0.8rem" }}>Add it manually by clicking below.</p></>
                                     : "Type to search colleges..."
                                   }
                                 </div>
                               )}
+                              <div style={{ borderTop: "1px solid var(--glass-border)", padding: "8px" }}>
+                                <button
+                                  type="button"
+                                  onClick={() => {
+                                    setIsCustomCollege(true);
+                                    setStudentVerificationForm(c => ({ ...c, collegeName: collegeSearchQuery }));
+                                    setShowCollegeDropdown(false);
+                                  }}
+                                  style={{ width: "100%", padding: "8px", background: "rgba(59, 130, 246, 0.1)", border: "1px dashed var(--color-blue-500)", color: "var(--color-blue-400)", borderRadius: "6px", cursor: "pointer", fontSize: "0.85rem", textAlign: "center", transition: "all 0.2s" }}
+                                >
+                                  + My college is not listed
+                                </button>
+                              </div>
                             </div>
                           )}
                         </>
