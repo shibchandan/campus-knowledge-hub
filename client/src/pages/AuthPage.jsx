@@ -198,8 +198,8 @@ export function AuthPage() {
       return;
     }
 
-    if (registerForm.role === "student" && isNewCollege) {
-      setError("Students cannot register a new college. A College Representative must add it first.");
+    if (registerForm.role === "representative" && isNewCollege && !registerForm.collegeName.trim()) {
+      setError("Please enter your college name.");
       setLoading(false);
       return;
     }
@@ -559,7 +559,7 @@ export function AuthPage() {
                 <option value="representative">College Representative</option>
               </select>
             </label>
-            {registerForm.role === "student" || registerForm.role === "representative" ? (
+            {registerForm.role === "representative" ? (
               <>
                 <label className="auth-field">
                   <span>College Name <span style={{ color: "red" }}>*</span></span>
@@ -582,10 +582,10 @@ export function AuthPage() {
                         {college.name}
                       </option>
                     ))}
-                    <option value="other">My college is not listed here (Needs a Representative)</option>
+                    <option value="other">My college is not listed here</option>
                   </select>
 
-                  {registerForm.role === "representative" && !isNewCollege && availableColleges.find(c => c.name === registerForm.collegeName)?.hasRepresentative && (
+                  {!isNewCollege && availableColleges.find(c => c.name === registerForm.collegeName)?.hasRepresentative && (
                     <div style={{ marginTop: '12px', padding: '12px', backgroundColor: 'rgba(239, 68, 68, 0.1)', border: '1px solid rgba(239, 68, 68, 0.3)', borderRadius: '8px' }}>
                       <p style={{ margin: 0, fontSize: '0.85rem', color: '#ef4444' }}>
                         <strong>Data Security: Representative Already Exists</strong><br/>
@@ -594,7 +594,7 @@ export function AuthPage() {
                     </div>
                   )}
                   
-                  {isNewCollege && registerForm.role === "representative" && (
+                  {isNewCollege && (
                     <input
                       type="text"
                       value={registerForm.collegeName}
@@ -606,43 +606,18 @@ export function AuthPage() {
                       style={{ marginTop: '8px' }}
                     />
                   )}
-
-                  {isNewCollege && registerForm.role === "student" && (
-                    <div style={{ marginTop: '12px', padding: '12px', backgroundColor: 'rgba(242, 166, 90, 0.1)', border: '1px solid rgba(242, 166, 90, 0.3)', borderRadius: '8px' }}>
-                      <p className="muted" style={{ margin: 0, fontSize: '0.85rem' }}>
-                        <strong>Your college is not listed here.</strong><br/>
-                        A College Representative needs to register and add your college to the platform first. Once approved, it will automatically appear in this list!
-                      </p>
-                    </div>
-                  )}
                 </label>
-                <label className="auth-field">
-                  <span>Official College Email (optional)</span>
-                  <input
-                    type="email"
-                    value={registerForm.officialCollegeEmail}
-                    onChange={(event) =>
-                      setRegisterForm((current) => ({
-                        ...current,
-                        officialCollegeEmail: event.target.value
-                      }))
-                    }
-                    placeholder="yourid@college.edu"
-                  />
-                </label>
-              </>
-            ) : null}
-            {registerForm.role === "student" ? (
-              <>
                 <p className="muted">
-                  You can complete your full student verification (College ID & Proof) from your Account Settings after registration. If you added an official college email, we will send an OTP there for extra verification.
+                  Representative access requires admin approval. Until approved, your account will use student access.
                 </p>
               </>
             ) : null}
-            {registerForm.role === "representative" ? (
-              <p className="muted">
-                Representative access requires admin approval. Until approved, your account will use student access.
-              </p>
+            {registerForm.role === "student" ? (
+              <div style={{ padding: '12px 16px', backgroundColor: 'rgba(59, 130, 246, 0.08)', border: '1px solid rgba(59, 130, 246, 0.2)', borderRadius: '8px', margin: '4px 0' }}>
+                <p className="muted" style={{ margin: 0, fontSize: '0.85rem', lineHeight: '1.5' }}>
+                  🎓 After registration, go to <strong>Account Settings</strong> to select your college, add your College ID, and upload verification documents to access college resources.
+                </p>
+              </div>
             ) : null}
 
             <label style={{ display: "flex", alignItems: "flex-start", gap: "0.75rem", margin: "1rem 0", color: "var(--color-slate-400-adaptive)", fontSize: "0.875rem", cursor: "pointer" }}>
@@ -662,7 +637,6 @@ export function AuthPage() {
               className="auth-button"
               disabled={
                 loading || 
-                (registerForm.role === "student" && isNewCollege) ||
                 (registerForm.role === "representative" && !isNewCollege && availableColleges.find(c => c.name === registerForm.collegeName)?.hasRepresentative)
               }
             >

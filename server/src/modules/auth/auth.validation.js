@@ -114,9 +114,11 @@ export function validateRegisterPayload(payload) {
     throw createHttpError("Only student and representative self-registration is allowed.");
   }
 
-  if (role === "student") {
+  // College name is now optional for students at registration;
+  // they complete it later from Account Settings.
+  if (role === "representative") {
     if (!collegeName) {
-      throw createHttpError("College name is required for student registration.");
+      throw createHttpError("College name is required for representative registration.");
     }
   }
 
