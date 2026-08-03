@@ -5,8 +5,11 @@ import { SearchInput } from "../components/SearchInput";
 import { HighlightText } from "../components/HighlightText";
 import { useDebounce } from "../hooks/useDebounce";
 import { apiClient } from "../lib/apiClient";
+import { useAuth } from "../auth/AuthContext";
+import { Link } from "react-router-dom";
 
 export function StudentPanelPage() {
+  const { user } = useAuth();
   const [courses, setCourses] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
@@ -84,6 +87,16 @@ export function StudentPanelPage() {
 
   return (
     <div className="page-stack">
+      {(!user?.collegeName || user?.studentVerificationStatus === "pending") && (
+        <div className="status-banner warning" style={{ marginBottom: "1.5rem", padding: "1rem", borderRadius: "8px", background: "rgba(245, 158, 11, 0.1)", border: "1px solid rgba(245, 158, 11, 0.2)" }}>
+          <p style={{ color: "var(--color-amber-500-adaptive, #d97706)", fontWeight: "var(--fw-head)", margin: 0 }}>
+            ⚠️ {!user?.collegeName 
+              ? <span>Action Required: Please go to <Link to="/account" style={{ color: "inherit", textDecoration: "underline" }}>Account Settings</Link> to submit your college details and unlock your dashboard.</span>
+              : "Your college verification is currently pending admin approval. Some features may be restricted."
+            }
+          </p>
+        </div>
+      )}
       <SectionCard
         title="Student Panel"
         description="View admin-approved colleges and courses available on the platform."
