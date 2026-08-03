@@ -612,13 +612,7 @@ export function AuthPage() {
                 </p>
               </>
             ) : null}
-            {registerForm.role === "student" ? (
-              <div style={{ padding: '12px 16px', backgroundColor: 'rgba(59, 130, 246, 0.08)', border: '1px solid rgba(59, 130, 246, 0.2)', borderRadius: '8px', margin: '4px 0' }}>
-                <p className="muted" style={{ margin: 0, fontSize: '0.85rem', lineHeight: '1.5' }}>
-                  🎓 After registration, go to <strong>Account Settings</strong> to select your college, add your College ID, and upload verification documents to access college resources.
-                </p>
-              </div>
-            ) : null}
+
 
             <label style={{ display: "flex", alignItems: "flex-start", gap: "0.75rem", margin: "1rem 0", color: "var(--color-slate-400-adaptive)", fontSize: "0.875rem", cursor: "pointer" }}>
               <input

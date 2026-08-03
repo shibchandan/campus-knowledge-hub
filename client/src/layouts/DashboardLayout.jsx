@@ -212,6 +212,64 @@ export function DashboardLayout() {
             )}
           </div>
         </div>
+
+        {user?.role === "student" && user?.studentVerificationStatus !== "verified" && location.pathname !== "/account" && (
+          <div
+            style={{
+              margin: "0 1.5rem 1rem",
+              padding: "14px 20px",
+              background: "linear-gradient(135deg, rgba(251, 191, 36, 0.12), rgba(245, 158, 11, 0.08))",
+              border: "1px solid rgba(245, 158, 11, 0.3)",
+              borderRadius: "12px",
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "space-between",
+              gap: "16px",
+              flexWrap: "wrap"
+            }}
+          >
+            <div style={{ display: "flex", alignItems: "center", gap: "12px", flex: 1, minWidth: 0 }}>
+              <span style={{ fontSize: "1.5rem", flexShrink: 0 }}>⚠️</span>
+              <div>
+                <p style={{ margin: 0, fontWeight: 600, fontSize: "0.9rem", color: "var(--text-primary)" }}>
+                  Complete Your Profile
+                </p>
+                <p style={{ margin: "4px 0 0", fontSize: "0.8rem", color: "var(--color-slate-400-adaptive)", lineHeight: 1.4 }}>
+                  {!user?.collegeName
+                    ? "Select your college, add your College ID, and upload verification documents to access college resources."
+                    : user?.studentVerificationStatus === "pending"
+                      ? "Your verification is under review. You'll get full access once an admin approves it."
+                      : user?.studentVerificationStatus === "rejected"
+                        ? "Your verification was rejected. Please update your details and resubmit."
+                        : "Add your College ID and upload verification documents to unlock all features."
+                  }
+                </p>
+              </div>
+            </div>
+            {user?.studentVerificationStatus !== "pending" && (
+              <button
+                onClick={() => navigate("/account")}
+                style={{
+                  padding: "8px 20px",
+                  background: "linear-gradient(135deg, #f59e0b, #d97706)",
+                  color: "#fff",
+                  border: "none",
+                  borderRadius: "8px",
+                  fontWeight: 600,
+                  fontSize: "0.85rem",
+                  cursor: "pointer",
+                  whiteSpace: "nowrap",
+                  transition: "opacity 0.2s"
+                }}
+                onMouseOver={(e) => e.currentTarget.style.opacity = "0.85"}
+                onMouseOut={(e) => e.currentTarget.style.opacity = "1"}
+              >
+                Complete Now →
+              </button>
+            )}
+          </div>
+        )}
+
         <AnimatePresence mode="wait" initial={false} onExitComplete={() => window.scrollTo(0, 0)}>
           <PageTransition key={location.pathname}>
             <Outlet />
