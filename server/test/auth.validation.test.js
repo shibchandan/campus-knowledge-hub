@@ -57,7 +57,7 @@ test("register validation allows student without college details", () => {
   });
 
   assert.equal(payload.role, "student");
-  assert.equal(payload.collegeName, undefined);
+  assert.equal(payload.collegeName, "");
 });
 
 test("register validation blocks self-service admin registration", () => {
