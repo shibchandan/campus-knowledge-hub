@@ -63,17 +63,30 @@ export function NotificationDropdown() {
     }
   };
 
-  const getIconForType = (type) => {
-    switch (type) {
-      case "success":
-        return "✅";
-      case "warning":
-        return "⚠️";
-      case "error":
-        return "❌";
-      default:
-        return "ℹ️";
-    }
+  const getVisualForNotification = (notif) => {
+    const type = notif.type?.toLowerCase() || "";
+    const title = notif.title?.toLowerCase() || "";
+    
+    // Check type first
+    if (type === "success") return "✅";
+    if (type === "warning") return "⚠️";
+    if (type === "error") return "❌";
+    
+    // Infer from title or type string
+    const textToCheck = `${type} ${title}`;
+    
+    if (textToCheck.includes("comment") || textToCheck.includes("reply")) return "💬";
+    if (textToCheck.includes("assignment") || textToCheck.includes("quiz") || textToCheck.includes("test")) return "📝";
+    if (textToCheck.includes("resource") || textToCheck.includes("upload") || textToCheck.includes("material") || textToCheck.includes("book")) return "📚";
+    if (textToCheck.includes("report") || textToCheck.includes("integrity") || textToCheck.includes("violation")) return "🚨";
+    if (textToCheck.includes("community") || textToCheck.includes("post") || textToCheck.includes("discussion")) return "🗣️";
+    if (textToCheck.includes("notice") || textToCheck.includes("announcement") || textToCheck.includes("alert")) return "📢";
+    if (textToCheck.includes("like") || textToCheck.includes("upvote")) return "👍";
+    if (textToCheck.includes("video") || textToCheck.includes("lecture")) return "🎥";
+    if (textToCheck.includes("file") || textToCheck.includes("document")) return "📄";
+    if (textToCheck.includes("welcome") || textToCheck.includes("join")) return "🎉";
+    
+    return "💡";
   };
 
   return (
@@ -184,7 +197,7 @@ export function NotificationDropdown() {
                   }}
                 >
                   <div style={{ fontSize: "1.2rem", paddingTop: "2px" }}>
-                    {getIconForType(notif.type)}
+                    {getVisualForNotification(notif)}
                   </div>
                   <div style={{ flex: 1 }}>
                     <h4 style={{ margin: "0 0 4px 0", fontSize: "0.9rem", color: "var(--glass-text-primary)" }}>
