@@ -22,28 +22,42 @@ test("register validation allows student with required college verification fiel
   assert.equal(payload.collegeStudentId, "BT22CSE001");
 });
 
-test("register validation allows representative self-registration", () => {
+test("register validation allows representative self-registration with college", () => {
   const payload = validateRegisterPayload({
     fullName: "Representative User",
     email: "rep@example.com",
     password: "secret123",
-    role: "representative"
+    role: "representative",
+    collegeName: "Test College"
   });
 
   assert.equal(payload.role, "representative");
+  assert.equal(payload.collegeName, "Test College");
 });
 
-test("register validation rejects student without college details", () => {
+test("register validation rejects representative without college details", () => {
   assert.throws(
     () =>
       validateRegisterPayload({
-        fullName: "Student User",
-        email: "student@example.com",
+        fullName: "Representative User",
+        email: "rep@example.com",
         password: "secret123",
-        role: "student"
+        role: "representative"
       }),
-    /College name is required for student registration/
+    /College name is required for representative registration/
   );
+});
+
+test("register validation allows student without college details", () => {
+  const payload = validateRegisterPayload({
+    fullName: "Student User",
+    email: "student@example.com",
+    password: "secret123",
+    role: "student"
+  });
+
+  assert.equal(payload.role, "student");
+  assert.equal(payload.collegeName, undefined);
 });
 
 test("register validation blocks self-service admin registration", () => {
