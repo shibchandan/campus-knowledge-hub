@@ -756,7 +756,7 @@ export function AccountSettingsPage() {
                               right: 0,
                               maxHeight: "220px",
                               overflowY: "auto",
-                              background: "var(--card-bg, #1a1a2e)",
+                              background: "var(--glass-bg, #ffffff)",
                               border: "1px solid var(--glass-border)",
                               borderRadius: "0 0 10px 10px",
                               boxShadow: "0 8px 24px rgba(0,0,0,0.25)",
@@ -778,7 +778,7 @@ export function AccountSettingsPage() {
                                       background: index === highlightedCollegeIndex
                                         ? "rgba(59, 130, 246, 0.15)"
                                         : "transparent",
-                                      color: "var(--text-primary)",
+                                      color: "var(--color-text-main, inherit)",
                                       fontSize: "0.875rem",
                                       cursor: "pointer",
                                       borderBottom: "1px solid var(--glass-border)",
@@ -805,7 +805,7 @@ export function AccountSettingsPage() {
                                     setStudentVerificationForm(c => ({ ...c, collegeName: collegeSearchQuery }));
                                     setShowCollegeDropdown(false);
                                   }}
-                                  style={{ width: "100%", padding: "8px", background: "rgba(59, 130, 246, 0.1)", border: "1px dashed var(--color-blue-500)", color: "var(--color-blue-400)", borderRadius: "6px", cursor: "pointer", fontSize: "0.85rem", textAlign: "center", transition: "all 0.2s" }}
+                                  style={{ width: "100%", padding: "8px", background: "rgba(59, 130, 246, 0.1)", border: "1px dashed var(--color-primary, #3b82f6)", color: "var(--color-primary, #3b82f6)", borderRadius: "6px", cursor: "pointer", fontSize: "0.85rem", textAlign: "center", transition: "all 0.2s" }}
                                 >
                                   + My college is not listed
                                 </button>
