@@ -634,33 +634,8 @@ export function AuthPage() {
             ) : null}
             {registerForm.role === "student" ? (
               <>
-                <label className="auth-field">
-                  <span>College ID</span>
-                  <input
-                    type="text"
-                    value={registerForm.collegeStudentId}
-                    onChange={(event) =>
-                      setRegisterForm((current) => ({
-                        ...current,
-                        collegeStudentId: event.target.value.toUpperCase()
-                      }))
-                    }
-                    placeholder="Enter your student/college ID"
-                    required
-                  />
-                </label>
-                <label className="auth-field">
-                  <span>Proof Document {uploadingProof && "(Uploading...)"}</span>
-                  <input
-                    accept="application/pdf,image/*"
-                    onChange={handleProofFileChange}
-                    required
-                    disabled={uploadingProof}
-                    type="file"
-                  />
-                </label>
                 <p className="muted">
-                  Upload your ID card or proof document. If you also add an official college email, the platform will send an OTP there for extra verification.
+                  You can complete your full student verification (College ID & Proof) from your Account Settings after registration. If you added an official college email, we will send an OTP there for extra verification.
                 </p>
               </>
             ) : null}

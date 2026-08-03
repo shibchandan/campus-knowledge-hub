@@ -304,29 +304,21 @@ export async function register(req, res, next) {
       }
     }
 
-    if (payload.role === "student") {
-      if (!req.file && !payload.studentProofUrl) {
-        const error = new Error("Student proof document is required for student registration.");
+    // Student proof is now collected after registration via the settings panel.
+    if (payload.role === "student" && req.file) {
+      if (!isAllowedStudentProof(req.file)) {
+        const error = new Error("Student proof must be an image or PDF document.");
         error.statusCode = 400;
         throw error;
       }
-
-      if (req.file) {
-        if (!isAllowedStudentProof(req.file)) {
-          const error = new Error("Student proof must be an image or PDF document.");
-          error.statusCode = 400;
-          throw error;
-        }
-
-        await scanFileForMalware(req.file.path);
-      }
+      await scanFileForMalware(req.file.path);
     }
 
     const user = await User.create({
       ...payload,
       role: requestedRepresentative ? "student" : payload.role,
       representativeRequestStatus: requestedRepresentative ? "pending" : "none",
-      studentVerificationStatus: payload.role === "student" ? "pending" : "none",
+      studentVerificationStatus: "none",
       studentProofOriginalName: req.file?.originalname || payload.studentProofName || "",
       studentProofStoredName: req.file?.filename || "",
       studentProofMimeType: req.file?.mimetype || "",
@@ -352,9 +344,7 @@ export async function register(req, res, next) {
       await notifyAdminsAboutRepresentativeRequest(user);
     }
 
-    if (payload.role === "student") {
-      await notifyAdminsAboutStudentVerification(user);
-    }
+    // Admins are now notified when students submit their verification from the dashboard.
 
     await issueRegistrationOtp(user);
 

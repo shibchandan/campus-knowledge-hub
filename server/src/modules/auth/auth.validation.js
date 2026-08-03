@@ -118,10 +118,6 @@ export function validateRegisterPayload(payload) {
     if (!collegeName) {
       throw createHttpError("College name is required for student registration.");
     }
-
-    if (!collegeStudentId) {
-      throw createHttpError("College ID is required for student registration.");
-    }
   }
 
   return {
