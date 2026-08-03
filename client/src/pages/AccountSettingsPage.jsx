@@ -641,7 +641,7 @@ export function AccountSettingsPage() {
                 <div className="panel-form-grid">
                   <label className="auth-field">
                     <span>College Name <span style={{ color: "red" }}>*</span></span>
-                    <div ref={collegeDropdownRef} style={{ position: "relative" }}>
+                    <div ref={collegeDropdownRef} style={{ position: "relative", zIndex: 50 }}>
                       {studentVerificationForm.collegeName && !showCollegeDropdown ? (
                         <div style={{
                           display: "flex",
@@ -757,6 +757,8 @@ export function AccountSettingsPage() {
                               maxHeight: "220px",
                               overflowY: "auto",
                               background: "var(--glass-bg, #ffffff)",
+                              backdropFilter: "blur(16px)",
+                              WebkitBackdropFilter: "blur(16px)",
                               border: "1px solid var(--glass-border)",
                               borderRadius: "0 0 10px 10px",
                               boxShadow: "0 8px 24px rgba(0,0,0,0.25)",
