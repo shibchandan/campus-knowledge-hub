@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useState, useRef, useCallback } from "react";
 import { SectionCard } from "../components/SectionCard";
 import { useAuth } from "../auth/AuthContext";
 import { apiClient, buildAuthorizedApiUrl } from "../lib/apiClient";
@@ -80,6 +80,12 @@ export function AccountSettingsPage() {
   const [disableLoading, setDisableLoading] = useState(false);
   const [migrationEmail, setMigrationEmail] = useState("");
   const [migrationLoading, setMigrationLoading] = useState(false);
+  const [availableColleges, setAvailableColleges] = useState([]);
+  const [collegeSearchQuery, setCollegeSearchQuery] = useState("");
+  const [showCollegeDropdown, setShowCollegeDropdown] = useState(false);
+  const [highlightedCollegeIndex, setHighlightedCollegeIndex] = useState(-1);
+  const collegeDropdownRef = useRef(null);
+  const collegeInputRef = useRef(null);
 
   useEffect(() => {
     refreshCurrentUser().catch(() => {});
@@ -96,6 +102,57 @@ export function AccountSettingsPage() {
       officialCollegeEmail: user?.officialCollegeEmail || ""
     });
   }, [user?.avatarUrl, user?.collegeName, user?.collegeStudentId, user?.fullName, user?.officialCollegeEmail]);
+
+  useEffect(() => {
+    async function loadColleges() {
+      try {
+        const response = await apiClient.get("/governance/public-colleges");
+        setAvailableColleges(response.data.data || []);
+      } catch {
+        setAvailableColleges([]);
+      }
+    }
+    loadColleges();
+  }, []);
+
+  useEffect(() => {
+    function handleClickOutside(event) {
+      if (collegeDropdownRef.current && !collegeDropdownRef.current.contains(event.target)) {
+        setShowCollegeDropdown(false);
+      }
+    }
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => document.removeEventListener("mousedown", handleClickOutside);
+  }, []);
+
+  const filteredColleges = useMemo(() => {
+    if (!collegeSearchQuery.trim()) return availableColleges;
+    const query = collegeSearchQuery.toLowerCase();
+    return availableColleges.filter(c => c.name.toLowerCase().includes(query));
+  }, [availableColleges, collegeSearchQuery]);
+
+  const handleCollegeSelect = useCallback((collegeName) => {
+    setStudentVerificationForm(current => ({ ...current, collegeName }));
+    setCollegeSearchQuery("");
+    setShowCollegeDropdown(false);
+    setHighlightedCollegeIndex(-1);
+  }, []);
+
+  function handleCollegeKeyDown(event) {
+    if (!showCollegeDropdown) return;
+    if (event.key === "ArrowDown") {
+      event.preventDefault();
+      setHighlightedCollegeIndex(prev => Math.min(prev + 1, filteredColleges.length - 1));
+    } else if (event.key === "ArrowUp") {
+      event.preventDefault();
+      setHighlightedCollegeIndex(prev => Math.max(prev - 1, 0));
+    } else if (event.key === "Enter" && highlightedCollegeIndex >= 0) {
+      event.preventDefault();
+      handleCollegeSelect(filteredColleges[highlightedCollegeIndex].name);
+    } else if (event.key === "Escape") {
+      setShowCollegeDropdown(false);
+    }
+  }
 
   useEffect(() => {
     let ignore = false;
@@ -580,19 +637,137 @@ export function AccountSettingsPage() {
               <form className="panel-form" onSubmit={handleStudentVerificationSubmit}>
                 <div className="panel-form-grid">
                   <label className="auth-field">
-                    <span>College Name</span>
-                    <input
-                      onChange={(event) =>
-                        setStudentVerificationForm((current) => ({
-                          ...current,
-                          collegeName: event.target.value
-                        }))
-                      }
-                      placeholder="Enter your college name"
-                      required
-                      type="text"
-                      value={studentVerificationForm.collegeName}
-                    />
+                    <span>College Name <span style={{ color: "red" }}>*</span></span>
+                    <div ref={collegeDropdownRef} style={{ position: "relative" }}>
+                      {studentVerificationForm.collegeName && !showCollegeDropdown ? (
+                        <div style={{
+                          display: "flex",
+                          alignItems: "center",
+                          justifyContent: "space-between",
+                          padding: "10px 14px",
+                          background: "var(--glass-bg)",
+                          border: "1px solid var(--glass-border)",
+                          borderRadius: "8px",
+                          fontSize: "0.9rem",
+                          color: "var(--text-primary)"
+                        }}>
+                          <span style={{ display: "flex", alignItems: "center", gap: "8px" }}>
+                            <span style={{ fontSize: "1rem" }}>🏛️</span>
+                            {studentVerificationForm.collegeName}
+                          </span>
+                          <button
+                            type="button"
+                            onClick={() => {
+                              setStudentVerificationForm(current => ({ ...current, collegeName: "" }));
+                              setShowCollegeDropdown(true);
+                              setTimeout(() => collegeInputRef.current?.focus(), 50);
+                            }}
+                            style={{
+                              background: "none",
+                              border: "none",
+                              color: "var(--color-slate-400-adaptive)",
+                              cursor: "pointer",
+                              fontSize: "0.8rem",
+                              textDecoration: "underline"
+                            }}
+                          >
+                            Change
+                          </button>
+                        </div>
+                      ) : (
+                        <>
+                          <div style={{ position: "relative" }}>
+                            <input
+                              ref={collegeInputRef}
+                              type="text"
+                              value={collegeSearchQuery}
+                              onChange={(e) => {
+                                setCollegeSearchQuery(e.target.value);
+                                setShowCollegeDropdown(true);
+                                setHighlightedCollegeIndex(-1);
+                              }}
+                              onFocus={() => setShowCollegeDropdown(true)}
+                              onKeyDown={handleCollegeKeyDown}
+                              placeholder="🔍 Search your college..."
+                              autoComplete="off"
+                              style={{ paddingRight: "40px" }}
+                            />
+                            {collegeSearchQuery && (
+                              <button
+                                type="button"
+                                onClick={() => { setCollegeSearchQuery(""); collegeInputRef.current?.focus(); }}
+                                style={{
+                                  position: "absolute",
+                                  right: "10px",
+                                  top: "50%",
+                                  transform: "translateY(-50%)",
+                                  background: "none",
+                                  border: "none",
+                                  cursor: "pointer",
+                                  color: "var(--color-slate-400-adaptive)",
+                                  fontSize: "1rem",
+                                  lineHeight: 1,
+                                  padding: "4px"
+                                }}
+                              >
+                                ✕
+                              </button>
+                            )}
+                          </div>
+                          {showCollegeDropdown && (
+                            <div style={{
+                              position: "absolute",
+                              top: "100%",
+                              left: 0,
+                              right: 0,
+                              maxHeight: "220px",
+                              overflowY: "auto",
+                              background: "var(--card-bg, #1a1a2e)",
+                              border: "1px solid var(--glass-border)",
+                              borderRadius: "0 0 10px 10px",
+                              boxShadow: "0 8px 24px rgba(0,0,0,0.25)",
+                              zIndex: 50
+                            }}>
+                              {filteredColleges.length > 0 ? (
+                                filteredColleges.map((college, index) => (
+                                  <button
+                                    key={college.name}
+                                    type="button"
+                                    onClick={() => handleCollegeSelect(college.name)}
+                                    onMouseEnter={() => setHighlightedCollegeIndex(index)}
+                                    style={{
+                                      display: "block",
+                                      width: "100%",
+                                      textAlign: "left",
+                                      padding: "10px 14px",
+                                      border: "none",
+                                      background: index === highlightedCollegeIndex
+                                        ? "rgba(59, 130, 246, 0.15)"
+                                        : "transparent",
+                                      color: "var(--text-primary)",
+                                      fontSize: "0.875rem",
+                                      cursor: "pointer",
+                                      borderBottom: "1px solid var(--glass-border)",
+                                      transition: "background 0.15s"
+                                    }}
+                                  >
+                                    <span style={{ marginRight: "8px" }}>🏛️</span>
+                                    {college.name}
+                                  </button>
+                                ))
+                              ) : (
+                                <div style={{ padding: "14px", textAlign: "center", color: "var(--color-slate-400-adaptive)", fontSize: "0.85rem" }}>
+                                  {collegeSearchQuery
+                                    ? <><p style={{ margin: "0 0 6px" }}>No colleges found for "{collegeSearchQuery}"</p><p className="muted" style={{ margin: 0, fontSize: "0.8rem" }}>A College Representative needs to register your college first.</p></>
+                                    : "Type to search colleges..."
+                                  }
+                                </div>
+                              )}
+                            </div>
+                          )}
+                        </>
+                      )}
+                    </div>
                   </label>
                   <label className="auth-field">
                     <span>College Student ID</span>
