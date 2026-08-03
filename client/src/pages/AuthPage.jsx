@@ -472,7 +472,7 @@ export function AuthPage() {
         ) : mode === "login" ? (
           <form className="auth-form" onSubmit={handleLoginSubmit}>
             <label className="auth-field">
-              <span>Email</span>
+              <span>Email <span style={{ color: "red" }}>*</span></span>
               <input
                 type="email"
                 value={loginForm.email}
@@ -485,7 +485,7 @@ export function AuthPage() {
             </label>
 
             <label className="auth-field">
-              <span>Password</span>
+              <span>Password <span style={{ color: "red" }}>*</span></span>
               <PasswordInput
                 value={loginForm.password}
                 onChange={(event) =>
@@ -509,7 +509,7 @@ export function AuthPage() {
         {mode === "register" ? (
           <form className="auth-form" onSubmit={handleRegisterSubmit}>
             <label className="auth-field">
-              <span>Full Name</span>
+              <span>Full Name <span style={{ color: "red" }}>*</span></span>
               <input
                 type="text"
                 value={registerForm.fullName}
@@ -522,7 +522,7 @@ export function AuthPage() {
             </label>
 
             <label className="auth-field">
-              <span>Email</span>
+              <span>Email <span style={{ color: "red" }}>*</span></span>
               <input
                 type="email"
                 value={registerForm.email}
@@ -535,7 +535,7 @@ export function AuthPage() {
             </label>
 
             <label className="auth-field">
-              <span>Password</span>
+              <span>Password <span style={{ color: "red" }}>*</span></span>
               <PasswordInput
                 value={registerForm.password}
                 onChange={(event) =>
@@ -548,7 +548,7 @@ export function AuthPage() {
             </label>
 
             <label className="auth-field">
-              <span>Role</span>
+              <span>Role <span style={{ color: "red" }}>*</span></span>
               <select
                 value={registerForm.role}
                 onChange={(event) =>
@@ -562,7 +562,7 @@ export function AuthPage() {
             {registerForm.role === "student" || registerForm.role === "representative" ? (
               <>
                 <label className="auth-field">
-                  <span>College Name</span>
+                  <span>College Name <span style={{ color: "red" }}>*</span></span>
                   <select
                     value={isNewCollege ? "other" : (availableColleges.some(c => c.name === registerForm.collegeName) ? registerForm.collegeName : (registerForm.collegeName ? "other" : ""))}
                     onChange={(event) => {
