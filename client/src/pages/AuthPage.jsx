@@ -560,57 +560,9 @@ export function AuthPage() {
               </select>
             </label>
             {registerForm.role === "representative" ? (
-              <>
-                <label className="auth-field">
-                  <span>College Name <span style={{ color: "red" }}>*</span></span>
-                  <select
-                    value={isNewCollege ? "other" : (availableColleges.some(c => c.name === registerForm.collegeName) ? registerForm.collegeName : (registerForm.collegeName ? "other" : ""))}
-                    onChange={(event) => {
-                      if (event.target.value === "other") {
-                        setIsNewCollege(true);
-                        setRegisterForm((current) => ({ ...current, collegeName: "" }));
-                      } else {
-                        setIsNewCollege(false);
-                        setRegisterForm((current) => ({ ...current, collegeName: event.target.value }));
-                      }
-                    }}
-                    required={!isNewCollege}
-                  >
-                    <option value="" disabled>Select your college</option>
-                    {availableColleges.map((college) => (
-                      <option key={college.name} value={college.name}>
-                        {college.name}
-                      </option>
-                    ))}
-                    <option value="other">My college is not listed here</option>
-                  </select>
-
-                  {!isNewCollege && availableColleges.find(c => c.name === registerForm.collegeName)?.hasRepresentative && (
-                    <div style={{ marginTop: '12px', padding: '12px', backgroundColor: 'rgba(239, 68, 68, 0.1)', border: '1px solid rgba(239, 68, 68, 0.3)', borderRadius: '8px' }}>
-                      <p style={{ margin: 0, fontSize: '0.85rem', color: '#ef4444' }}>
-                        <strong>Data Security: Representative Already Exists</strong><br/>
-                        This college already has an approved representative. A college can have only one representative for data security. You can only register as a student for this college.
-                      </p>
-                    </div>
-                  )}
-                  
-                  {isNewCollege && (
-                    <input
-                      type="text"
-                      value={registerForm.collegeName}
-                      onChange={(event) =>
-                        setRegisterForm((current) => ({ ...current, collegeName: event.target.value }))
-                      }
-                      placeholder="Type your college name..."
-                      required
-                      style={{ marginTop: '8px' }}
-                    />
-                  )}
-                </label>
-                <p className="muted">
-                  Representative access requires admin approval. Until approved, your account will use student access.
-                </p>
-              </>
+              <p className="muted" style={{ marginTop: "10px" }}>
+                Representative access requires admin approval. You can submit your college details from Account Settings after registration. Until approved, your account will use student access.
+              </p>
             ) : null}
 
 
@@ -629,10 +581,7 @@ export function AuthPage() {
             <button
               type="submit"
               className="auth-button"
-              disabled={
-                loading || 
-                (registerForm.role === "representative" && !isNewCollege && availableColleges.find(c => c.name === registerForm.collegeName)?.hasRepresentative)
-              }
+              disabled={loading}
             >
               {loading ? "Registering..." : "Register"}
             </button>
