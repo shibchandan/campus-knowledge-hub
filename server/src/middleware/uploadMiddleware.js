@@ -111,7 +111,7 @@ export async function validateUploadedFile(req, res, next) {
       let requiredSignatures = [];
 
       for (const [key, sigs] of Object.entries(magicSignatures)) {
-        if (mimetype === key || mimetype.startsWith(key.replace(/\/.*/, "/"))) {
+        if (mimetype === key) {
           requiredSignatures = sigs;
           break;
         }
