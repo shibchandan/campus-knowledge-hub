@@ -1329,7 +1329,11 @@ export function AdminPanelPage() {
               {/* ── Info Grid ── */}
               <div className="admin-user-card__info">
                 <div className="admin-info-row">
-                  <span className="admin-info-row__label">🏛️ College</span>
+                  <span className="admin-info-row__label">
+                    {user.role === "representative" ? "🏛️ Represented College" 
+                      : user.representativeRequestStatus === "pending" ? "🏛️ Requested College" 
+                      : "🏛️ Assigned College"}
+                  </span>
                   <span className="admin-info-row__value">{user.collegeName || "Not assigned"}</span>
                 </div>
                 <div className="admin-info-row">
