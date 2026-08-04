@@ -832,40 +832,32 @@ export function AccountSettingsPage() {
                       value={studentVerificationForm.officialCollegeEmail}
                     />
                   </label>
-                  <div>
-                  <label className="auth-label" style={{ marginBottom: "0.5rem" }}>
-                    Student Proof Document
+                  <label className="auth-field">
+                    <span>Student Proof Document</span>
+                    <div style={{ display: "flex", alignItems: "center", gap: "1rem", flexWrap: "wrap" }}>
+                      <label 
+                        className="action-button neutral" 
+                        style={{ margin: 0, cursor: verificationSubmitLoading ? "not-allowed" : "pointer" }}
+                      >
+                        {verificationSubmitLoading ? "Submitting..." : "Choose File"}
+                        <input
+                          accept="image/*,.pdf"
+                          onChange={handleProofFileChange}
+                          type="file"
+                          disabled={verificationSubmitLoading}
+                          style={{ display: "none" }}
+                        />
+                      </label>
+                      <span className="muted" style={{ fontSize: "0.875rem", wordBreak: "break-all" }}>
+                        {studentProofName || user?.studentProofOriginalName || "No file chosen"}
+                      </span>
+                    </div>
                   </label>
-                  <div style={{ display: "flex", alignItems: "center", gap: "1rem", flexWrap: "wrap" }}>
-                    <label 
-                      className="auth-submit" 
-                      style={{ 
-                        width: "auto", 
-                        margin: 0, 
-                        cursor: verificationSubmitLoading ? "not-allowed" : "pointer",
-                        padding: "0.5rem 1rem",
-                        fontSize: "0.875rem"
-                      }}
-                    >
-                      {verificationSubmitLoading ? "Submitting..." : "Choose File"}
-                      <input
-                        accept="image/*,.pdf"
-                        onChange={handleProofFileChange}
-                        type="file"
-                        disabled={verificationSubmitLoading}
-                        style={{ display: "none" }}
-                      />
-                    </label>
-                    <span className="muted" style={{ fontSize: "0.875rem", wordBreak: "break-all" }}>
-                      {studentProofName || user?.studentProofOriginalName || "No file chosen"}
-                    </span>
-                  </div>
-                </div>
               </div>
               <p className="muted">
                 Upload a college ID card, bonafide certificate, fee receipt, or admission proof. PDF and image files are supported.
               </p>
-                <button className="auth-submit" disabled={verificationSubmitLoading} type="submit">
+                <button className="action-button approve" disabled={verificationSubmitLoading} type="submit" style={{ width: "100%", padding: "14px", borderRadius: "14px", marginTop: "10px" }}>
                   {verificationSubmitLoading
                     ? "Submitting..."
                     : user?.studentVerificationStatus === "pending"
