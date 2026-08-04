@@ -861,9 +861,10 @@ export function AccountSettingsPage() {
                     </span>
                   </div>
                 </div>
-                <p className="muted">
-                  Upload a college ID card, bonafide certificate, fee receipt, or admission proof. PDF and image files are supported.
-                </p>
+              </div>
+              <p className="muted">
+                Upload a college ID card, bonafide certificate, fee receipt, or admission proof. PDF and image files are supported.
+              </p>
                 <button className="auth-submit" disabled={verificationSubmitLoading} type="submit">
                   {verificationSubmitLoading
                     ? "Submitting..."
