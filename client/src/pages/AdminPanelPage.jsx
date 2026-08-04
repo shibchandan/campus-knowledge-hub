@@ -1310,149 +1310,150 @@ export function AdminPanelPage() {
 
         <div className="panel-list">
           {filteredUsers.map((user) => (
-            <article className="panel-card" key={user.id}>
-              <h3>{user.fullName}</h3>
-              <p className="muted">{user.email}</p>
-              <p className="muted">Role: {user.role} | Status: {user.status}</p>
-              {user.role === "representative" ? (
-                <p className="muted">Represented college: {user.collegeName || "Not assigned"}</p>
-              ) : user.representativeRequestStatus === "pending" ? (
-                <>
-                  <p className="muted">Assigned college: {user.collegeName || "Not assigned"}</p>
-                  <p className="muted">Requested college to represent: {user.collegeName || "Not specified"}</p>
-                  <p className="muted">College ID: {user.collegeStudentId || "Not added"}</p>
-                </>
-              ) : (
-                <>
-                  <p className="muted">Assigned college: {user.collegeName || "Not assigned"}</p>
-                  <p className="muted">College ID: {user.collegeStudentId || "Not added"}</p>
-                </>
-              )}
-              <p className="muted">
-                Official college email: {user.officialCollegeEmail || "Not added"} |{" "}
-                {user.officialCollegeEmailVerified ? "Verified" : "Not verified"}
-              </p>
-              {user.studentProofUrl ? (
-                <p className="muted">
-                  <a href={buildAuthorizedApiUrl(user.studentProofUrl)} rel="noreferrer" target="_blank">
-                    Open proof: {user.studentProofOriginalName || "student-proof"}
-                  </a>
-                </p>
-              ) : (
-                <p className="muted">Proof document: Not uploaded</p>
-              )}
-              {user.role === "student" ? (
-                <p
-                  className={`status-chip ${
-                    user.studentVerificationStatus === "verified"
-                      ? "approved"
-                      : user.studentVerificationStatus === "rejected"
-                        ? "rejected"
-                        : user.studentVerificationStatus === "pending"
-                          ? "pending"
-                          : "pending"
-                  }`}
-                >
-                  Student verification: {user.studentVerificationStatus || "none"}
-                </p>
+            <article className="admin-user-card" key={user.id}>
+              {/* ── Header ── */}
+              <div className="admin-user-card__header">
+                <div className="admin-user-card__avatar">
+                  {(user.fullName || "U").charAt(0).toUpperCase()}
+                </div>
+                <div className="admin-user-card__identity">
+                  <h3 className="admin-user-card__name">{user.fullName}</h3>
+                  <p className="admin-user-card__email">{user.email}</p>
+                </div>
+                <div className="admin-user-card__badges">
+                  <span className={`admin-badge admin-badge--role-${user.role}`}>{user.role}</span>
+                  <span className={`admin-badge admin-badge--status-${user.status}`}>{user.status}</span>
+                </div>
+              </div>
+
+              {/* ── Info Grid ── */}
+              <div className="admin-user-card__info">
+                <div className="admin-info-row">
+                  <span className="admin-info-row__label">🏛️ College</span>
+                  <span className="admin-info-row__value">{user.collegeName || "Not assigned"}</span>
+                </div>
+                <div className="admin-info-row">
+                  <span className="admin-info-row__label">🆔 College ID</span>
+                  <span className="admin-info-row__value">{user.collegeStudentId || "—"}</span>
+                </div>
+                <div className="admin-info-row">
+                  <span className="admin-info-row__label">📧 College Email</span>
+                  <span className="admin-info-row__value">
+                    {user.officialCollegeEmail || "—"}
+                    {user.officialCollegeEmail ? (
+                      <span className={`admin-badge admin-badge--small ${user.officialCollegeEmailVerified ? "admin-badge--status-active" : "admin-badge--status-suspended"}`}>
+                        {user.officialCollegeEmailVerified ? "Verified" : "Unverified"}
+                      </span>
+                    ) : null}
+                  </span>
+                </div>
+                <div className="admin-info-row">
+                  <span className="admin-info-row__label">📄 Proof</span>
+                  <span className="admin-info-row__value">
+                    {user.studentProofUrl ? (
+                      <a className="admin-proof-link" href={buildAuthorizedApiUrl(user.studentProofUrl)} rel="noreferrer" target="_blank">
+                        📎 {user.studentProofOriginalName || "View document"}
+                      </a>
+                    ) : (
+                      <span className="muted">Not uploaded</span>
+                    )}
+                  </span>
+                </div>
+              </div>
+
+              {/* ── Status Chips ── */}
+              {(user.role === "student" || (user.representativeRequestStatus && user.representativeRequestStatus !== "none")) ? (
+                <div className="admin-user-card__statuses">
+                  {user.role === "student" ? (
+                    <span className={`status-chip ${
+                      user.studentVerificationStatus === "verified" ? "approved"
+                        : user.studentVerificationStatus === "rejected" ? "rejected"
+                        : "pending"
+                    }`}>
+                      Verification: {user.studentVerificationStatus || "none"}
+                    </span>
+                  ) : null}
+                  {user.representativeRequestStatus && user.representativeRequestStatus !== "none" ? (
+                    <span className={`status-chip ${
+                      user.representativeRequestStatus === "approved" ? "approved"
+                        : user.representativeRequestStatus === "rejected" ? "rejected"
+                        : "pending"
+                    }`}>
+                      Rep Request: {user.representativeRequestStatus}
+                    </span>
+                  ) : null}
+                </div>
               ) : null}
-              {user.representativeRequestStatus && user.representativeRequestStatus !== "none" ? (
-                <p className={`status-chip ${user.representativeRequestStatus === "pending" ? "pending" : user.representativeRequestStatus === "approved" ? "approved" : "rejected"}`}>
-                  Representative request: {user.representativeRequestStatus}
-                </p>
-              ) : null}
-              <div className="panel-actions">
-                {user.representativeRequestStatus === "pending" ? (
-                  <button
-                    className="action-button approve"
-                    onClick={() =>
-                      handleUpdateUser(user.id, {
-                        role: "representative",
-                        representativeRequestStatus: "approved"
-                      })
-                    }
-                    type="button"
-                  >
-                    Approve Rep Request
-                  </button>
+
+              {/* ── Actions ── */}
+              <div className="admin-user-card__actions">
+                {/* Verification & Rep Actions */}
+                {(user.representativeRequestStatus === "pending" || (user.role === "student" && user.studentVerificationStatus !== "verified")) ? (
+                  <div className="admin-action-group">
+                    <span className="admin-action-group__label">Review</span>
+                    <div className="admin-action-group__buttons">
+                      {user.representativeRequestStatus === "pending" ? (
+                        <>
+                          <button className="action-button approve" onClick={() => handleUpdateUser(user.id, { role: "representative", representativeRequestStatus: "approved" })} type="button">
+                            ✓ Approve Rep
+                          </button>
+                          <button className="action-button reject" onClick={() => handleUpdateUser(user.id, { role: "student", representativeRequestStatus: "rejected" })} type="button">
+                            ✕ Reject Rep
+                          </button>
+                        </>
+                      ) : null}
+                      {user.role === "student" && user.studentVerificationStatus !== "verified" ? (
+                        <button className="action-button approve" onClick={() => handleUpdateUser(user.id, { studentVerificationStatus: "verified" })} type="button">
+                          ✓ Verify Student
+                        </button>
+                      ) : null}
+                      {user.role === "student" && user.studentVerificationStatus !== "rejected" ? (
+                        <button className="action-button reject" onClick={() => handleUpdateUser(user.id, { studentVerificationStatus: "rejected" })} type="button">
+                          ✕ Reject Student
+                        </button>
+                      ) : null}
+                    </div>
+                  </div>
                 ) : null}
-                {user.representativeRequestStatus === "pending" ? (
-                  <button
-                    className="action-button reject"
-                    onClick={() =>
-                      handleUpdateUser(user.id, {
-                        role: "student",
-                        representativeRequestStatus: "rejected"
-                      })
-                    }
-                    type="button"
-                  >
-                    Reject Rep Request
-                  </button>
-                ) : null}
-                {user.role !== "admin" ? (
-                  <button className="action-button approve" onClick={() => handleUpdateUser(user.id, { role: "admin" })} type="button">
-                    Make Admin
-                  </button>
-                ) : null}
-                {user.role !== "representative" && currentUser?.id !== user.id ? (
-                  <button className="action-button neutral" onClick={() => handleUpdateUser(user.id, { role: "representative" })} type="button">
-                    Make Rep
-                  </button>
-                ) : null}
-                {user.role !== "student" && currentUser?.id !== user.id ? (
-                  <button className="action-button neutral" onClick={() => handleUpdateUser(user.id, { role: "student" })} type="button">
-                    Make Student
-                  </button>
-                ) : null}
-                {user.status !== "suspended" && currentUser?.id !== user.id ? (
-                  <button className="action-button reject" onClick={() => handleUpdateUser(user.id, { status: "suspended" })} type="button">
-                    Suspend
-                  </button>
-                ) : null}
-                {user.status !== "banned" && currentUser?.id !== user.id ? (
-                  <button className="action-button reject" onClick={() => handleUpdateUser(user.id, { status: "banned" })} type="button">
-                    Ban
-                  </button>
-                ) : null}
-                {user.status !== "active" ? (
-                  <button className="action-button approve" onClick={() => handleUpdateUser(user.id, { status: "active" })} type="button">
-                    Activate
-                  </button>
-                ) : null}
-                <button
-                  className="action-button neutral"
-                  onClick={() => handleAssignCollege(user)}
-                  type="button"
-                >
-                  Set College
-                </button>
-                {user.role === "student" && user.studentVerificationStatus !== "verified" ? (
-                  <button
-                    className="action-button approve"
-                    onClick={() =>
-                      handleUpdateUser(user.id, { studentVerificationStatus: "verified" })
-                    }
-                    type="button"
-                  >
-                    Verify Student
-                  </button>
-                ) : null}
-                {user.role === "student" && user.studentVerificationStatus !== "rejected" ? (
-                  <button
-                    className="action-button reject"
-                    onClick={() =>
-                      handleUpdateUser(user.id, { studentVerificationStatus: "rejected" })
-                    }
-                    type="button"
-                  >
-                    Reject Verification
-                  </button>
+
+                {/* Role & Status Actions */}
+                {currentUser?.id !== user.id ? (
+                  <div className="admin-action-group">
+                    <span className="admin-action-group__label">Manage</span>
+                    <div className="admin-action-group__buttons">
+                      {user.role !== "admin" ? (
+                        <button className="action-button approve" onClick={() => handleUpdateUser(user.id, { role: "admin" })} type="button">Make Admin</button>
+                      ) : null}
+                      {user.role !== "representative" ? (
+                        <button className="action-button neutral" onClick={() => handleUpdateUser(user.id, { role: "representative" })} type="button">Make Rep</button>
+                      ) : null}
+                      {user.role !== "student" ? (
+                        <button className="action-button neutral" onClick={() => handleUpdateUser(user.id, { role: "student" })} type="button">Make Student</button>
+                      ) : null}
+                      <button className="action-button neutral" onClick={() => handleAssignCollege(user)} type="button">Set College</button>
+                    </div>
+                  </div>
+                ) : (
+                  <p className="muted" style={{ textAlign: "center", marginTop: "0.5rem" }}>This is your current admin account.</p>
+                )}
+
+                {currentUser?.id !== user.id ? (
+                  <div className="admin-action-group">
+                    <span className="admin-action-group__label">Moderation</span>
+                    <div className="admin-action-group__buttons">
+                      {user.status !== "active" ? (
+                        <button className="action-button approve" onClick={() => handleUpdateUser(user.id, { status: "active" })} type="button">Activate</button>
+                      ) : null}
+                      {user.status !== "suspended" ? (
+                        <button className="action-button reject" onClick={() => handleUpdateUser(user.id, { status: "suspended" })} type="button">Suspend</button>
+                      ) : null}
+                      {user.status !== "banned" ? (
+                        <button className="action-button reject" onClick={() => handleUpdateUser(user.id, { status: "banned" })} type="button">Ban</button>
+                      ) : null}
+                    </div>
+                  </div>
                 ) : null}
               </div>
-              {currentUser?.id === user.id ? (
-                <p className="muted">This is your current admin account.</p>
-              ) : null}
             </article>
           ))}
         </div>
