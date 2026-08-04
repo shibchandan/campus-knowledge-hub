@@ -847,15 +847,36 @@ export function AccountSettingsPage() {
                       value={studentVerificationForm.officialCollegeEmail}
                     />
                   </label>
-                  <label className="auth-field">
-                    <span>Student Proof Document {uploadingProof && "(Uploading...)"}</span>
-                    <input
-                      accept="image/*,.pdf"
-                      onChange={handleProofFileChange}
-                      type="file"
-                      disabled={uploadingProof}
-                    />
+                  <div>
+                  <label className="auth-label" style={{ marginBottom: "0.5rem" }}>
+                    Student Proof Document
                   </label>
+                  <div style={{ display: "flex", alignItems: "center", gap: "1rem", flexWrap: "wrap" }}>
+                    <label 
+                      className="auth-submit" 
+                      style={{ 
+                        width: "auto", 
+                        margin: 0, 
+                        cursor: uploadingProof ? "not-allowed" : "pointer",
+                        padding: "0.5rem 1rem",
+                        fontSize: "0.875rem"
+                      }}
+                    >
+                      {uploadingProof ? "Uploading..." : "Choose File"}
+                      <input
+                        accept="image/*,.pdf"
+                        onChange={handleProofFileChange}
+                        type="file"
+                        disabled={uploadingProof}
+                        style={{ display: "none" }}
+                      />
+                    </label>
+                    <span className="muted" style={{ fontSize: "0.875rem", wordBreak: "break-all" }}>
+                      {uploadingProof 
+                        ? "Uploading document, please wait..." 
+                        : studentProofName || user?.studentProofOriginalName || "No file chosen"}
+                    </span>
+                  </div>
                 </div>
                 <p className="muted">
                   Upload a college ID card, bonafide certificate, fee receipt, or admission proof. PDF and image files are supported.
