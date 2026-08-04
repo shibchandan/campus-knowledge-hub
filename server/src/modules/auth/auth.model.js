@@ -96,6 +96,7 @@ userSchema.methods.toSafeObject = function toSafeObject() {
     studentVerificationStatus: this.studentVerificationStatus || "none",
     studentProofUrl: this.studentProofUrl || "",
     studentProofOriginalName: this.studentProofOriginalName || "",
+    studentProofStoredName: this.studentProofStoredName || "",
     representativeRequestStatus: this.representativeRequestStatus || "none",
     status: this.status || "active",
     twoFactorEnabled: Boolean(this.twoFactorEnabled),
