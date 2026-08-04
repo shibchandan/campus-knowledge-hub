@@ -3,6 +3,7 @@ import { useNavigate } from "react-router-dom";
 import { SectionCard } from "../components/SectionCard";
 import { useCollege } from "../college/CollegeContext";
 import { normalizeSearchValue } from "../lib/stringUtils";
+import { useAuth } from "../auth/AuthContext";
 
 const FILTERS = {
   city: "city",
@@ -73,6 +74,7 @@ export function CollegeSelectorPage() {
     selectedCollege,
     selectCollegeById
   } = useCollege();
+  const { user } = useAuth();
   const [query, setQuery] = useState("");
   const [sortBy, setSortBy] = useState("name-asc");
   const [selectedCity, setSelectedCity] = useState("");
@@ -115,6 +117,12 @@ export function CollegeSelectorPage() {
     });
 
     filtered.sort((left, right) => {
+      const leftIsUserCollege = user?.collegeName && left.name === user.collegeName;
+      const rightIsUserCollege = user?.collegeName && right.name === user.collegeName;
+
+      if (leftIsUserCollege && !rightIsUserCollege) return -1;
+      if (!leftIsUserCollege && rightIsUserCollege) return 1;
+
       if (sortBy === "location-asc") {
         return left.location.localeCompare(right.location);
       }
@@ -127,7 +135,7 @@ export function CollegeSelectorPage() {
     });
 
     return filtered;
-  }, [visibleColleges, query, selectedCity, selectedCollegeType, sortBy]);
+  }, [visibleColleges, query, selectedCity, selectedCollegeType, sortBy, user]);
 
   const popupOptions = useMemo(() => {
     const term = modalSearch.trim().toLowerCase();
