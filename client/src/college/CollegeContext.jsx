@@ -35,15 +35,7 @@ export function CollegeProvider({ children }) {
   
   const lockedCollegeName = user?.role === "student" ? user.collegeName?.trim() : "";
   
-  const visibleColleges = useMemo(() => {
-    if (!lockedCollegeName) {
-      return availableColleges;
-    }
-
-    return availableColleges.filter(
-      (item) => item.name.trim().toLowerCase() === lockedCollegeName.toLowerCase()
-    );
-  }, [availableColleges, lockedCollegeName]);
+  const visibleColleges = availableColleges;
 
   const refreshColleges = useCallback(async () => {
     try {
@@ -90,13 +82,7 @@ export function CollegeProvider({ children }) {
       return;
     }
 
-    if (
-      selectedCollege &&
-      selectedCollege.name.trim().toLowerCase() === lockedCollegeName.toLowerCase()
-    ) {
-      return;
-    }
-
+    // Default select their college if nothing is selected yet
     const existingCollege =
       colleges.find(
         (item) => item.name.trim().toLowerCase() === lockedCollegeName.toLowerCase()
@@ -107,8 +93,6 @@ export function CollegeProvider({ children }) {
         location: "Assigned college"
       };
 
-    setSelectedCollege(existingCollege);
-
     setAvailableColleges((current) => {
       const exists = current.some(
         (item) => item.name.trim().toLowerCase() === existingCollege.name.trim().toLowerCase()
@@ -118,31 +102,21 @@ export function CollegeProvider({ children }) {
       }
       return [...current, existingCollege].sort((left, right) => left.name.localeCompare(right.name));
     });
-  }, [lockedCollegeName, selectedCollege]);
+
+    setSelectedCollege((current) => current || existingCollege);
+  }, [lockedCollegeName]);
 
   const selectCollegeById = useCallback((collegeId) => {
     setAvailableColleges((currentAvailable) => {
       const college = currentAvailable.find((item) => item.id === collegeId) || null;
-
-      if (
-        lockedCollegeName &&
-        college &&
-        college.name.trim().toLowerCase() !== lockedCollegeName.toLowerCase()
-      ) {
-        return currentAvailable;
-      }
-
       setSelectedCollege(college);
       return currentAvailable;
     });
-  }, [lockedCollegeName]);
+  }, []);
 
   const clearCollege = useCallback(() => {
-    if (lockedCollegeName) {
-      return;
-    }
     setSelectedCollege(null);
-  }, [lockedCollegeName]);
+  }, []);
 
   const stateValue = useMemo(
     () => ({
