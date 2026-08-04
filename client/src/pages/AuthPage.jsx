@@ -88,7 +88,7 @@ export function AuthPage() {
   const [verificationEmail, setVerificationEmail] = useState("");
   const [verificationOtp, setVerificationOtp] = useState("");
   const [verificationCooldown, setVerificationCooldown] = useState(0);
-  const [uploadingProof, setUploadingProof] = useState(false);
+
 
   useEffect(() => {
     async function loadColleges() {
@@ -204,11 +204,7 @@ export function AuthPage() {
       return;
     }
 
-    if (uploadingProof) {
-      setError("Please wait for the proof document to finish uploading.");
-      setLoading(false);
-      return;
-    }
+
 
     try {
       const result = await register(registerForm);
@@ -232,31 +228,7 @@ export function AuthPage() {
     }
   }
 
-  async function handleProofFileChange(event) {
-    const file = event.target.files?.[0];
-    if (!file) return;
 
-    setUploadingProof(true);
-    setError("");
-
-    try {
-      const formData = new FormData();
-      formData.append("file", file);
-      const uploadRes = await apiClient.post("/resources/upload", formData, {
-        headers: { "Content-Type": "multipart/form-data" }
-      });
-      setRegisterForm((current) => ({
-        ...current,
-        studentProofUrl: uploadRes.data.url,
-        studentProofName: file.name
-      }));
-    } catch (err) {
-      setError(err.response?.data?.message || "Failed to upload proof document.");
-      event.target.value = "";
-    } finally {
-      setUploadingProof(false);
-    }
-  }
 
   async function handleForgotPasswordSubmit(event) {
     event.preventDefault();

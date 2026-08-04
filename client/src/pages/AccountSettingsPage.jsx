@@ -435,53 +435,38 @@ export function AccountSettingsPage() {
     }
   }
 
-  async function handleProofFileChange(event) {
+  function handleProofFileChange(event) {
     const file = event.target.files?.[0];
     if (!file) return;
 
-    setUploadingProof(true);
+    setStudentProofFile(file);
+    setStudentProofName(file.name);
     setError("");
-
-    try {
-      const formData = new FormData();
-      formData.append("file", file);
-      const uploadRes = await apiClient.post("/resources/upload", formData, {
-        headers: { "Content-Type": "multipart/form-data" }
-      });
-      setStudentProofUrl(uploadRes.data.url);
-      setStudentProofName(file.name);
-    } catch (err) {
-      setError(err.response?.data?.message || "Failed to upload proof document.");
-      event.target.value = "";
-    } finally {
-      setUploadingProof(false);
-    }
   }
 
   async function handleStudentVerificationSubmit(event) {
     event.preventDefault();
-    if (uploadingProof) {
-      setError("Please wait for the proof document to finish uploading.");
-      return;
-    }
     setVerificationSubmitLoading(true);
     setError("");
     setSuccess("");
 
     try {
-      const payload = {
-        collegeName: studentVerificationForm.collegeName,
-        collegeStudentId: studentVerificationForm.collegeStudentId,
-        officialCollegeEmail: studentVerificationForm.officialCollegeEmail,
-        studentProofUrl: studentProofUrl,
-        studentProofName: studentProofName,
-        requestRepresentative: studentVerificationForm.requestRepresentative
-      };
+      const formData = new FormData();
+      if (studentVerificationForm.collegeName) formData.append("collegeName", studentVerificationForm.collegeName);
+      if (studentVerificationForm.collegeStudentId) formData.append("collegeStudentId", studentVerificationForm.collegeStudentId);
+      if (studentVerificationForm.officialCollegeEmail) formData.append("officialCollegeEmail", studentVerificationForm.officialCollegeEmail);
+      if (studentVerificationForm.requestRepresentative) formData.append("requestRepresentative", studentVerificationForm.requestRepresentative);
+      
+      if (studentProofFile) {
+        formData.append("studentProof", studentProofFile);
+      }
 
-      const response = await apiClient.post("/auth/student-verification/submit", payload);
+      const response = await apiClient.post("/auth/student-verification/submit", formData, {
+        headers: { "Content-Type": "multipart/form-data" }
+      });
 
       setSuccess(response.data.message || "Student verification submitted successfully.");
-      setStudentProofUrl("");
+      setStudentProofFile(null);
       setStudentProofName("");
       await refreshCurrentUser();
     } catch (requestError) {
@@ -857,24 +842,22 @@ export function AccountSettingsPage() {
                       style={{ 
                         width: "auto", 
                         margin: 0, 
-                        cursor: uploadingProof ? "not-allowed" : "pointer",
+                        cursor: verificationSubmitLoading ? "not-allowed" : "pointer",
                         padding: "0.5rem 1rem",
                         fontSize: "0.875rem"
                       }}
                     >
-                      {uploadingProof ? "Uploading..." : "Choose File"}
+                      {verificationSubmitLoading ? "Submitting..." : "Choose File"}
                       <input
                         accept="image/*,.pdf"
                         onChange={handleProofFileChange}
                         type="file"
-                        disabled={uploadingProof}
+                        disabled={verificationSubmitLoading}
                         style={{ display: "none" }}
                       />
                     </label>
                     <span className="muted" style={{ fontSize: "0.875rem", wordBreak: "break-all" }}>
-                      {uploadingProof 
-                        ? "Uploading document, please wait..." 
-                        : studentProofName || user?.studentProofOriginalName || "No file chosen"}
+                      {studentProofName || user?.studentProofOriginalName || "No file chosen"}
                     </span>
                   </div>
                 </div>
