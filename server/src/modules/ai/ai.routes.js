@@ -40,19 +40,19 @@ async function checkAiAbuse(req, res, next) {
 
 const aiRateLimiter = createRateLimiter({
   windowMs: 60 * 60 * 1000, // 1 hour
-  maxRequests: 10,
+  maxRequests: 50,
   message: "AI request limit reached. Please wait an hour and try again.",
   keyPrefix: "ai",
   keyGenerator: (req) => req.user?.id || req.ip
 });
 
-aiRouter.use(protect, aiRateLimiter, checkAiAbuse, llmFirewall);
+aiRouter.use(protect, checkAiAbuse);
 
-aiRouter.get("/summary", summarizeLecture);
-aiRouter.get("/pyq-answer", generatePyqAnswer);
-aiRouter.get("/recommendations", getRecommendations);
+aiRouter.get("/summary", aiRateLimiter, llmFirewall, summarizeLecture);
+aiRouter.get("/pyq-answer", aiRateLimiter, llmFirewall, generatePyqAnswer);
+aiRouter.get("/recommendations", aiRateLimiter, llmFirewall, getRecommendations);
 aiRouter.get("/history", getAiHistory);
 aiRouter.delete("/history", clearAiHistory);
 aiRouter.delete("/history/:historyId", deleteAiHistoryItem);
 aiRouter.get("/status", getAiStatus);
-aiRouter.post("/ask", askAi);
+aiRouter.post("/ask", aiRateLimiter, llmFirewall, askAi);

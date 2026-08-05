@@ -23,11 +23,11 @@ const navSections = [
   {
     label: "Academic",
     links: [
-      { to: "/dashboard", label: "Overview", icon: "📊", prefetchRoute: "/academic/stats" },
-      { to: "/lectures", label: "Lectures", icon: "🎬", prefetchRoute: "/academic/lectures" },
-      { to: "/notes", label: "Notes & PYQs", icon: "📝", prefetchRoute: "/academic/resources" },
-      { to: "/quizzes", label: "Quizzes", icon: "✅", prefetchRoute: "/academic/quizzes" },
-      { to: "/assignments", label: "Live Assignments", icon: "⏳", prefetchRoute: "/academic/assignments" }
+      { to: "/dashboard", label: "Overview", icon: "📊", prefetchRoute: "/notices" },
+      { to: "/lectures", label: "Lectures", icon: "🎬", prefetchRoute: "/lectures" },
+      { to: "/notes", label: "Notes & PYQs", icon: "📝", prefetchRoute: "/resources" },
+      { to: "/quizzes", label: "Quizzes", icon: "✅", prefetchRoute: "/quizzes" },
+      { to: "/assignments", label: "Live Assignments", icon: "⏳", prefetchRoute: "/assignments" }
     ]
   },
   {
@@ -35,8 +35,8 @@ const navSections = [
     links: [
       { to: "/ai-studio", label: "AI Studio", icon: "🤖" },
       { to: "/integrity", label: "Integrity", icon: "🛡️" },
-      { to: "/marketplace", label: "Marketplace", icon: "🛒", prefetchRoute: "/marketplace/items" },
-      { to: "/community", label: "Community", icon: "💬", prefetchRoute: "/community/threads" }
+      { to: "/marketplace", label: "Marketplace", icon: "🛒", prefetchRoute: "/marketplace" },
+      { to: "/community", label: "Community", icon: "💬", prefetchRoute: "/community/groups" }
     ]
   }
 ];
