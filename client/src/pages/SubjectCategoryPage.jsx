@@ -609,7 +609,7 @@ export function SubjectCategoryPage() {
       return;
     }
 
-    if (resource.storageProvider === "external") {
+    if (resource.storageProvider !== "local") {
       window.open(buildAuthorizedApiUrl(`${apiClient.defaults.baseURL}/resources/${resource._id}/download`), '_blank');
       return;
     }
