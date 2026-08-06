@@ -844,9 +844,6 @@ export function AdminPanelPage() {
         </div>
         
         {activeTab === "overview" && (
-          <>
-
-        {activeTab === "overview" && (
           <div className="tab-pane fade-in">
             <SectionCard
           title="Admin Control Center & Analytics Dashboard"
