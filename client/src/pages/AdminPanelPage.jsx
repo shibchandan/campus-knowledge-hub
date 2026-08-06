@@ -110,7 +110,7 @@ export function AdminPanelPage() {
   const [subjectSearch, setSubjectSearch] = useState("");
   const [subjectPage, setSubjectPage] = useState(1);
   const [visibleAuditCount, setVisibleAuditCount] = useState(5);
-  const [visibleStructureCount, setVisibleStructureCount] = useState(5);
+  const [structurePage, setStructurePage] = useState(1);
 
   async function loadAdminData() {
     setLoading(true);
@@ -739,6 +739,16 @@ export function AdminPanelPage() {
     );
   }, [structureSearch, structures]);
 
+  const structureItemsPerPage = 20;
+  const paginatedStructures = useMemo(() => {
+    return filteredStructures.slice((structurePage - 1) * structureItemsPerPage, structurePage * structureItemsPerPage);
+  }, [filteredStructures, structurePage]);
+  const totalStructurePages = Math.max(1, Math.ceil(filteredStructures.length / structureItemsPerPage));
+
+  useEffect(() => {
+    setStructurePage(1);
+  }, [structureSearch]);
+
   const filteredSubjects = useMemo(() => {
     const term = subjectSearch.trim().toLowerCase();
     return subjects.filter(
@@ -1111,10 +1121,7 @@ export function AdminPanelPage() {
         <div className="toolbar-grid">
           <input
             className="college-search"
-            onChange={(event) => {
-              setStructureSearch(event.target.value);
-              setVisibleStructureCount(5); // Reset to 5 on search
-            }}
+            onChange={(event) => setStructureSearch(event.target.value)}
             placeholder="Search college, program, branch, or semester..."
             type="text"
             value={structureSearch}
@@ -1126,7 +1133,7 @@ export function AdminPanelPage() {
           {loading ? (
             <SkeletonCard count={3} />
           ) : (
-            filteredStructures.slice(0, visibleStructureCount).map((structure) => (
+            paginatedStructures.map((structure) => (
               <article className="panel-card" key={structure._id}>
                 <h3>{structure.branchName}</h3>
                 <p className="muted">
@@ -1147,17 +1154,27 @@ export function AdminPanelPage() {
             ))
           )}
         </div>
-        {filteredStructures.length > visibleStructureCount ? (
-          <div className="panel-actions" style={{ justifyContent: "center", marginTop: "16px" }}>
+        {totalStructurePages > 1 && (
+          <div className="admin-pagination" style={{ display: 'flex', justifyContent: 'center', gap: '10px', marginTop: '20px' }}>
             <button
-              type="button"
-              className="action-button neutral"
-              onClick={() => setVisibleStructureCount((prev) => prev + 10)}
+              className="action-button default"
+              disabled={structurePage === 1}
+              onClick={() => setStructurePage((prev) => Math.max(1, prev - 1))}
             >
-              Load More
+              Previous
+            </button>
+            <span style={{ alignSelf: 'center', fontWeight: '500' }}>
+              Page {structurePage} of {totalStructurePages}
+            </span>
+            <button
+              className="action-button default"
+              disabled={structurePage === totalStructurePages}
+              onClick={() => setStructurePage((prev) => Math.min(totalStructurePages, prev + 1))}
+            >
+              Next
             </button>
           </div>
-        ) : null}
+        )}
       </SectionCard>
 
       <SectionCard
