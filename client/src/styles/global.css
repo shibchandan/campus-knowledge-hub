@@ -5998,3 +5998,12 @@ html[data-theme="dark"] .analytics-card.gradient-success {
   margin-top: 4px;
 }
 
+
+/* Rep Panel Hero - full-width stat strip (no aside) */
+.rep-panel-hero {
+  grid-template-columns: 1fr !important;
+}
+.rep-panel-hero .overview-stat-strip {
+  grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+}
+
