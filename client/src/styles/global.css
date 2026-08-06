@@ -6065,3 +6065,13 @@ html[data-theme="dark"] .analytics-card.gradient-success {
   color: #c4b5fd;
 }
 
+
+.ai-points li p {
+  margin: 0;
+  display: inline-block;
+  width: 100%;
+}
+.ai-points li p:not(:last-child) {
+  margin-bottom: 0.5rem;
+}
+

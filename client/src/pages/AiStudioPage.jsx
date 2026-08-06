@@ -7,7 +7,10 @@ import { useAuth } from "../auth/AuthContext";
 import { useConfirm } from "../ui/ConfirmContext";
 import { useNavigate, Link } from "react-router-dom";
 import { useToast } from "../ui/ToastContext";
-
+import ReactMarkdown from "react-markdown";
+import remarkGfm from "remark-gfm";
+import { Prism as SyntaxHighlighter } from "react-syntax-highlighter";
+import { vscDarkPlus } from "react-syntax-highlighter/dist/esm/styles/prism";
 export function AiStudioPage() {
   const { user } = useAuth();
   const confirm = useConfirm();
@@ -238,8 +241,33 @@ export function AiStudioPage() {
               <article className="panel-card" key={section.heading}>
                 <h3>{section.heading}</h3>
                 <ul className="ai-points">
-                  {(section.points || []).map((point) => (
-                    <li key={point}>{point}</li>
+                  {(section.points || []).map((point, index) => (
+                    <li key={index} style={{ marginBottom: "0.5rem" }}>
+                      <ReactMarkdown
+                        remarkPlugins={[remarkGfm]}
+                        components={{
+                          code({ node, inline, className, children, ...props }) {
+                            const match = /language-(\w+)/.exec(className || "");
+                            return !inline && match ? (
+                              <SyntaxHighlighter
+                                {...props}
+                                children={String(children).replace(/\n$/, "")}
+                                style={vscDarkPlus}
+                                language={match[1]}
+                                PreTag="div"
+                                customStyle={{ borderRadius: "8px", marginTop: "0.5rem" }}
+                              />
+                            ) : (
+                              <code {...props} className={className} style={{ background: "var(--glass-border)", padding: "0.15rem 0.3rem", borderRadius: "4px", color: "var(--color-primary)", fontFamily: "monospace" }}>
+                                {children}
+                              </code>
+                            );
+                          }
+                        }}
+                      >
+                        {point}
+                      </ReactMarkdown>
+                    </li>
                   ))}
                 </ul>
               </article>
