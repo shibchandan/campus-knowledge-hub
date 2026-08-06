@@ -102,11 +102,13 @@ export function AdminPanelPage() {
   const [noticeSearch, setNoticeSearch] = useState("");
   const [resourceSearch, setResourceSearch] = useState("");
   const [resourceSort, setResourceSort] = useState("newest");
+  const [resourcePage, setResourcePage] = useState(1);
   const [auditSearch, setAuditSearch] = useState("");
   const [representativeSearch, setRepresentativeSearch] = useState("");
   const [courseSearch, setCourseSearch] = useState("");
   const [structureSearch, setStructureSearch] = useState("");
   const [subjectSearch, setSubjectSearch] = useState("");
+  const [subjectPage, setSubjectPage] = useState(1);
   const [visibleAuditCount, setVisibleAuditCount] = useState(5);
   const [visibleStructureCount, setVisibleStructureCount] = useState(5);
 
@@ -683,6 +685,16 @@ export function AdminPanelPage() {
     return items;
   }, [resourceSearch, resourceSort, resources]);
 
+  const resourceItemsPerPage = 20;
+  const paginatedResources = useMemo(() => {
+    return filteredResources.slice((resourcePage - 1) * resourceItemsPerPage, resourcePage * resourceItemsPerPage);
+  }, [filteredResources, resourcePage]);
+  const totalResourcePages = Math.max(1, Math.ceil(filteredResources.length / resourceItemsPerPage));
+
+  useEffect(() => {
+    setResourcePage(1);
+  }, [resourceSearch, resourceSort]);
+
   const filteredRepresentativeDirectory = useMemo(() => {
     const term = representativeSearch.trim().toLowerCase();
 
@@ -740,6 +752,16 @@ export function AdminPanelPage() {
         subject.subjectId?.toLowerCase().includes(term)
     );
   }, [subjectSearch, subjects]);
+
+  const subjectItemsPerPage = 20;
+  const paginatedSubjects = useMemo(() => {
+    return filteredSubjects.slice((subjectPage - 1) * subjectItemsPerPage, subjectPage * subjectItemsPerPage);
+  }, [filteredSubjects, subjectPage]);
+  const totalSubjectPages = Math.max(1, Math.ceil(filteredSubjects.length / subjectItemsPerPage));
+
+  useEffect(() => {
+    setSubjectPage(1);
+  }, [subjectSearch]);
 
   const filteredAuditLogs = useMemo(() => {
     const term = auditSearch.trim().toLowerCase();
@@ -1172,7 +1194,7 @@ export function AdminPanelPage() {
         </div>
 
         <div className="panel-list">
-          {filteredSubjects.map((subject) => (
+          {paginatedSubjects.map((subject) => (
             <article className="panel-card" key={subject._id}>
               <h3>{subject.name}</h3>
               <p className="muted">
@@ -1189,6 +1211,28 @@ export function AdminPanelPage() {
               </div>
             </article>
           ))}
+          
+          {totalSubjectPages > 1 && (
+            <div className="admin-pagination" style={{ display: 'flex', justifyContent: 'center', gap: '10px', marginTop: '20px' }}>
+              <button
+                className="action-button default"
+                disabled={subjectPage === 1}
+                onClick={() => setSubjectPage((prev) => Math.max(1, prev - 1))}
+              >
+                Previous
+              </button>
+              <span style={{ alignSelf: 'center', fontWeight: '500' }}>
+                Page {subjectPage} of {totalSubjectPages}
+              </span>
+              <button
+                className="action-button default"
+                disabled={subjectPage === totalSubjectPages}
+                onClick={() => setSubjectPage((prev) => Math.min(totalSubjectPages, prev + 1))}
+              >
+                Next
+              </button>
+            </div>
+          )}
         </div>
       </SectionCard>
 
@@ -1606,7 +1650,7 @@ export function AdminPanelPage() {
         </div>
 
         <div className="panel-list">
-          {filteredResources.map((resource) => (
+          {paginatedResources.map((resource) => (
             <article className="panel-card" key={resource._id}>
               <h3>{resource.title}</h3>
               <p className="muted">
@@ -1640,6 +1684,28 @@ export function AdminPanelPage() {
             </article>
           ))}
           {!filteredResources.length ? <p className="muted">No resources matched your search.</p> : null}
+          
+          {totalResourcePages > 1 && (
+            <div className="admin-pagination" style={{ display: 'flex', justifyContent: 'center', gap: '10px', marginTop: '20px' }}>
+              <button
+                className="action-button default"
+                disabled={resourcePage === 1}
+                onClick={() => setResourcePage((prev) => Math.max(1, prev - 1))}
+              >
+                Previous
+              </button>
+              <span style={{ alignSelf: 'center', fontWeight: '500' }}>
+                Page {resourcePage} of {totalResourcePages}
+              </span>
+              <button
+                className="action-button default"
+                disabled={resourcePage === totalResourcePages}
+                onClick={() => setResourcePage((prev) => Math.min(totalResourcePages, prev + 1))}
+              >
+                Next
+              </button>
+            </div>
+          )}
         </div>
       </SectionCard>
 
