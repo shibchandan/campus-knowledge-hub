@@ -498,38 +498,48 @@ export function AccountSettingsPage() {
 
   return (
     <div className="page-stack">
-      <SectionCard
-        title="Settings Center"
-        description="Manage your profile, preferences, history visibility, safety controls, and platform guidance from one place."
-      >
-        {error ? <p className="auth-error">{error}</p> : null}
-        {success ? <p className="success-note">{success}</p> : null}
+      <section className="overview-hero-band rep-panel-hero">
+        <div className="overview-hero-main">
+          {error ? <p className="auth-error">{error}</p> : null}
+          {success ? <p className="success-note">{success}</p> : null}
 
-        <div className="account-summary">
-          <div className="account-summary-card">
-            {profileForm.avatarUrl ? (
-              <img
-                alt={`${profileForm.fullName || user?.fullName || "User"} avatar`}
-                className="account-avatar account-avatar-image"
-                src={profileForm.avatarUrl}
-                width="100"
-                height="100"
-              />
-            ) : (
-              <div className="account-avatar" aria-hidden="true">
-                {initials}
+          {/* Profile identity header */}
+          <div className="account-hero-identity">
+            <div className="account-hero-avatar">
+              {profileForm.avatarUrl ? (
+                <img
+                  alt={`${profileForm.fullName || user?.fullName || "User"} avatar`}
+                  className="account-avatar-img-hero"
+                  src={profileForm.avatarUrl}
+                  width="72"
+                  height="72"
+                />
+              ) : (
+                <div className="account-avatar-initials-hero" aria-hidden="true">
+                  {initials}
+                </div>
+              )}
+            </div>
+            <div className="account-hero-info">
+              <span className="overview-eyebrow-chip" style={{ marginBottom: "8px" }}>
+                <span>⚙️</span>
+                <span>Settings Center</span>
+              </span>
+              <h1 className="overview-hero-title" style={{ fontSize: "clamp(1.3rem, 2.5vw, 1.9rem)", marginBottom: "6px" }}>
+                {user?.fullName || "Campus user"}
+              </h1>
+              <div className="account-hero-meta">
+                <span className="account-role-badge">{user?.role || "user"}</span>
+                <span className="muted" style={{ fontSize: "0.88rem" }}>{user?.email || "No email"}</span>
+                {user?.collegeName && (
+                  <span className="muted" style={{ fontSize: "0.88rem" }}>• {user.collegeName}</span>
+                )}
               </div>
-            )}
-            <div className="account-summary-copy">
-              <h3>{user?.fullName || "Campus user"}</h3>
-              <p className="muted">{user?.email || "No email available"}</p>
-              <p className="muted">
-                {user?.role || "user"} account | {user?.collegeName || "College not assigned"}
-              </p>
             </div>
           </div>
 
-          <div className="account-settings-tabs">
+          {/* Tab Navigation */}
+          <div className="account-settings-tabs" style={{ marginTop: "20px" }}>
             {ACCOUNT_TABS.map((tab) => (
               <button
                 className={`account-settings-tab${activeTab === tab.id ? " active" : ""}`}
@@ -542,45 +552,43 @@ export function AccountSettingsPage() {
             ))}
           </div>
         </div>
-      </SectionCard>
+      </section>
 
       {activeTab === "general" ? (
         <SectionCard
           title="General Settings"
           description="Update your profile identity and see your account-level summary."
         >
-          <div className="detail-grid">
-            <article className="detail-card">
-              <h3>Role</h3>
-              <p>{user?.role || "Not assigned"}</p>
-            </article>
-            <article className="detail-card">
-              <h3>Account Status</h3>
-              <p>{user?.status || "Active"}</p>
-            </article>
-            <article className="detail-card">
-              <h3>Assigned College</h3>
-              <p>{user?.collegeName || "Admin has not assigned a college yet"}</p>
-            </article>
-            <article className="detail-card">
-              <h3>College ID</h3>
-              <p>{user?.collegeStudentId || "Not submitted yet"}</p>
-            </article>
-            <article className="detail-card">
-              <h3>Student Verification</h3>
-              <p>{user?.studentVerificationStatus || "none"}</p>
-            </article>
-            <article className="detail-card">
-              <h3>Official College Email</h3>
-              <p>
-                {user?.officialCollegeEmail || "Not added"}{" "}
-                {user?.officialCollegeEmailVerified ? "(Verified)" : "(Not verified)"}
-              </p>
-            </article>
-            <article className="detail-card">
-              <h3>Avatar Mode</h3>
-              <p>{profileForm.avatarUrl ? "External avatar URL" : "Initials fallback"}</p>
-            </article>
+          <div className="overview-stat-strip" style={{ gridTemplateColumns: "repeat(auto-fit, minmax(160px, 1fr))", marginBottom: "24px" }}>
+            {[
+              { label: "Role", value: user?.role || "Not assigned", icon: "🎭", color: "#6366f1" },
+              { label: "Account Status", value: user?.status || "active", icon: "✅", color: "#10b981" },
+              { label: "Assigned College", value: user?.collegeName || "Not assigned", icon: "🏫", color: "#f59e0b" },
+              { label: "College ID", value: user?.collegeStudentId || "Not submitted", icon: "🪪", color: "#3b82f6" },
+              { label: "Verification", value: user?.studentVerificationStatus || "none", icon: "🔍", color: "#8b5cf6" },
+              { label: "Official Email", value: user?.officialCollegeEmail ? (user?.officialCollegeEmailVerified ? "Verified ✓" : "Unverified") : "Not added", icon: "📧", color: "#ec4899" },
+              { label: "Avatar Mode", value: profileForm.avatarUrl ? "External URL" : "Initials", icon: "🖼️", color: "#14b8a6" },
+            ].map((item) => (
+              <article
+                className="overview-stat-tile"
+                key={item.label}
+                style={{
+                  background: `linear-gradient(135deg, ${item.color}18, ${item.color}04)`,
+                  borderColor: `${item.color}30`,
+                  minHeight: "unset",
+                  padding: "14px 16px"
+                }}
+              >
+                <div className="stat-tile-accent" style={{ background: item.color }} />
+                <div className="stat-tile-header" style={{ marginBottom: "6px" }}>
+                  <span className="stat-tile-icon" style={{ background: `${item.color}20`, color: item.color, fontSize: "0.9rem", width: "28px", height: "28px" }}>
+                    {item.icon}
+                  </span>
+                  <p className="overview-stat-label" style={{ fontSize: "0.68rem" }}>{item.label}</p>
+                </div>
+                <p className="stat-tile-note" style={{ fontWeight: 600, fontSize: "0.85rem", opacity: 1, color: item.color }}>{item.value}</p>
+              </article>
+            ))}
           </div>
 
           <form className="panel-form" onSubmit={handleProfileSubmit}>

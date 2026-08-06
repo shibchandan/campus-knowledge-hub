@@ -6007,3 +6007,61 @@ html[data-theme="dark"] .analytics-card.gradient-success {
   grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
 }
 
+
+/* Account Settings Hero */
+.account-hero-identity {
+  display: flex;
+  align-items: center;
+  gap: 20px;
+}
+.account-avatar-initials-hero {
+  width: 72px;
+  height: 72px;
+  border-radius: 18px;
+  background: linear-gradient(135deg, #7c3aed, #3b82f6);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.6rem;
+  font-weight: 800;
+  color: #fff;
+  flex-shrink: 0;
+  letter-spacing: -0.02em;
+  box-shadow: 0 8px 24px rgba(124, 58, 237, 0.3);
+}
+.account-avatar-img-hero {
+  width: 72px;
+  height: 72px;
+  border-radius: 18px;
+  object-fit: cover;
+  box-shadow: 0 8px 24px rgba(0,0,0,0.25);
+  flex-shrink: 0;
+}
+.account-hero-info {
+  display: flex;
+  flex-direction: column;
+}
+.account-hero-meta {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-wrap: wrap;
+  margin-top: 4px;
+}
+.account-role-badge {
+  display: inline-block;
+  background: rgba(139, 92, 246, 0.15);
+  border: 1px solid rgba(139, 92, 246, 0.3);
+  color: #a78bfa;
+  border-radius: 9999px;
+  padding: 2px 12px;
+  font-size: 0.72rem;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+[data-theme="dark"] .account-role-badge {
+  background: rgba(139, 92, 246, 0.2);
+  color: #c4b5fd;
+}
+
