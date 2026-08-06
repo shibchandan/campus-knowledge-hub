@@ -91,12 +91,24 @@ export function createApp() {
 
   const globalRateLimiter = createRateLimiter({
     windowMs: 60 * 1000,
-    maxRequests: 60,
+    maxRequests: 200,
     message: "Global rate limit exceeded. Please try again later.",
     keyPrefix: "global"
   });
 
+  // Tighter limiter applied only to sensitive auth endpoints
+  const authRateLimiter = createRateLimiter({
+    windowMs: 15 * 60 * 1000, // 15 minutes
+    maxRequests: 30,
+    message: "Too many authentication attempts. Please wait 15 minutes before trying again.",
+    keyPrefix: "auth"
+  });
+
   app.use("/api", globalRateLimiter, apiRouter);
+  app.use("/api/auth/login", authRateLimiter);
+  app.use("/api/auth/register", authRateLimiter);
+  app.use("/api/auth/forgot-password", authRateLimiter);
+
 
   if (env.serveFrontend) {
     const __filename = fileURLToPath(import.meta.url);
