@@ -782,97 +782,139 @@ export function DashboardPage() {
   return (
     <div className="page-stack">
       <section className="overview-hero-band">
+        {/* === LEFT: MAIN HERO === */}
         <div className="overview-hero-main">
-          <p className="card-kicker">Academic Overview</p>
-          <div className="overview-hero-heading">
-            <div>
-              <h1>{selectedCollege?.name || "Choose a college to begin"}</h1>
-              <p className="muted">
-                {selectedCollege
-                  ? "A cleaner command view for academic structure, representative coverage, notices, and next actions."
-                  : "Select a college from the Colleges page to load its academic workspace and overview details."}
-              </p>
-            </div>
-            <div className="overview-status-row">
-              {heroStatusItems.map((item) => {
-                const statusIcon =
-                  item.label === "Profile" ? "👤" :
-                  item.label === "Representatives" ? "👥" : "📢";
-                const isActive =
-                  (item.label === "Profile" && item.value === "Ready") ||
-                  (item.label === "Representatives" && representativeDirectory.length > 0) ||
-                  (item.label === "Notices" && notices.length > 0);
-                return (
-                  <span className={`overview-status-pill ${isActive ? "status-active" : ""}`} key={item.label}>
-                    <span className="status-pill-icon">{statusIcon}</span>
-                    <strong>{item.label}</strong>
-                    <span>{item.value}</span>
-                  </span>
-                );
-              })}
-            </div>
+          {/* Eyebrow + Title */}
+          <div className="overview-hero-header">
+            <span className="overview-eyebrow-chip">
+              <span>🎓</span>
+              <span>Academic Overview</span>
+            </span>
+            <h1 className="overview-hero-title">
+              {selectedCollege?.name || "Choose a college to begin"}
+            </h1>
+            <p className="overview-hero-subtitle">
+              {selectedCollege
+                ? "A command view for academic structure, representative coverage, notices, and next actions."
+                : "Select a college from the Colleges page to load its academic workspace and overview details."}
+            </p>
           </div>
 
+          {/* Status Pills */}
+          <div className="overview-status-row">
+            {heroStatusItems.map((item) => {
+              const statusIcon =
+                item.label === "Profile" ? "👤" :
+                item.label === "Representatives" ? "👥" : "📢";
+              const isActive =
+                (item.label === "Profile" && item.value === "Ready") ||
+                (item.label === "Representatives" && representativeDirectory.length > 0) ||
+                (item.label === "Notices" && notices.length > 0);
+              return (
+                <span className={`overview-status-pill ${isActive ? "status-active" : ""}`} key={item.label}>
+                  <span className="status-pill-icon">{statusIcon}</span>
+                  <strong>{item.label}</strong>
+                  <span>{item.value}</span>
+                </span>
+              );
+            })}
+          </div>
+
+          {/* Stat Cards */}
           <div className="overview-stat-strip">
             {dashboardStats.map((item, index) => {
               const statIcons = ["📚", "🌿", "📅", "📖"];
               const statColors = ["#f59e0b", "#10b981", "#6366f1", "#ec4899"];
+              const statGradients = [
+                "linear-gradient(135deg, rgba(245,158,11,0.15), rgba(245,158,11,0.03))",
+                "linear-gradient(135deg, rgba(16,185,129,0.15), rgba(16,185,129,0.03))",
+                "linear-gradient(135deg, rgba(99,102,241,0.15), rgba(99,102,241,0.03))",
+                "linear-gradient(135deg, rgba(236,72,153,0.15), rgba(236,72,153,0.03))",
+              ];
               return (
-                <article className="overview-stat-tile" key={item.label}>
+                <article
+                  className="overview-stat-tile"
+                  key={item.label}
+                  style={{ background: statGradients[index], borderColor: `${statColors[index]}30` }}
+                >
+                  <div className="stat-tile-accent" style={{ background: statColors[index] }} />
                   <div className="stat-tile-header">
-                    <span className="stat-tile-icon" style={{ background: `${statColors[index]}18`, color: statColors[index] }}>
+                    <span className="stat-tile-icon" style={{ background: `${statColors[index]}20`, color: statColors[index] }}>
                       {statIcons[index]}
                     </span>
                     <p className="overview-stat-label">{item.label}</p>
                   </div>
-                  <h2>{item.value}</h2>
-                  <p className="muted">{item.note}</p>
+                  <h2 className="stat-tile-value" style={{ color: statColors[index] }}>{item.value}</h2>
+                  <p className="stat-tile-note">{item.note}</p>
                 </article>
               );
             })}
           </div>
         </div>
 
+        {/* === RIGHT: SIDE PANEL === */}
         <aside className="overview-hero-side">
-          <div className="overview-side-block">
+          {/* Active Workspace */}
+          <div className="overview-side-block overview-side-workspace">
             <div className="side-block-header">
               <span className="side-block-icon">🖥️</span>
-              <p className="overview-side-label">Active workspace</p>
+              <p className="overview-side-label">Active Workspace</p>
             </div>
-            <h3>{selectedCollege?.shortName || "Not selected"}</h3>
-            <p className="muted">
-              {selectedCollege?.name || "Pick a college to unlock the academic dashboard."}
-            </p>
+            <div className="overview-workspace-info">
+              <div className="workspace-avatar">
+                {(selectedCollege?.shortName || "?").charAt(0)}
+              </div>
+              <div>
+                <h3 className="workspace-name">{selectedCollege?.shortName || "Not selected"}</h3>
+                <p className="workspace-full-name muted">{selectedCollege?.name || "Pick a college to unlock the academic dashboard."}</p>
+              </div>
+            </div>
           </div>
+
+          {/* Live Snapshot */}
           <div className="overview-side-block">
             <div className="side-block-header">
               <span className="side-block-icon">📊</span>
-              <p className="overview-side-label">Live snapshot</p>
+              <p className="overview-side-label">Live Snapshot</p>
             </div>
-            <ul className="overview-bullet-list">
-              <li><span className="bullet-count">{approvedCourses.length || 0}</span> approved course entries</li>
-              <li><span className="bullet-count">{representativeDirectory.length || 0}</span> representative owners</li>
-              <li><span className="bullet-count">{notices.length || 0}</span> recent notices visible</li>
-            </ul>
+            <div className="overview-snapshot-list">
+              <div className="snapshot-item">
+                <span className="snapshot-dot" style={{ background: "#10b981" }} />
+                <span className="snapshot-count" style={{ color: "#10b981" }}>{approvedCourses.length || 0}</span>
+                <span className="snapshot-label">approved courses</span>
+              </div>
+              <div className="snapshot-item">
+                <span className="snapshot-dot" style={{ background: "#6366f1" }} />
+                <span className="snapshot-count" style={{ color: "#6366f1" }}>{representativeDirectory.length || 0}</span>
+                <span className="snapshot-label">representative owners</span>
+              </div>
+              <div className="snapshot-item">
+                <span className="snapshot-dot" style={{ background: "#f59e0b" }} />
+                <span className="snapshot-count" style={{ color: "#f59e0b" }}>{notices.length || 0}</span>
+                <span className="snapshot-label">recent notices</span>
+              </div>
+            </div>
           </div>
-          <div className="overview-side-block">
+
+          {/* Latest Notice */}
+          <div className="overview-side-block overview-side-notice">
             <div className="side-block-header">
               <span className="side-block-icon">📰</span>
-              <p className="overview-side-label">Latest notice</p>
+              <p className="overview-side-label">Latest Notice</p>
             </div>
             {latestNoticePreview ? (
-              <>
-                <h3>{latestNoticePreview.title}</h3>
-                <p className="muted">
-                  {latestNoticePreview.collegeName || "Platform-wide announcement"}
-                </p>
-              </>
+              <div className="overview-notice-preview">
+                <span className="notice-preview-badge">Published</span>
+                <h3 className="notice-preview-title">{latestNoticePreview.title}</h3>
+                <p className="muted notice-preview-college">{latestNoticePreview.collegeName || "Platform-wide announcement"}</p>
+              </div>
             ) : (
-              <p className="muted">No notice has been published for this workspace yet.</p>
+              <p className="muted overview-empty-notice">No notice has been published for this workspace yet.</p>
             )}
           </div>
         </aside>
       </section>
+
 
       <div className="dashboard-tabs">
         <button

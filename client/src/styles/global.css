@@ -5837,3 +5837,164 @@ html[data-theme="dark"] .analytics-card.gradient-success {
   to { opacity: 1; transform: translateY(0); }
 }
 
+
+/* ============================================================
+   ACADEMIC OVERVIEW - PREMIUM REDESIGN
+   ============================================================ */
+
+/* Eyebrow chip */
+.overview-eyebrow-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  background: rgba(139, 92, 246, 0.12);
+  border: 1px solid rgba(139, 92, 246, 0.25);
+  border-radius: 9999px;
+  padding: 4px 14px;
+  font-size: 0.72rem;
+  font-weight: 700;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: #a78bfa;
+  margin-bottom: 14px;
+}
+[data-theme="dark"] .overview-eyebrow-chip {
+  background: rgba(139, 92, 246, 0.15);
+  border-color: rgba(139, 92, 246, 0.3);
+  color: #c4b5fd;
+}
+
+.overview-hero-header {
+  margin-bottom: 18px;
+}
+.overview-hero-title {
+  font-size: clamp(1.5rem, 3vw, 2.2rem);
+  font-weight: 800;
+  line-height: 1.15;
+  margin-bottom: 10px;
+  letter-spacing: -0.02em;
+}
+[data-theme="dark"] .overview-hero-title { color: #f0f6ff; }
+
+.overview-hero-subtitle {
+  font-size: 0.95rem;
+  line-height: 1.6;
+  max-width: 540px;
+}
+
+/* Stat tile accent bar */
+.stat-tile-accent {
+  position: absolute;
+  top: 0; left: 0;
+  width: 3px;
+  height: 100%;
+  border-radius: 3px 0 0 3px;
+  opacity: 0.7;
+}
+.overview-stat-tile {
+  position: relative;
+  overflow: hidden;
+}
+.stat-tile-value {
+  font-size: 2rem;
+  font-weight: 800;
+  line-height: 1;
+  margin: 8px 0 6px;
+  letter-spacing: -0.03em;
+}
+.stat-tile-note {
+  font-size: 0.8rem;
+  opacity: 0.65;
+}
+
+/* Workspace info layout in side panel */
+.overview-workspace-info {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  margin-top: 4px;
+}
+.workspace-avatar {
+  width: 44px;
+  height: 44px;
+  border-radius: 12px;
+  background: linear-gradient(135deg, #7c3aed, #3b82f6);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.2rem;
+  font-weight: 800;
+  color: #fff;
+  flex-shrink: 0;
+  letter-spacing: -0.02em;
+}
+.workspace-name {
+  font-size: 1rem;
+  font-weight: 700;
+  margin-bottom: 2px;
+}
+.workspace-full-name {
+  font-size: 0.8rem;
+  line-height: 1.4;
+}
+
+/* Snapshot list items */
+.overview-snapshot-list {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  margin-top: 6px;
+}
+.snapshot-item {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  font-size: 0.88rem;
+}
+.snapshot-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  flex-shrink: 0;
+}
+.snapshot-count {
+  font-size: 1.1rem;
+  font-weight: 800;
+  min-width: 24px;
+  line-height: 1;
+}
+.snapshot-label {
+  opacity: 0.7;
+}
+
+/* Latest Notice preview */
+.overview-notice-preview {
+  margin-top: 4px;
+}
+.notice-preview-badge {
+  display: inline-block;
+  background: rgba(16, 185, 129, 0.12);
+  border: 1px solid rgba(16, 185, 129, 0.25);
+  color: #10b981;
+  border-radius: 9999px;
+  padding: 2px 10px;
+  font-size: 0.7rem;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  margin-bottom: 8px;
+}
+.notice-preview-title {
+  font-size: 0.95rem;
+  font-weight: 700;
+  line-height: 1.35;
+  margin-bottom: 4px;
+}
+.notice-preview-college {
+  font-size: 0.8rem;
+}
+.overview-empty-notice {
+  font-size: 0.85rem;
+  margin-top: 4px;
+}
+
