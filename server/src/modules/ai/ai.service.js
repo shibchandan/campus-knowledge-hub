@@ -20,7 +20,7 @@ function buildSystemPrompt({ intent = "general", contextSummary = "", historySum
     historySummary
       ? `--- RECENT CONVERSATION ---\n${historySummary}\n--- END OF CONVERSATION ---`
       : "",
-    "Rules: Be concise, structured, and factually accurate.",
+    "Rules: Be concise, structured, and factually accurate. Use markdown for formatting, and ALWAYS wrap code snippets in triple backticks (```).",
     "Return ONLY strict JSON with these exact keys:",
     "title (string - a short descriptive title for the answer),",
     "summary (string - 2-4 sentence overview),",
