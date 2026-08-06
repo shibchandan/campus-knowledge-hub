@@ -95,6 +95,7 @@ export function AdminPanelPage() {
   const [editingResourceId, setEditingResourceId] = useState("");
 
   const [requestSearch, setRequestSearch] = useState("");
+  const [activeTab, setActiveTab] = useState("overview");
   const [userSearch, setUserSearch] = useState("");
   const [userRoleFilter, setUserRoleFilter] = useState("all");
   const [userStatusFilter, setUserStatusFilter] = useState("all");
@@ -823,8 +824,32 @@ export function AdminPanelPage() {
   return (
     <div className="dense-admin">
       <div className="page-stack">
-        <SectionCard
-        title="Admin Control Center & Analytics Dashboard"
+        
+        <div className="admin-tabs">
+          {[
+            { id: "overview", label: "Overview" },
+            { id: "users", label: "User Management" },
+            { id: "academic", label: "Academic Setup" },
+            { id: "content", label: "Content Moderation" },
+            { id: "audit", label: "Audit Logs" }
+          ].map(tab => (
+            <button
+              key={tab.id}
+              className={`admin-tab-btn ${activeTab === tab.id ? "active" : ""}`}
+              onClick={() => setActiveTab(tab.id)}
+            >
+              {tab.label}
+            </button>
+          ))}
+        </div>
+        
+        {activeTab === "overview" && (
+          <>
+
+        {activeTab === "overview" && (
+          <div className="tab-pane fade-in">
+            <SectionCard
+          title="Admin Control Center & Analytics Dashboard"
         description="High-level metrics and central oversight for the entire platform."
       >
         {error ? <p className="auth-error">{error}</p> : null}
@@ -923,7 +948,8 @@ export function AdminPanelPage() {
         )}
       </SectionCard>
 
-      <SectionCard
+      
+            <SectionCard
         title="AI Provider Status"
         description="Checks whether the configured provider is reachable and ready for campus-grounded responses."
       >
@@ -957,336 +983,33 @@ export function AdminPanelPage() {
         )}
       </SectionCard>
 
-      <SectionCard title="Recent Audit Activity" description="Search sensitive actions and who performed them.">
-        <div className="toolbar-grid">
-          <input
-            className="college-search"
-            onChange={(event) => {
-              setAuditSearch(event.target.value);
-              setVisibleAuditCount(5); // Reset to 5 when user searches
-            }}
-            placeholder="Search action, entity, or actor..."
-            type="text"
-            value={auditSearch}
-          />
-          <p className="muted">{filteredAuditLogs.length} records visible</p>
-        </div>
-        <div className="panel-list audit-scroll-container">
-          {loading ? (
-            <SkeletonCard count={3} />
-          ) : (
-            filteredAuditLogs.slice(0, visibleAuditCount).map((log) => (
-              <article className="panel-card" key={log._id}>
-                <h3>{log.action}</h3>
-                <p className="muted">
-                  {log.entityType} | {log.actorUserId?.fullName || log.actorUserId?.email || "System"}
-                </p>
-                <p className="muted">{new Date(log.createdAt).toLocaleString()}</p>
-              </article>
-            ))
-          )}
-        </div>
-        {filteredAuditLogs.length > visibleAuditCount ? (
-          <div className="panel-actions" style={{ justifyContent: "center", marginTop: "16px" }}>
-            <button
-              type="button"
-              className="action-button neutral"
-              onClick={() => setVisibleAuditCount((prev) => prev + 10)}
-            >
-              Load More
-            </button>
-          </div>
-        ) : null}
-      </SectionCard>
-
-      <SectionCard
-        title="College Representative Directory"
-        description="See which approved college-course entries are currently managed by which representative and whether that representative is active."
-      >
-        <div className="toolbar-grid">
-          <input
-            className="college-search"
-            onChange={(event) => setRepresentativeSearch(event.target.value)}
-            placeholder="Search college, course, representative, email, or status..."
-            type="text"
-            value={representativeSearch}
-          />
-          <p className="muted">{filteredRepresentativeDirectory.length} records visible</p>
-        </div>
-        <div className="panel-list">
-          {filteredRepresentativeDirectory.map((course) => {
-            const representative = course.addedByRepresentative;
-            const representativeStatus = representative?.status || "unknown";
-            const isActiveRepresentative =
-              representative?.role === "representative" && representativeStatus === "active";
-
-            return (
-              <article className="panel-card" key={course._id}>
-                <h3>{course.collegeName}</h3>
-              <p className="muted">Course: {course.courseName} | Semester count is branch-defined</p>
-                <p className="muted">
-                  Representative: {representative?.fullName || "No representative"} ({representative?.email || "Not available"})
-                </p>
-                <p className={`status-chip ${isActiveRepresentative ? "approved" : representativeStatus === "suspended" || representativeStatus === "banned" ? "rejected" : "pending"}`}>
-                  {isActiveRepresentative
-                    ? "Active Representative"
-                    : representative
-                      ? `Representative ${representativeStatus}`
-                      : "Representative Missing"}
-                </p>
-                <p className="muted">
-                  Approved by: {course.approvedByAdmin?.fullName || course.approvedByAdmin?.email || "Admin"}
-                </p>
-              </article>
-            );
-          })}
-          {!filteredRepresentativeDirectory.length ? (
-            <p className="muted">No representative records matched your search.</p>
-          ) : null}
+      
+            <SectionCard title="Coverage Snapshot" description="Quick read on approved course and syllabus coverage.">
+        <div className="detail-grid">
+          <article className="detail-card">
+            <h3>Approved Courses</h3>
+            <p>{approvedCourses.length}</p>
+          </article>
+          <article className="detail-card">
+            <h3>Syllabus Resources</h3>
+            <p>{syllabusResources.length}</p>
+          </article>
+          <article className="detail-card">
+            <h3>Academic Structures</h3>
+            <p>{structures.length}</p>
+          </article>
+          <article className="detail-card">
+            <h3>Subjects Managed</h3>
+            <p>{subjects.length}</p>
+          </article>
         </div>
       </SectionCard>
-
-      <SectionCard
-        title="College & Course Setup"
-        description="Admin can add a new college course directly, or edit and delete any approved course record."
-      >
-        <CourseForm
-          formValue={courseForm}
-          onChange={(key, val) => setCourseForm((current) => ({ ...current, [key]: val }))}
-          onSubmit={handleSaveCourse}
-          onCancel={resetCourseForm}
-          isEditing={Boolean(editingCourseId)}
-        />
-
-        <div className="toolbar-grid">
-          <input
-            className="college-search"
-            onChange={(event) => setCourseSearch(event.target.value)}
-            placeholder="Search college or course..."
-            type="text"
-            value={courseSearch}
-          />
-          <p className="muted">{filteredCourses.length} course records visible</p>
-        </div>
-
-        <div className="panel-list">
-          {filteredCourses.map((course) => (
-            <article className="panel-card" key={course._id}>
-              <h3>{course.collegeName}</h3>
-              <p className="muted">
-                {course.courseName} | Semester count is branch-defined
-              </p>
-              <p className="muted">
-                Representative: {course.addedByRepresentative?.fullName || "Admin"} | Approved by:{" "}
-                {course.approvedByAdmin?.fullName || "Admin"}
-              </p>
-              <div className="panel-actions">
-                <button className="action-button approve" onClick={() => handleEditCourse(course)} type="button">
-                  Edit Course
-                </button>
-                <button className="action-button reject" onClick={() => handleDeleteCourse(course._id)} type="button">
-                  Delete Course
-                </button>
-              </div>
-            </article>
-          ))}
-        </div>
-      </SectionCard>
-
-      <SectionCard
-        title="Academic Structure Management"
-        description="Admin can create branches and semesters for any approved college course."
-      >
-        <StructureForm
-          formValue={structureForm}
-          onChange={(key, val) =>
-            setStructureForm((current) => {
-              const next = { ...current, [key]: val };
-              if (key === "collegeName") {
-                next.programId = "";
-                next.programName = "";
-              } else if (key === "programId") {
-                next.programName = val;
-              }
-              return next;
-            })
-          }
-          onSubmit={handleSaveStructure}
-          onCancel={resetStructureForm}
-          isEditing={Boolean(editingStructureId)}
-          collegesList={adminCollegeNames}
-          programsList={structureProgramsForCollege}
-        />
-
-        <div className="toolbar-grid">
-          <input
-            className="college-search"
-            onChange={(event) => setStructureSearch(event.target.value)}
-            placeholder="Search college, program, branch, or semester..."
-            type="text"
-            value={structureSearch}
-          />
-          <p className="muted">{filteredStructures.length} structures visible</p>
-        </div>
-
-        <div className="panel-list structure-scroll-container">
-          {loading ? (
-            <SkeletonCard count={3} />
-          ) : (
-            paginatedStructures.map((structure) => (
-              <article className="panel-card" key={structure._id}>
-                <h3>{structure.branchName}</h3>
-                <p className="muted">
-                  {structure.collegeName} | {structure.programName} | {structure.semesterName}
-                </p>
-                <p className="muted">
-                  Branch ID: {structure.branchId} | Semester ID: {structure.semesterId} | Order: {structure.semesterOrder}
-                </p>
-                <div className="panel-actions">
-                  <button className="action-button approve" onClick={() => handleEditStructure(structure)} type="button">
-                    Edit Structure
-                  </button>
-                  <button className="action-button reject" onClick={() => handleDeleteStructure(structure._id)} type="button">
-                    Delete Structure
-                  </button>
-                </div>
-              </article>
-            ))
-          )}
-        </div>
-        {totalStructurePages > 1 && (
-          <div className="admin-pagination" style={{ display: 'flex', justifyContent: 'center', gap: '10px', marginTop: '20px' }}>
-            <button
-              className="action-button default"
-              disabled={structurePage === 1}
-              onClick={() => setStructurePage((prev) => Math.max(1, prev - 1))}
-            >
-              Previous
-            </button>
-            <span style={{ alignSelf: 'center', fontWeight: '500' }}>
-              Page {structurePage} of {totalStructurePages}
-            </span>
-            <button
-              className="action-button default"
-              disabled={structurePage === totalStructurePages}
-              onClick={() => setStructurePage((prev) => Math.min(totalStructurePages, prev + 1))}
-            >
-              Next
-            </button>
           </div>
         )}
-      </SectionCard>
 
-      <SectionCard
-        title="Subject Management"
-        description="Admin can create semester-wise subjects for any approved college course."
-      >
-        <SubjectForm
-          formValue={subjectForm}
-          onChange={(key, val) =>
-            setSubjectForm((current) => {
-              const next = { ...current, [key]: val };
-              if (key === "collegeName") {
-                next.programId = "";
-              }
-              return next;
-            })
-          }
-          onSubmit={handleSaveSubject}
-          onCancel={resetSubjectForm}
-          isEditing={Boolean(editingSubjectId)}
-          collegesList={adminCollegeNames}
-          programsList={subjectProgramsForCollege}
-        />
-
-        <div className="toolbar-grid">
-          <input
-            className="college-search"
-            onChange={(event) => setSubjectSearch(event.target.value)}
-            placeholder="Search subject, branch, semester, or college..."
-            type="text"
-            value={subjectSearch}
-          />
-          <p className="muted">{filteredSubjects.length} subjects visible</p>
-        </div>
-
-        <div className="panel-list">
-          {paginatedSubjects.map((subject) => (
-            <article className="panel-card" key={subject._id}>
-              <h3>{subject.name}</h3>
-              <p className="muted">
-                {subject.collegeName} | {subject.programId} | {subject.branchId} | {subject.semesterId}
-              </p>
-              <p className="muted">Subject ID: {subject.subjectId}</p>
-              <div className="panel-actions">
-                <button className="action-button approve" onClick={() => handleEditSubject(subject)} type="button">
-                  Edit Subject
-                </button>
-                <button className="action-button reject" onClick={() => handleDeleteSubject(subject._id)} type="button">
-                  Delete Subject
-                </button>
-              </div>
-            </article>
-          ))}
-          
-          {totalSubjectPages > 1 && (
-            <div className="admin-pagination" style={{ display: 'flex', justifyContent: 'center', gap: '10px', marginTop: '20px' }}>
-              <button
-                className="action-button default"
-                disabled={subjectPage === 1}
-                onClick={() => setSubjectPage((prev) => Math.max(1, prev - 1))}
-              >
-                Previous
-              </button>
-              <span style={{ alignSelf: 'center', fontWeight: '500' }}>
-                Page {subjectPage} of {totalSubjectPages}
-              </span>
-              <button
-                className="action-button default"
-                disabled={subjectPage === totalSubjectPages}
-                onClick={() => setSubjectPage((prev) => Math.min(totalSubjectPages, prev + 1))}
-              >
-                Next
-              </button>
-            </div>
-          )}
-        </div>
-      </SectionCard>
-
-      <SectionCard title="Email Migration Requests" description="Review and approve requests from Representatives to migrate their accounts to a new email.">
-        <div className="panel-list">
-          {pendingEmailMigrations.map((migration) => (
-            <article className="panel-card" key={migration._id}>
-              <h3>{migration.fullName}</h3>
-              <p className="muted">Current Email: {migration.email}</p>
-              <p className="muted">Requested New Email: <strong>{migration.pendingEmailMigration}</strong></p>
-              <p className="muted">College: {migration.collegeName || "Not assigned"}</p>
-              <p className="muted">Requested on: {new Date(migration.createdAt).toLocaleDateString()}</p>
-              <div className="panel-actions">
-                <button
-                  className="action-button approve"
-                  onClick={() => handleEmailMigrationDecision(migration._id, "approve")}
-                  type="button"
-                >
-                  Approve Migration
-                </button>
-                <button
-                  className="action-button reject"
-                  onClick={() => handleEmailMigrationDecision(migration._id, "reject")}
-                  type="button"
-                >
-                  Reject
-                </button>
-              </div>
-            </article>
-          ))}
-          {!pendingEmailMigrations.length ? (
-            <p className="muted">No pending email migration requests.</p>
-          ) : null}
-        </div>
-      </SectionCard>
-
-      <SectionCard title="User Management" description="Create users and control role/status safely.">
+        {activeTab === "users" && (
+          <div className="tab-pane fade-in">
+            <SectionCard title="User Management" description="Create users and control role/status safely.">
         <form className="panel-form" onSubmit={handleCreateUser}>
           <div className="panel-form-grid">
             <label className="auth-field">
@@ -1557,61 +1280,310 @@ export function AdminPanelPage() {
         </div>
       </SectionCard>
 
-      <SectionCard title="Notice Workflow" description="Publish and manage notices with search support.">
-        <NoticeForm
-          formValue={noticeForm}
-          onChange={(key, val) => setNoticeForm((current) => ({ ...current, [key]: val }))}
-          onSubmit={handleSaveNotice}
-          onCancel={() => { setEditingNoticeId(""); setNoticeForm(initialNoticeForm); }}
-          isEditing={Boolean(editingNoticeId)}
-          isDropdown={false}
+      
+            <SectionCard
+        title="College Representative Directory"
+        description="See which approved college-course entries are currently managed by which representative and whether that representative is active."
+      >
+        <div className="toolbar-grid">
+          <input
+            className="college-search"
+            onChange={(event) => setRepresentativeSearch(event.target.value)}
+            placeholder="Search college, course, representative, email, or status..."
+            type="text"
+            value={representativeSearch}
+          />
+          <p className="muted">{filteredRepresentativeDirectory.length} records visible</p>
+        </div>
+        <div className="panel-list">
+          {filteredRepresentativeDirectory.map((course) => {
+            const representative = course.addedByRepresentative;
+            const representativeStatus = representative?.status || "unknown";
+            const isActiveRepresentative =
+              representative?.role === "representative" && representativeStatus === "active";
+
+            return (
+              <article className="panel-card" key={course._id}>
+                <h3>{course.collegeName}</h3>
+              <p className="muted">Course: {course.courseName} | Semester count is branch-defined</p>
+                <p className="muted">
+                  Representative: {representative?.fullName || "No representative"} ({representative?.email || "Not available"})
+                </p>
+                <p className={`status-chip ${isActiveRepresentative ? "approved" : representativeStatus === "suspended" || representativeStatus === "banned" ? "rejected" : "pending"}`}>
+                  {isActiveRepresentative
+                    ? "Active Representative"
+                    : representative
+                      ? `Representative ${representativeStatus}`
+                      : "Representative Missing"}
+                </p>
+                <p className="muted">
+                  Approved by: {course.approvedByAdmin?.fullName || course.approvedByAdmin?.email || "Admin"}
+                </p>
+              </article>
+            );
+          })}
+          {!filteredRepresentativeDirectory.length ? (
+            <p className="muted">No representative records matched your search.</p>
+          ) : null}
+        </div>
+      </SectionCard>
+
+      
+            <SectionCard title="Email Migration Requests" description="Review and approve requests from Representatives to migrate their accounts to a new email.">
+        <div className="panel-list">
+          {pendingEmailMigrations.map((migration) => (
+            <article className="panel-card" key={migration._id}>
+              <h3>{migration.fullName}</h3>
+              <p className="muted">Current Email: {migration.email}</p>
+              <p className="muted">Requested New Email: <strong>{migration.pendingEmailMigration}</strong></p>
+              <p className="muted">College: {migration.collegeName || "Not assigned"}</p>
+              <p className="muted">Requested on: {new Date(migration.createdAt).toLocaleDateString()}</p>
+              <div className="panel-actions">
+                <button
+                  className="action-button approve"
+                  onClick={() => handleEmailMigrationDecision(migration._id, "approve")}
+                  type="button"
+                >
+                  Approve Migration
+                </button>
+                <button
+                  className="action-button reject"
+                  onClick={() => handleEmailMigrationDecision(migration._id, "reject")}
+                  type="button"
+                >
+                  Reject
+                </button>
+              </div>
+            </article>
+          ))}
+          {!pendingEmailMigrations.length ? (
+            <p className="muted">No pending email migration requests.</p>
+          ) : null}
+        </div>
+      </SectionCard>
+
+      
+          </div>
+        )}
+
+        {activeTab === "academic" && (
+          <div className="tab-pane fade-in">
+            <SectionCard
+        title="College & Course Setup"
+        description="Admin can add a new college course directly, or edit and delete any approved course record."
+      >
+        <CourseForm
+          formValue={courseForm}
+          onChange={(key, val) => setCourseForm((current) => ({ ...current, [key]: val }))}
+          onSubmit={handleSaveCourse}
+          onCancel={resetCourseForm}
+          isEditing={Boolean(editingCourseId)}
         />
 
         <div className="toolbar-grid">
           <input
             className="college-search"
-            onChange={(event) => setNoticeSearch(event.target.value)}
-            placeholder="Search title, college, or content..."
+            onChange={(event) => setCourseSearch(event.target.value)}
+            placeholder="Search college or course..."
             type="text"
-            value={noticeSearch}
+            value={courseSearch}
           />
-          <p className="muted">{filteredNotices.length} notices visible</p>
+          <p className="muted">{filteredCourses.length} course records visible</p>
         </div>
 
         <div className="panel-list">
-          {filteredNotices.map((notice) => (
-            <article className="panel-card" key={notice._id}>
-              <h3>{notice.title}</h3>
-              <p className="muted">{notice.collegeName || "Global"} | {notice.isPublished ? "Published" : "Draft"}</p>
-              <p>{notice.content}</p>
+          {filteredCourses.map((course) => (
+            <article className="panel-card" key={course._id}>
+              <h3>{course.collegeName}</h3>
+              <p className="muted">
+                {course.courseName} | Semester count is branch-defined
+              </p>
+              <p className="muted">
+                Representative: {course.addedByRepresentative?.fullName || "Admin"} | Approved by:{" "}
+                {course.approvedByAdmin?.fullName || "Admin"}
+              </p>
               <div className="panel-actions">
-                <button
-                  className="action-button approve"
-                  onClick={() => {
-                    setEditingNoticeId(notice._id);
-                    setNoticeForm({
-                      collegeName: notice.collegeName || "",
-                      title: notice.title,
-                      content: notice.content,
-                      isPublished: notice.isPublished
-                    });
-                    window.scrollTo({ top: 0, behavior: 'smooth' });
-                  }}
-                  type="button"
-                >
-                  Edit
+                <button className="action-button approve" onClick={() => handleEditCourse(course)} type="button">
+                  Edit Course
                 </button>
-                <button className="action-button reject" onClick={() => handleDeleteNotice(notice._id)} type="button">
-                  Delete
+                <button className="action-button reject" onClick={() => handleDeleteCourse(course._id)} type="button">
+                  Delete Course
                 </button>
               </div>
             </article>
           ))}
-          {!filteredNotices.length ? <p className="muted">No notices matched your search.</p> : null}
         </div>
       </SectionCard>
 
-      <SectionCard title="Resource Moderation" description="Search, sort, edit metadata, or remove resources.">
+      
+            <SectionCard
+        title="Academic Structure Management"
+        description="Admin can create branches and semesters for any approved college course."
+      >
+        <StructureForm
+          formValue={structureForm}
+          onChange={(key, val) =>
+            setStructureForm((current) => {
+              const next = { ...current, [key]: val };
+              if (key === "collegeName") {
+                next.programId = "";
+                next.programName = "";
+              } else if (key === "programId") {
+                next.programName = val;
+              }
+              return next;
+            })
+          }
+          onSubmit={handleSaveStructure}
+          onCancel={resetStructureForm}
+          isEditing={Boolean(editingStructureId)}
+          collegesList={adminCollegeNames}
+          programsList={structureProgramsForCollege}
+        />
+
+        <div className="toolbar-grid">
+          <input
+            className="college-search"
+            onChange={(event) => setStructureSearch(event.target.value)}
+            placeholder="Search college, program, branch, or semester..."
+            type="text"
+            value={structureSearch}
+          />
+          <p className="muted">{filteredStructures.length} structures visible</p>
+        </div>
+
+        <div className="panel-list structure-scroll-container">
+          {loading ? (
+            <SkeletonCard count={3} />
+          ) : (
+            paginatedStructures.map((structure) => (
+              <article className="panel-card" key={structure._id}>
+                <h3>{structure.branchName}</h3>
+                <p className="muted">
+                  {structure.collegeName} | {structure.programName} | {structure.semesterName}
+                </p>
+                <p className="muted">
+                  Branch ID: {structure.branchId} | Semester ID: {structure.semesterId} | Order: {structure.semesterOrder}
+                </p>
+                <div className="panel-actions">
+                  <button className="action-button approve" onClick={() => handleEditStructure(structure)} type="button">
+                    Edit Structure
+                  </button>
+                  <button className="action-button reject" onClick={() => handleDeleteStructure(structure._id)} type="button">
+                    Delete Structure
+                  </button>
+                </div>
+              </article>
+            ))
+          )}
+        </div>
+        {totalStructurePages > 1 && (
+          <div className="admin-pagination" style={{ display: 'flex', justifyContent: 'center', gap: '10px', marginTop: '20px' }}>
+            <button
+              className="action-button default"
+              disabled={structurePage === 1}
+              onClick={() => setStructurePage((prev) => Math.max(1, prev - 1))}
+            >
+              Previous
+            </button>
+            <span style={{ alignSelf: 'center', fontWeight: '500' }}>
+              Page {structurePage} of {totalStructurePages}
+            </span>
+            <button
+              className="action-button default"
+              disabled={structurePage === totalStructurePages}
+              onClick={() => setStructurePage((prev) => Math.min(totalStructurePages, prev + 1))}
+            >
+              Next
+            </button>
+          </div>
+        )}
+      </SectionCard>
+
+      
+            <SectionCard
+        title="Subject Management"
+        description="Admin can create semester-wise subjects for any approved college course."
+      >
+        <SubjectForm
+          formValue={subjectForm}
+          onChange={(key, val) =>
+            setSubjectForm((current) => {
+              const next = { ...current, [key]: val };
+              if (key === "collegeName") {
+                next.programId = "";
+              }
+              return next;
+            })
+          }
+          onSubmit={handleSaveSubject}
+          onCancel={resetSubjectForm}
+          isEditing={Boolean(editingSubjectId)}
+          collegesList={adminCollegeNames}
+          programsList={subjectProgramsForCollege}
+        />
+
+        <div className="toolbar-grid">
+          <input
+            className="college-search"
+            onChange={(event) => setSubjectSearch(event.target.value)}
+            placeholder="Search subject, branch, semester, or college..."
+            type="text"
+            value={subjectSearch}
+          />
+          <p className="muted">{filteredSubjects.length} subjects visible</p>
+        </div>
+
+        <div className="panel-list">
+          {paginatedSubjects.map((subject) => (
+            <article className="panel-card" key={subject._id}>
+              <h3>{subject.name}</h3>
+              <p className="muted">
+                {subject.collegeName} | {subject.programId} | {subject.branchId} | {subject.semesterId}
+              </p>
+              <p className="muted">Subject ID: {subject.subjectId}</p>
+              <div className="panel-actions">
+                <button className="action-button approve" onClick={() => handleEditSubject(subject)} type="button">
+                  Edit Subject
+                </button>
+                <button className="action-button reject" onClick={() => handleDeleteSubject(subject._id)} type="button">
+                  Delete Subject
+                </button>
+              </div>
+            </article>
+          ))}
+          
+          {totalSubjectPages > 1 && (
+            <div className="admin-pagination" style={{ display: 'flex', justifyContent: 'center', gap: '10px', marginTop: '20px' }}>
+              <button
+                className="action-button default"
+                disabled={subjectPage === 1}
+                onClick={() => setSubjectPage((prev) => Math.max(1, prev - 1))}
+              >
+                Previous
+              </button>
+              <span style={{ alignSelf: 'center', fontWeight: '500' }}>
+                Page {subjectPage} of {totalSubjectPages}
+              </span>
+              <button
+                className="action-button default"
+                disabled={subjectPage === totalSubjectPages}
+                onClick={() => setSubjectPage((prev) => Math.min(totalSubjectPages, prev + 1))}
+              >
+                Next
+              </button>
+            </div>
+          )}
+        </div>
+      </SectionCard>
+
+      
+          </div>
+        )}
+
+        {activeTab === "content" && (
+          <div className="tab-pane fade-in">
+            <SectionCard title="Resource Moderation" description="Search, sort, edit metadata, or remove resources.">
         {editingResourceId ? (
           <form className="panel-form" onSubmit={handleSaveResource}>
             <label className="auth-field">
@@ -1726,26 +1698,113 @@ export function AdminPanelPage() {
         </div>
       </SectionCard>
 
-      <SectionCard title="Coverage Snapshot" description="Quick read on approved course and syllabus coverage.">
-        <div className="detail-grid">
-          <article className="detail-card">
-            <h3>Approved Courses</h3>
-            <p>{approvedCourses.length}</p>
-          </article>
-          <article className="detail-card">
-            <h3>Syllabus Resources</h3>
-            <p>{syllabusResources.length}</p>
-          </article>
-          <article className="detail-card">
-            <h3>Academic Structures</h3>
-            <p>{structures.length}</p>
-          </article>
-          <article className="detail-card">
-            <h3>Subjects Managed</h3>
-            <p>{subjects.length}</p>
-          </article>
+      
+            <SectionCard title="Notice Workflow" description="Publish and manage notices with search support.">
+        <NoticeForm
+          formValue={noticeForm}
+          onChange={(key, val) => setNoticeForm((current) => ({ ...current, [key]: val }))}
+          onSubmit={handleSaveNotice}
+          onCancel={() => { setEditingNoticeId(""); setNoticeForm(initialNoticeForm); }}
+          isEditing={Boolean(editingNoticeId)}
+          isDropdown={false}
+        />
+
+        <div className="toolbar-grid">
+          <input
+            className="college-search"
+            onChange={(event) => setNoticeSearch(event.target.value)}
+            placeholder="Search title, college, or content..."
+            type="text"
+            value={noticeSearch}
+          />
+          <p className="muted">{filteredNotices.length} notices visible</p>
+        </div>
+
+        <div className="panel-list">
+          {filteredNotices.map((notice) => (
+            <article className="panel-card" key={notice._id}>
+              <h3>{notice.title}</h3>
+              <p className="muted">{notice.collegeName || "Global"} | {notice.isPublished ? "Published" : "Draft"}</p>
+              <p>{notice.content}</p>
+              <div className="panel-actions">
+                <button
+                  className="action-button approve"
+                  onClick={() => {
+                    setEditingNoticeId(notice._id);
+                    setNoticeForm({
+                      collegeName: notice.collegeName || "",
+                      title: notice.title,
+                      content: notice.content,
+                      isPublished: notice.isPublished
+                    });
+                    window.scrollTo({ top: 0, behavior: 'smooth' });
+                  }}
+                  type="button"
+                >
+                  Edit
+                </button>
+                <button className="action-button reject" onClick={() => handleDeleteNotice(notice._id)} type="button">
+                  Delete
+                </button>
+              </div>
+            </article>
+          ))}
+          {!filteredNotices.length ? <p className="muted">No notices matched your search.</p> : null}
         </div>
       </SectionCard>
+
+      
+          </div>
+        )}
+
+        {activeTab === "audit" && (
+          <div className="tab-pane fade-in">
+            <SectionCard title="Recent Audit Activity" description="Search sensitive actions and who performed them.">
+        <div className="toolbar-grid">
+          <input
+            className="college-search"
+            onChange={(event) => {
+              setAuditSearch(event.target.value);
+              setVisibleAuditCount(5); // Reset to 5 when user searches
+            }}
+            placeholder="Search action, entity, or actor..."
+            type="text"
+            value={auditSearch}
+          />
+          <p className="muted">{filteredAuditLogs.length} records visible</p>
+        </div>
+        <div className="panel-list audit-scroll-container">
+          {loading ? (
+            <SkeletonCard count={3} />
+          ) : (
+            filteredAuditLogs.slice(0, visibleAuditCount).map((log) => (
+              <article className="panel-card" key={log._id}>
+                <h3>{log.action}</h3>
+                <p className="muted">
+                  {log.entityType} | {log.actorUserId?.fullName || log.actorUserId?.email || "System"}
+                </p>
+                <p className="muted">{new Date(log.createdAt).toLocaleString()}</p>
+              </article>
+            ))
+          )}
+        </div>
+        {filteredAuditLogs.length > visibleAuditCount ? (
+          <div className="panel-actions" style={{ justifyContent: "center", marginTop: "16px" }}>
+            <button
+              type="button"
+              className="action-button neutral"
+              onClick={() => setVisibleAuditCount((prev) => prev + 10)}
+            >
+              Load More
+            </button>
+          </div>
+        ) : null}
+      </SectionCard>
+
+      
+          </div>
+        )}
+
     </div>
   </div>
   );

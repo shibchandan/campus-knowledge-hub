@@ -5789,4 +5789,51 @@ html[data-theme="dark"] .analytics-card.gradient-success {
     gap: 0.15rem;
   }
 }
-
+
+/* Admin Panel Tabbed Navigation */
+.admin-tabs {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 16px 24px;
+  background: var(--bg-card, #1c1c28);
+  border-radius: 12px;
+  margin-bottom: 24px;
+  overflow-x: auto;
+  scrollbar-width: thin;
+  white-space: nowrap;
+  border: 1px solid var(--border, rgba(255, 255, 255, 0.1));
+}
+
+.admin-tab-btn {
+  background: rgba(255, 255, 255, 0.05);
+  color: #e2e8f0;
+  border: 1px solid transparent;
+  border-radius: 9999px; /* Pill shape */
+  padding: 8px 20px;
+  font-size: 0.9rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  flex-shrink: 0;
+}
+
+.admin-tab-btn:hover {
+  background: rgba(255, 255, 255, 0.1);
+}
+
+.admin-tab-btn.active {
+  background: rgba(255, 255, 255, 0.12);
+  border-color: rgba(255, 255, 255, 0.2);
+  color: #fca311; /* Yellowish orange like screenshot */
+}
+
+.tab-pane.fade-in {
+  animation: fadeIn 0.3s ease-in-out;
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(5px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
