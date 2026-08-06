@@ -110,7 +110,7 @@ export function AdminPanelPage() {
   const [structureSearch, setStructureSearch] = useState("");
   const [subjectSearch, setSubjectSearch] = useState("");
   const [subjectPage, setSubjectPage] = useState(1);
-  const [visibleAuditCount, setVisibleAuditCount] = useState(5);
+  const [auditPage, setAuditPage] = useState(1);
   const [structurePage, setStructurePage] = useState(1);
 
   async function loadAdminData() {
@@ -785,6 +785,16 @@ export function AdminPanelPage() {
         log.actorUserId?.email?.toLowerCase().includes(term)
     );
   }, [auditLogs, auditSearch]);
+
+  const auditItemsPerPage = 20;
+  const paginatedAuditLogs = useMemo(() => {
+    return filteredAuditLogs.slice((auditPage - 1) * auditItemsPerPage, auditPage * auditItemsPerPage);
+  }, [filteredAuditLogs, auditPage]);
+  const totalAuditPages = Math.max(1, Math.ceil(filteredAuditLogs.length / auditItemsPerPage));
+
+  useEffect(() => {
+    setAuditPage(1);
+  }, [auditSearch]);
 
   const metrics = useMemo(
     () => [
@@ -1760,10 +1770,7 @@ export function AdminPanelPage() {
         <div className="toolbar-grid">
           <input
             className="college-search"
-            onChange={(event) => {
-              setAuditSearch(event.target.value);
-              setVisibleAuditCount(5); // Reset to 5 when user searches
-            }}
+            onChange={(event) => setAuditSearch(event.target.value)}
             placeholder="Search action, entity, or actor..."
             type="text"
             value={auditSearch}
@@ -1774,7 +1781,7 @@ export function AdminPanelPage() {
           {loading ? (
             <SkeletonCard count={3} />
           ) : (
-            filteredAuditLogs.slice(0, visibleAuditCount).map((log) => (
+            paginatedAuditLogs.map((log) => (
               <article className="panel-card" key={log._id}>
                 <h3>{log.action}</h3>
                 <p className="muted">
@@ -1785,17 +1792,27 @@ export function AdminPanelPage() {
             ))
           )}
         </div>
-        {filteredAuditLogs.length > visibleAuditCount ? (
-          <div className="panel-actions" style={{ justifyContent: "center", marginTop: "16px" }}>
+        {totalAuditPages > 1 && (
+          <div className="admin-pagination" style={{ display: 'flex', justifyContent: 'center', gap: '10px', marginTop: '20px' }}>
             <button
-              type="button"
-              className="action-button neutral"
-              onClick={() => setVisibleAuditCount((prev) => prev + 10)}
+              className="action-button default"
+              disabled={auditPage === 1}
+              onClick={() => setAuditPage((prev) => Math.max(1, prev - 1))}
             >
-              Load More
+              Previous
+            </button>
+            <span style={{ alignSelf: 'center', fontWeight: '500' }}>
+              Page {auditPage} of {totalAuditPages}
+            </span>
+            <button
+              className="action-button default"
+              disabled={auditPage === totalAuditPages}
+              onClick={() => setAuditPage((prev) => Math.min(totalAuditPages, prev + 1))}
+            >
+              Next
             </button>
           </div>
-        ) : null}
+        )}
       </SectionCard>
 
       
