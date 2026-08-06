@@ -174,29 +174,56 @@ export function NotesPage() {
 
   return (
     <div className="page-stack">
-      <SectionCard
-        title="Notes, Books & PYQs"
-        description="A guided study shelf with revision-ready notes, solved PYQs, and curated academic resources."
-        variant="hero"
-      >
-        <div className="panel-actions">
-          <Link className="action-button neutral" to="/quizzes">
-            Open College Quizzes
-          </Link>
+      <section className="overview-hero-band rep-panel-hero">
+        <div className="overview-hero-main">
+          <div className="overview-hero-header">
+            <span className="overview-eyebrow-chip">
+              <span>📚</span>
+              <span>Study Resources</span>
+            </span>
+            <h1 className="overview-hero-title">Notes, Books &amp; PYQs</h1>
+            <p className="overview-hero-subtitle">
+              A guided study shelf with revision-ready notes, solved PYQs, and curated academic resources.
+            </p>
+          </div>
+
+          <div style={{ marginBottom: "20px" }}>
+            <Link className="action-button neutral" to="/quizzes">
+              Open College Quizzes
+            </Link>
+          </div>
+
+          <div className="overview-stat-strip">
+            {stats.map((item, index) => {
+              const statColors = ["#6366f1", "#f59e0b", "#10b981", "#ec4899"];
+              const statGradients = [
+                "linear-gradient(135deg, rgba(99,102,241,0.15), rgba(99,102,241,0.03))",
+                "linear-gradient(135deg, rgba(245,158,11,0.15), rgba(245,158,11,0.03))",
+                "linear-gradient(135deg, rgba(16,185,129,0.15), rgba(16,185,129,0.03))",
+                "linear-gradient(135deg, rgba(236,72,153,0.15), rgba(236,72,153,0.03))",
+              ];
+              return (
+                <article
+                  className="overview-stat-tile"
+                  key={item.label}
+                  style={{ background: statGradients[index], borderColor: `${statColors[index]}30` }}
+                >
+                  <div className="stat-tile-accent" style={{ background: statColors[index] }} />
+                  <div className="stat-tile-header">
+                    <span className="stat-tile-icon" style={{ background: `${statColors[index]}20`, color: statColors[index] }}>
+                      {item.icon}
+                    </span>
+                    <p className="overview-stat-label">{item.label}</p>
+                  </div>
+                  <h2 className="stat-tile-value" style={{ color: statColors[index] }}>{item.value}</h2>
+                  <p className="stat-tile-note">{item.caption}</p>
+                </article>
+              );
+            })}
+          </div>
         </div>
-        <div className="notes-stats-grid">
-          {stats.map((item) => (
-            <article className="notes-stat-card" key={item.label}>
-              <div className="notes-stat-header">
-                <span className="notes-stat-icon">{item.icon}</span>
-                <p className="notes-stat-label">{item.label}</p>
-              </div>
-              <h2 className="notes-stat-value">{item.value}</h2>
-              <p className="muted">{item.caption}</p>
-            </article>
-          ))}
-        </div>
-      </SectionCard>
+      </section>
+
 
       <SectionCard
         title="Resource Library"
