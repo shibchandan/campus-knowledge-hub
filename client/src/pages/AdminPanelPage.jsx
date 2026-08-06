@@ -98,6 +98,7 @@ export function AdminPanelPage() {
   const [userSearch, setUserSearch] = useState("");
   const [userRoleFilter, setUserRoleFilter] = useState("all");
   const [userStatusFilter, setUserStatusFilter] = useState("all");
+  const [userPage, setUserPage] = useState(1);
   const [noticeSearch, setNoticeSearch] = useState("");
   const [resourceSearch, setResourceSearch] = useState("");
   const [resourceSort, setResourceSort] = useState("newest");
@@ -636,6 +637,16 @@ export function AdminPanelPage() {
       return matchesSearch && matchesRole && matchesStatus;
     });
   }, [userRoleFilter, userSearch, userStatusFilter, users]);
+
+  const userItemsPerPage = 20;
+  const paginatedUsers = useMemo(() => {
+    return filteredUsers.slice((userPage - 1) * userItemsPerPage, userPage * userItemsPerPage);
+  }, [filteredUsers, userPage]);
+  const totalUserPages = Math.max(1, Math.ceil(filteredUsers.length / userItemsPerPage));
+
+  useEffect(() => {
+    setUserPage(1);
+  }, [userRoleFilter, userSearch, userStatusFilter]);
 
   const filteredNotices = useMemo(() => {
     const term = noticeSearch.trim().toLowerCase();
@@ -1309,7 +1320,7 @@ export function AdminPanelPage() {
         </div>
 
         <div className="panel-list">
-          {filteredUsers.map((user) => (
+          {paginatedUsers.map((user) => (
             <article className="admin-user-card" key={user.id}>
               {/* ── Header ── */}
               <div className="admin-user-card__header">
@@ -1460,6 +1471,28 @@ export function AdminPanelPage() {
               </div>
             </article>
           ))}
+
+          {totalUserPages > 1 && (
+            <div className="admin-pagination" style={{ display: 'flex', justifyContent: 'center', gap: '10px', marginTop: '20px' }}>
+              <button
+                className="action-button default"
+                disabled={userPage === 1}
+                onClick={() => setUserPage((prev) => Math.max(1, prev - 1))}
+              >
+                Previous
+              </button>
+              <span style={{ alignSelf: 'center', fontWeight: '500' }}>
+                Page {userPage} of {totalUserPages}
+              </span>
+              <button
+                className="action-button default"
+                disabled={userPage === totalUserPages}
+                onClick={() => setUserPage((prev) => Math.min(totalUserPages, prev + 1))}
+              >
+                Next
+              </button>
+            </div>
+          )}
         </div>
       </SectionCard>
 
