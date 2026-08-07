@@ -1050,41 +1050,56 @@ export function AccountSettingsPage() {
           title="History"
           description="Review your AI activity and history visibility preference from one place."
         >
-          <div className="detail-grid">
-            <article className="detail-card">
-              <h3>AI History Visibility</h3>
-              <p>{preferences.aiHistoryVisible ? "Visible in your account" : "Hidden in your account view"}</p>
+          <div className="overview-stat-strip" style={{ gridTemplateColumns: "repeat(auto-fit, minmax(240px, 1fr))", gap: "16px", marginBottom: "20px" }}>
+            <article className="overview-stat-tile" style={{ background: "linear-gradient(135deg, #10b98112, #10b98103)", borderColor: "#10b98125" }}>
+              <div className="stat-tile-accent" style={{ background: "#10b981" }} />
+              <div className="stat-tile-header">
+                <span className="stat-tile-icon" style={{ background: "#10b98120", color: "#10b981", fontSize: "1.1rem" }}>👁️</span>
+                <p className="overview-stat-label" style={{ fontSize: "0.95rem", fontWeight: 700, color: "var(--text-primary)" }}>AI History Visibility</p>
+              </div>
+              <p className="stat-tile-note" style={{ color: "var(--color-slate-400-adaptive)", fontWeight: "500", fontSize: "0.9rem", marginTop: "8px" }}>
+                {preferences.aiHistoryVisible ? "Visible in your account" : "Hidden in your account view"}
+              </p>
+              <div style={{ marginTop: "16px" }}>
+                <button
+                  className={preferences.aiHistoryVisible ? "action-button approve" : "action-button neutral"}
+                  onClick={() => togglePreference("aiHistoryVisible")}
+                  type="button"
+                  style={{ width: "100%", padding: "8px", margin: 0, fontSize: "0.85rem", background: preferences.aiHistoryVisible ? "#10b98120" : undefined, color: preferences.aiHistoryVisible ? "#10b981" : undefined, borderColor: preferences.aiHistoryVisible ? "#10b98140" : undefined }}
+                >
+                  {preferences.aiHistoryVisible ? "✓ Visibility Enabled" : "Visibility Disabled"}
+                </button>
+              </div>
             </article>
-            <article className="detail-card">
-              <h3>Entries Loaded</h3>
-              <p>{historyLoading ? "Loading..." : historyItems.length}</p>
+            <article className="overview-stat-tile" style={{ background: "linear-gradient(135deg, #3b82f612, #3b82f603)", borderColor: "#3b82f625" }}>
+              <div className="stat-tile-accent" style={{ background: "#3b82f6" }} />
+              <div className="stat-tile-header">
+                <span className="stat-tile-icon" style={{ background: "#3b82f620", color: "#3b82f6", fontSize: "1.1rem" }}>📚</span>
+                <p className="overview-stat-label" style={{ fontSize: "0.95rem", fontWeight: 700, color: "var(--text-primary)" }}>Entries Loaded</p>
+              </div>
+              <p className="stat-tile-note" style={{ color: "var(--text-primary)", fontWeight: "600", fontSize: "1.5rem", marginTop: "8px" }}>
+                {historyLoading ? "..." : historyItems.length}
+              </p>
             </article>
           </div>
-          <div className="panel-actions">
-            <button
-              className={preferences.aiHistoryVisible ? "action-button approve" : "action-button neutral"}
-              onClick={() => togglePreference("aiHistoryVisible")}
-              type="button"
-            >
-              {preferences.aiHistoryVisible ? "Hide History Section" : "Show History Section"}
-            </button>
-          </div>
+          
           {preferences.aiHistoryVisible ? (
-            <div className="panel-list">
+            <div className="overview-stat-strip" style={{ gridTemplateColumns: "repeat(auto-fit, minmax(300px, 1fr))", gap: "16px" }}>
               {historyLoading ? <p className="muted">Loading account history...</p> : null}
               {!historyLoading && !historyItems.length ? (
                 <p className="muted">No AI history found yet for this account.</p>
               ) : null}
               {historyItems.slice(0, 8).map((item) => (
-                <article className="panel-card" key={item._id}>
-                  <h3>{item.question}</h3>
-                  <p className="muted">
-                    {new Date(item.createdAt).toLocaleString()}
+                <article className="overview-stat-tile" key={item._id} style={{ display: "flex", flexDirection: "column", background: "linear-gradient(135deg, #6366f108, #6366f102)", borderColor: "#6366f115" }}>
+                  <div className="stat-tile-accent" style={{ background: "#6366f1" }} />
+                  <h3 style={{ fontSize: "1.05rem", color: "var(--text-primary)", marginBottom: "8px", fontWeight: "600" }}>{item.question}</h3>
+                  <p className="muted" style={{ fontSize: "0.75rem", marginBottom: "12px", color: "var(--color-slate-500-adaptive)", display: "flex", alignItems: "center", gap: "4px" }}>
+                    <span>🕒</span> {new Date(item.createdAt).toLocaleString()}
                   </p>
                   <p 
                     className="summary-text" 
                     title={expandedHistoryItems[item._id] ? "Click to collapse" : "Click to expand"}
-                    style={{ cursor: "pointer", ...(expandedHistoryItems[item._id] ? { WebkitLineClamp: "unset", display: "block" } : {}) }}
+                    style={{ cursor: "pointer", fontSize: "0.9rem", color: "var(--color-slate-400-adaptive)", flexGrow: 1, lineHeight: 1.5, ...(expandedHistoryItems[item._id] ? { WebkitLineClamp: "unset", display: "block" } : {}) }}
                     onClick={() => toggleExpand(item._id)}
                   >
                     {item.answer?.summary || (typeof item.answer === "string" ? item.answer : "No answer saved.")}
