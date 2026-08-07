@@ -2765,7 +2765,7 @@ h3 {
 }
 
 [data-theme="dark"] .panel-card {
-  background: linear-gradient(180deg, rgba(17, 26, 40, 0.94), rgba(13, 20, 31, 0.96));
+  /* Handled by premium overrides below */
 }
 
 [data-theme="dark"] .quiz-arrangement-card {
@@ -3057,9 +3057,23 @@ h3 {
 
 [data-theme="dark"] .card, 
 [data-theme="dark"] .panel-card {
-  background: rgba(15, 23, 42, 0.7);
-  border-color: rgba(255, 255, 255, 0.06);
-  box-shadow: 0 8px 30px -4px rgba(0, 0, 0, 0.3);
+  background: rgba(15, 23, 42, 0.5);
+  border-color: rgba(139, 92, 246, 0.2);
+  box-shadow: 0 8px 24px -6px rgba(0, 0, 0, 0.4), inset 0 1px 0 rgba(255, 255, 255, 0.05);
+}
+
+.panel-card {
+  position: relative;
+  overflow: hidden;
+}
+
+.panel-card::before {
+  content: "";
+  position: absolute;
+  top: 0; left: 0; right: 0;
+  height: 1px;
+  background: linear-gradient(90deg, transparent, rgba(139, 92, 246, 0.8), transparent);
+  pointer-events: none;
 }
 
 [data-theme="dark"] .panel-card h3 {
@@ -3067,14 +3081,15 @@ h3 {
 }
 
 .panel-card:hover {
-  transform: translateY(-2px);
-  box-shadow: 0 10px 25px -5px rgba(99, 102, 241, 0.15);
-  border-color: rgba(99, 102, 241, 0.3);
+  transform: translateY(-4px) scale(1.01);
+  box-shadow: 0 12px 30px -5px rgba(139, 92, 246, 0.15);
+  border-color: rgba(139, 92, 246, 0.4);
 }
 
 [data-theme="dark"] .panel-card:hover {
-  box-shadow: 0 10px 25px -5px rgba(99, 102, 241, 0.25);
-  border-color: rgba(99, 102, 241, 0.4);
+  background: rgba(30, 41, 59, 0.8);
+  box-shadow: 0 0 20px rgba(139, 92, 246, 0.2), inset 0 1px 0 rgba(255, 255, 255, 0.1);
+  border-color: rgba(139, 92, 246, 0.5);
 }
 
 /* Administrative Density Styles */
