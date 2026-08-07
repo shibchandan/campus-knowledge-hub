@@ -1109,7 +1109,7 @@ export function DashboardPage() {
                         </label>
                       </div>
                       <div className="panel-actions">
-                        <button className="open-college-button" disabled={courseBusy} type="submit">
+                        <button className="action-button approve" style={{ width: "100%", padding: "12px", justifyContent: "center" }} disabled={courseBusy} type="submit">
                           {courseBusy
                             ? "Saving Course..."
                             : user?.role === "admin"
@@ -1227,7 +1227,7 @@ export function DashboardPage() {
                         </label>
                       </div>
                       <div className="panel-actions">
-                        <button className="open-college-button" disabled={branchBusy} type="submit">
+                        <button className="action-button approve" style={{ width: "100%", padding: "12px", justifyContent: "center" }} disabled={branchBusy} type="submit">
                           {branchBusy ? "Creating Branch..." : "Add Branch With Semesters"}
                         </button>
                       </div>

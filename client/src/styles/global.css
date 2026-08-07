@@ -1686,10 +1686,11 @@ h3 {
 .panel-form {
   display: grid;
   gap: 16px;
-  padding: 20px;
+  padding: 24px;
   border-radius: 20px;
-  border: 1px solid rgba(24, 33, 47, 0.08);
-  background: linear-gradient(180deg, rgba(255, 255, 255, 0.68), rgba(245, 248, 251, 0.82));
+  border: 1px solid var(--glass-border);
+  background: var(--glass-bg);
+  box-shadow: 0 4px 24px rgba(0, 0, 0, 0.04);
 }
 
 .panel-form-grid {
@@ -2621,9 +2622,18 @@ h3 {
 [data-theme="dark"] .auth-field select,
 [data-theme="dark"] .panel-textarea,
 [data-theme="dark"] .college-search {
-  background: rgba(8, 15, 28, 0.9);
-  color: #d8e1ef;
-  border-color: rgba(131, 148, 173, 0.35);
+  background: rgba(0, 0, 0, 0.2);
+  color: #f1f5f9;
+  border-color: rgba(255, 255, 255, 0.1);
+}
+
+[data-theme="dark"] .auth-field input:focus,
+[data-theme="dark"] .auth-field select:focus,
+[data-theme="dark"] .panel-textarea:focus,
+[data-theme="dark"] .college-search:focus {
+  border-color: rgba(99, 102, 241, 0.6);
+  background: rgba(0, 0, 0, 0.3);
+  box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.2);
 }
 
 [data-theme="dark"] .checkbox-field {
@@ -2676,8 +2686,11 @@ h3 {
 }
 
 [data-theme="dark"] .panel-form {
-  background: linear-gradient(180deg, rgba(14, 22, 34, 0.9), rgba(17, 26, 40, 0.92));
-  border-color: rgba(131, 148, 173, 0.2);
+  background: linear-gradient(135deg, rgba(255, 255, 255, 0.05), rgba(255, 255, 255, 0.01));
+  border-color: rgba(255, 255, 255, 0.08);
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.2);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
 }
 
 [data-theme="dark"] .auth-panel,
