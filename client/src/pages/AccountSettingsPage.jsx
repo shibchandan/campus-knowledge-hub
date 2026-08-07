@@ -1172,16 +1172,49 @@ export function AccountSettingsPage() {
           title="Community Guidelines"
           description="Platform rules for respectful academic collaboration and safe content sharing."
         >
-          <div className="detail-grid">
+          <div className="overview-stat-strip" style={{ gridTemplateColumns: "repeat(auto-fit, minmax(280px, 1fr))", gap: "16px" }}>
             {[
-              "Share academic content only if it is original, permitted, or properly attributed.",
-              "Do not spam discussions, comments, or doubt threads with repeated promotions.",
-              "Avoid harassment, impersonation, or posting private personal details of students or faculty.",
-              "Upload quizzes, notes, and notices only under the correct college/course context.",
-              "Report plagiarism, unsafe content, or misuse through admin moderation channels."
-            ].map((rule) => (
-              <article className="detail-card" key={rule}>
-                <p>{rule}</p>
+              {
+                text: "Share academic content only if it is original, permitted, or properly attributed.",
+                icon: "📝", color: "#3b82f6"
+              },
+              {
+                text: "Do not spam discussions, comments, or doubt threads with repeated promotions.",
+                icon: "🛡️", color: "#f59e0b"
+              },
+              {
+                text: "Avoid harassment, impersonation, or posting private personal details of students or faculty.",
+                icon: "🛑", color: "#ef4444"
+              },
+              {
+                text: "Upload quizzes, notes, and notices only under the correct college/course context.",
+                icon: "📂", color: "#10b981"
+              },
+              {
+                text: "Report plagiarism, unsafe content, or misuse through admin moderation channels.",
+                icon: "🚩", color: "#8b5cf6"
+              }
+            ].map((rule, idx) => (
+              <article 
+                className="overview-stat-tile" 
+                key={idx}
+                style={{
+                  background: `linear-gradient(135deg, ${rule.color}12, ${rule.color}03)`,
+                  borderColor: `${rule.color}25`,
+                  display: "flex",
+                  flexDirection: "column"
+                }}
+              >
+                <div className="stat-tile-accent" style={{ background: rule.color }} />
+                <div className="stat-tile-header" style={{ marginBottom: "12px" }}>
+                  <span className="stat-tile-icon" style={{ background: `${rule.color}20`, color: rule.color, fontSize: "1.1rem" }}>
+                    {rule.icon}
+                  </span>
+                  <p className="overview-stat-label" style={{ fontSize: "0.95rem", fontWeight: 700, color: "var(--text-primary)" }}>Rule #{idx + 1}</p>
+                </div>
+                <p className="stat-tile-note" style={{ flexGrow: 1, fontSize: "0.9rem", color: "var(--color-slate-400-adaptive)", lineHeight: 1.5 }}>
+                  {rule.text}
+                </p>
               </article>
             ))}
           </div>
