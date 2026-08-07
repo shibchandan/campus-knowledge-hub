@@ -834,7 +834,12 @@ h3 {
 }
 
 .auth-field span {
-  font-weight: var(--fw-head);
+  font-weight: 600;
+  font-size: 0.8rem;
+  letter-spacing: 0.5px;
+  text-transform: uppercase;
+  color: var(--color-slate-400-adaptive, #94a3b8);
+  margin-bottom: 2px;
 }
 
 .auth-field input,
@@ -859,14 +864,23 @@ h3 {
 }
 
 [data-theme="dark"] .auth-field input,
-[data-theme="dark"] .auth-field select {
-  /* Inherit from glass tokens naturally */
+[data-theme="dark"] .auth-field select,
+[data-theme="dark"] .panel-textarea,
+[data-theme="dark"] .college-search {
+  background: linear-gradient(145deg, rgba(255, 255, 255, 0.03), rgba(255, 255, 255, 0.01));
+  color: #f8fafc;
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  padding: 14px 16px;
+  box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.2);
 }
 
 [data-theme="dark"] .auth-field input:focus,
-[data-theme="dark"] .auth-field select:focus {
-  border-color: rgba(129, 140, 248, 0.5);
-  box-shadow: 0 0 0 3px rgba(129, 140, 248, 0.2);
+[data-theme="dark"] .auth-field select:focus,
+[data-theme="dark"] .panel-textarea:focus,
+[data-theme="dark"] .college-search:focus {
+  border-color: rgba(129, 140, 248, 0.8);
+  background: linear-gradient(145deg, rgba(255, 255, 255, 0.06), rgba(255, 255, 255, 0.02));
+  box-shadow: 0 0 0 4px rgba(99, 102, 241, 0.25), inset 0 2px 4px rgba(0, 0, 0, 0.1);
 }
 
 .checkbox-field span {
@@ -2634,6 +2648,26 @@ h3 {
   border-color: rgba(99, 102, 241, 0.6);
   background: rgba(0, 0, 0, 0.3);
   box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.2);
+}
+
+[data-theme="dark"] .auth-field input,
+[data-theme="dark"] .auth-field select,
+[data-theme="dark"] .panel-textarea,
+[data-theme="dark"] .college-search {
+  background: linear-gradient(145deg, rgba(255, 255, 255, 0.03), rgba(255, 255, 255, 0.01));
+  color: #f8fafc;
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  padding: 14px 16px;
+  box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.2);
+}
+
+[data-theme="dark"] .auth-field input:focus,
+[data-theme="dark"] .auth-field select:focus,
+[data-theme="dark"] .panel-textarea:focus,
+[data-theme="dark"] .college-search:focus {
+  border-color: rgba(129, 140, 248, 0.8);
+  background: linear-gradient(145deg, rgba(255, 255, 255, 0.06), rgba(255, 255, 255, 0.02));
+  box-shadow: 0 0 0 4px rgba(99, 102, 241, 0.25), inset 0 2px 4px rgba(0, 0, 0, 0.1);
 }
 
 [data-theme="dark"] .checkbox-field {
