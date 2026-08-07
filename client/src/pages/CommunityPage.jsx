@@ -323,30 +323,32 @@ export function CommunityPage() {
       <div style={{ 
         display: "flex", 
         flex: 1, 
-        background: "var(--color-bg-secondary)", 
-        borderRadius: "12px", 
-        border: "1px solid var(--color-border)",
+        background: "var(--glass-bg)", 
+        borderRadius: "20px", 
+        border: "1px solid var(--glass-border)",
+        boxShadow: "var(--glass-shadow)",
+        backdropFilter: "blur(16px)",
         overflow: "hidden"
       }}>
         
         {/* LEFT SIDEBAR - Groups */}
         <div style={{ 
-          width: "300px", 
-          borderRight: "1px solid var(--color-border)",
+          width: "320px", 
+          borderRight: "1px solid var(--glass-border)",
           display: "flex",
           flexDirection: "column",
-          background: "var(--color-bg-primary)"
+          background: "rgba(15, 23, 42, 0.4)"
         }}>
-          <div style={{ padding: "1rem", borderBottom: "1px solid var(--color-border)", display: "flex", gap: "0.5rem" }}>
-            <button onClick={() => setShowCreateModal(true)} style={{ flex: 1, padding: "0.5rem", background: "#3b82f6", color: "white", border: "none", borderRadius: "6px", cursor: "pointer", fontWeight: "var(--fw-head)" }}>
+          <div style={{ padding: "1.25rem", borderBottom: "1px solid var(--glass-border)", display: "flex", gap: "0.5rem" }}>
+            <button onClick={() => setShowCreateModal(true)} className="action-button approve" style={{ flex: 1, padding: "0.6rem" }}>
               + Create
             </button>
-            <button onClick={() => setShowJoinModal(true)} style={{ flex: 1, padding: "0.5rem", background: "transparent", color: "#3b82f6", border: "1px solid #3b82f6", borderRadius: "6px", cursor: "pointer", fontWeight: "var(--fw-head)" }}>
+            <button onClick={() => setShowJoinModal(true)} className="action-button neutral" style={{ flex: 1, padding: "0.6rem" }}>
               Join Link
             </button>
           </div>
 
-          <div style={{ flex: 1, overflowY: "auto", padding: "0.5rem" }}>
+          <div style={{ flex: 1, overflowY: "auto", padding: "1rem", overflowX: "hidden" }}>
             {loadingGroups ? (
               <p className="muted" style={{ textAlign: "center", marginTop: "1rem" }}>Loading groups...</p>
             ) : groups.length === 0 ? (
@@ -357,17 +359,18 @@ export function CommunityPage() {
                   key={g._id}
                   onClick={() => setActiveGroup(g)}
                   style={{
-                    padding: "1rem",
-                    borderRadius: "8px",
+                    padding: "1rem 1.25rem",
+                    borderRadius: "14px",
                     cursor: "pointer",
-                    background: activeGroup?._id === g._id ? "rgba(59, 130, 246, 0.15)" : "transparent",
-                    borderLeft: activeGroup?._id === g._id ? "4px solid #3b82f6" : "4px solid transparent",
+                    background: activeGroup?._id === g._id ? "linear-gradient(135deg, rgba(99, 102, 241, 0.15), rgba(99, 102, 241, 0.05))" : "transparent",
+                    borderLeft: activeGroup?._id === g._id ? "4px solid #6366f1" : "4px solid transparent",
+                    border: activeGroup?._id === g._id ? "1px solid rgba(99, 102, 241, 0.2)" : "1px solid transparent",
                     marginBottom: "0.5rem",
-                    transition: "all 0.2s"
+                    transition: "all 0.25s ease"
                   }}
                 >
-                  <strong style={{ display: "block", color: activeGroup?._id === g._id ? "#3b82f6" : "inherit" }}>{g.name}</strong>
-                  {g.description && <span className="muted" style={{ fontSize: "0.8rem", display: "block", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>{g.description}</span>}
+                  <strong style={{ display: "block", color: activeGroup?._id === g._id ? "#818cf8" : "var(--color-text-primary)", fontSize: "1.05rem", marginBottom: "4px" }}>{g.name}</strong>
+                  {g.description && <span className="muted" style={{ fontSize: "0.85rem", display: "block", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>{g.description}</span>}
                 </div>
               ))
             )}
@@ -375,41 +378,41 @@ export function CommunityPage() {
         </div>
 
         {/* RIGHT SIDE - Chat Window */}
-        <div style={{ flex: 1, display: "flex", flexDirection: "column", background: "var(--color-bg-secondary)" }}>
+        <div style={{ flex: 1, display: "flex", flexDirection: "column", background: "transparent", position: "relative" }}>
           {activeGroup ? (
             <>
               {/* Chat Header */}
-              <div style={{ padding: "1rem", borderBottom: "1px solid var(--color-border)", display: "flex", justifyContent: "space-between", alignItems: "center", background: "var(--color-bg-primary)" }}>
+              <div style={{ padding: "1.25rem 2rem", borderBottom: "1px solid var(--glass-border)", display: "flex", justifyContent: "space-between", alignItems: "center", background: "rgba(15, 23, 42, 0.3)", backdropFilter: "blur(12px)" }}>
                 <div>
-                  <strong style={{ fontSize: "1.2rem" }}>{activeGroup.name}</strong>
-                  <p className="muted" style={{ margin: 0, fontSize: "0.85rem" }}>
+                  <strong style={{ fontSize: "1.25rem", color: "#f8fafc", letterSpacing: "0.5px" }}>{activeGroup.name}</strong>
+                  <p className="muted" style={{ margin: 0, fontSize: "0.85rem", marginTop: "4px" }}>
                     {activeGroup.members?.length || 1} / {activeGroup.maxCapacity || 256} members
                   </p>
                 </div>
-                <div style={{ display: "flex", gap: "1rem" }}>
+                <div style={{ display: "flex", gap: "1rem", alignItems: "center" }}>
                   {user?.id === activeGroup.createdBy && (
-                    <button onClick={() => setShowUpgradeModal(true)} style={{ background: "#10b981", color: "white", border: "none", padding: "0.5rem 1rem", borderRadius: "8px", cursor: "pointer", fontWeight: "var(--fw-head)" }}>
+                    <button onClick={() => setShowUpgradeModal(true)} className="action-button" style={{ background: "linear-gradient(135deg, #10b981 0%, #059669 100%)", color: "white", padding: "0.5rem 1rem" }}>
                       ⚡ Upgrade Capacity
                     </button>
                   )}
-                  <div style={{ background: "rgba(245, 158, 11, 0.1)", border: "1px solid rgba(245, 158, 11, 0.3)", padding: "0.5rem 1rem", borderRadius: "8px" }}>
-                    <span className="muted" style={{ fontSize: "0.8rem", marginRight: "0.5rem" }}>Invite Code:</span>
-                    <strong style={{ color: "#f59e0b", letterSpacing: "1px" }}>{activeGroup.inviteCode}</strong>
+                  <div style={{ background: "rgba(245, 158, 11, 0.1)", border: "1px solid rgba(245, 158, 11, 0.3)", padding: "0.6rem 1.25rem", borderRadius: "10px" }}>
+                    <span className="muted" style={{ fontSize: "0.8rem", marginRight: "0.5rem", textTransform: "uppercase", letterSpacing: "0.5px" }}>Invite Code:</span>
+                    <strong style={{ color: "#fbd38d", letterSpacing: "1px" }}>{activeGroup.inviteCode}</strong>
                   </div>
-                  <button onClick={() => setShowSettingsModal(true)} style={{ background: "transparent", color: "var(--color-text-primary)", border: "1px solid var(--color-border)", padding: "0.5rem", borderRadius: "8px", cursor: "pointer" }}>
+                  <button onClick={() => setShowSettingsModal(true)} className="action-button neutral" style={{ padding: "0.6rem", borderRadius: "10px" }}>
                     ⚙️
                   </button>
                 </div>
               </div>
 
               {/* Messages Area */}
-              <div style={{ flex: 1, overflowY: "auto", padding: "1.5rem", display: "flex", flexDirection: "column", gap: "1rem" }}>
+              <div style={{ flex: 1, overflowY: "auto", overflowX: "hidden", padding: "2rem", display: "flex", flexDirection: "column", gap: "1.25rem" }}>
                 {loadingMessages ? (
                   <p className="muted" style={{ textAlign: "center" }}>Loading messages...</p>
                 ) : messages.length === 0 ? (
                   <div style={{ margin: "auto", textAlign: "center" }}>
                     <span style={{ fontSize: "3rem" }}>👋</span>
-                    <p className="muted">Be the first to say hello in {activeGroup.name}!</p>
+                    <p className="muted" style={{ marginTop: "1rem", fontSize: "1.1rem" }}>Be the first to say hello in {activeGroup.name}!</p>
                   </div>
                 ) : (
                   messages.map(msg => {
@@ -417,35 +420,38 @@ export function CommunityPage() {
                     return (
                       <div key={msg._id} style={{ alignSelf: isMine ? "flex-end" : "flex-start", maxWidth: "70%" }}>
                         {!isMine && (
-                          <span className="muted" style={{ fontSize: "0.75rem", marginLeft: "0.5rem", marginBottom: "0.2rem", display: "block" }}>
+                          <span className="muted" style={{ fontSize: "0.75rem", marginLeft: "0.75rem", marginBottom: "0.3rem", display: "block", textTransform: "uppercase", letterSpacing: "0.5px" }}>
                             {msg.sender?.fullName || "Anonymous"}
                           </span>
                         )}
                         <div style={{ 
-                          background: isMine ? "#3b82f6" : "var(--color-bg-primary)",
-                          color: isMine ? "white" : "var(--color-text-primary)",
-                          padding: "0.75rem 1rem",
-                          borderRadius: isMine ? "16px 16px 0 16px" : "16px 16px 16px 0",
-                          border: isMine ? "none" : "1px solid var(--color-border)",
+                          background: isMine ? "linear-gradient(135deg, #6366f1 0%, #4f46e5 100%)" : "rgba(255, 255, 255, 0.05)",
+                          color: isMine ? "white" : "#f1f5f9",
+                          padding: "0.85rem 1.25rem",
+                          borderRadius: isMine ? "20px 20px 4px 20px" : "20px 20px 20px 4px",
+                          border: isMine ? "none" : "1px solid rgba(255, 255, 255, 0.1)",
+                          boxShadow: isMine ? "0 4px 12px rgba(99, 102, 241, 0.25)" : "0 4px 12px rgba(0, 0, 0, 0.1)",
                           position: "relative"
                         }}>
                           <p style={{ margin: 0, whiteSpace: "pre-wrap", wordBreak: "break-word" }}>{msg.text}</p>
                           
                           {/* Reactions Display */}
                           {msg.reactions && msg.reactions.length > 0 && (
-                            <div style={{ display: "flex", gap: "0.2rem", flexWrap: "wrap", marginTop: "0.5rem" }}>
+                            <div style={{ display: "flex", gap: "0.3rem", flexWrap: "wrap", marginTop: "0.5rem" }}>
                               {msg.reactions.map(r => (
                                 <button 
                                   key={r.emoji} 
                                   onClick={() => handleReact(msg._id, r.emoji)}
                                   style={{ 
-                                    background: r.users.includes(user?.id) ? "rgba(255,255,255,0.2)" : "rgba(0,0,0,0.2)",
-                                    border: "none", borderRadius: "12px", padding: "0.1rem 0.4rem",
-                                    fontSize: "0.75rem", cursor: "pointer", display: "flex", alignItems: "center", gap: "0.2rem"
+                                    background: r.users.includes(user?.id) ? (isMine ? "rgba(255,255,255,0.25)" : "rgba(99, 102, 241, 0.2)") : "rgba(0,0,0,0.2)",
+                                    border: r.users.includes(user?.id) && !isMine ? "1px solid rgba(99, 102, 241, 0.4)" : "1px solid transparent", 
+                                    borderRadius: "16px", padding: "0.2rem 0.5rem",
+                                    fontSize: "0.8rem", cursor: "pointer", display: "flex", alignItems: "center", gap: "0.3rem",
+                                    color: isMine ? "white" : (r.users.includes(user?.id) ? "#818cf8" : "#94a3b8")
                                   }}
                                 >
                                   <span>{r.emoji}</span>
-                                  <span style={{ color: isMine ? "white" : "inherit" }}>{r.users.length}</span>
+                                  <span>{r.users.length}</span>
                                 </button>
                               ))}
                             </div>
@@ -453,12 +459,13 @@ export function CommunityPage() {
 
                           {/* Quick React Bar (Hover) */}
                           <div className="quick-react" style={{ 
-                            position: "absolute", bottom: "-15px", right: isMine ? "auto" : "-10px", left: isMine ? "-10px" : "auto",
-                            background: "var(--color-bg-primary)", border: "1px solid var(--color-border)", borderRadius: "20px",
-                            padding: "0.2rem 0.5rem", display: "flex", gap: "0.5rem", opacity: 0.5, transition: "opacity 0.2s"
+                            position: "absolute", bottom: "-20px", right: isMine ? "auto" : "0", left: isMine ? "0" : "auto",
+                            background: "rgba(15, 23, 42, 0.8)", border: "1px solid rgba(255, 255, 255, 0.1)", borderRadius: "24px",
+                            padding: "0.3rem 0.6rem", display: "flex", gap: "0.5rem", opacity: 0.5, transition: "all 0.2s ease",
+                            backdropFilter: "blur(8px)", zIndex: 10
                           }}>
                             {["👍", "❤️", "😂", "🚀"].map(emoji => (
-                              <span key={emoji} onClick={() => handleReact(msg._id, emoji)} style={{ cursor: "pointer", fontSize: "0.85rem" }}>{emoji}</span>
+                              <span key={emoji} onClick={() => handleReact(msg._id, emoji)} style={{ cursor: "pointer", fontSize: "1rem", transition: "transform 0.15s" }} onMouseEnter={(e)=>e.target.style.transform="scale(1.2)"} onMouseLeave={(e)=>e.target.style.transform="scale(1)"}>{emoji}</span>
                             ))}
                           </div>
                         </div>
@@ -471,29 +478,40 @@ export function CommunityPage() {
 
               {/* Chat Input */}
               {activeGroup.onlyAdminsCanMessage && activeGroup.createdBy !== user?.id ? (
-                <div style={{ padding: "1.5rem", background: "var(--color-bg-primary)", borderTop: "1px solid var(--color-border)", textAlign: "center" }}>
+                <div style={{ padding: "1.5rem", background: "rgba(15, 23, 42, 0.4)", borderTop: "1px solid var(--glass-border)", textAlign: "center", backdropFilter: "blur(12px)" }}>
                   <p className="muted" style={{ margin: 0 }}>Only admins can send messages in this group.</p>
                 </div>
               ) : (
-                <div style={{ padding: "1rem", background: "var(--color-bg-primary)", borderTop: "1px solid var(--color-border)" }}>
-                  <form onSubmit={handleSendMessage} style={{ display: "flex", gap: "0.5rem" }}>
+                <div style={{ padding: "1.25rem 2rem", background: "rgba(15, 23, 42, 0.4)", borderTop: "1px solid var(--glass-border)", backdropFilter: "blur(12px)" }}>
+                  <form onSubmit={handleSendMessage} style={{ display: "flex", gap: "1rem" }}>
                     <input 
                       type="text" 
                       value={messageText}
                       onChange={(e) => setMessageText(e.target.value)}
                       placeholder={`Message ${activeGroup.name}...`}
                       style={{
-                        flex: 1, padding: "0.75rem 1rem", borderRadius: "24px",
-                        border: "1px solid var(--color-border)", background: "var(--color-bg-secondary)",
-                        color: "var(--color-text-primary)", outline: "none"
+                        flex: 1, padding: "1rem 1.5rem", borderRadius: "99px",
+                        border: "1px solid rgba(255, 255, 255, 0.12)", 
+                        background: "linear-gradient(145deg, rgba(255, 255, 255, 0.04), rgba(255, 255, 255, 0.01))",
+                        color: "#f8fafc", outline: "none", fontSize: "1rem",
+                        boxShadow: "inset 0 2px 4px rgba(0, 0, 0, 0.2)"
+                      }}
+                      onFocus={(e) => {
+                        e.target.style.borderColor = "rgba(129, 140, 248, 0.8)";
+                        e.target.style.boxShadow = "0 0 0 3px rgba(99, 102, 241, 0.25), inset 0 2px 4px rgba(0, 0, 0, 0.1)";
+                      }}
+                      onBlur={(e) => {
+                        e.target.style.borderColor = "rgba(255, 255, 255, 0.12)";
+                        e.target.style.boxShadow = "inset 0 2px 4px rgba(0, 0, 0, 0.2)";
                       }}
                     />
                     <button 
                       type="submit" 
                       disabled={sending || !messageText.trim()}
+                      className="action-button approve"
                       style={{
-                        padding: "0 1.5rem", borderRadius: "24px", background: "#3b82f6", color: "white",
-                        border: "none", cursor: "pointer", fontWeight: "var(--fw-head)", opacity: (!messageText.trim() || sending) ? 0.5 : 1
+                        padding: "0 2rem", borderRadius: "99px", fontWeight: "600", opacity: (!messageText.trim() || sending) ? 0.5 : 1,
+                        fontSize: "1rem"
                       }}
                     >
                       Send
