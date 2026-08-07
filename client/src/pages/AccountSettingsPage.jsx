@@ -968,40 +968,75 @@ export function AccountSettingsPage() {
           title="Notification Bar"
           description="Choose what kind of reminders and update alerts you want to keep active."
         >
-          <div className="panel-list">
+          <div className="overview-stat-strip" style={{ gridTemplateColumns: "repeat(auto-fit, minmax(280px, 1fr))", gap: "16px" }}>
             {[
               {
                 key: "emailAnnouncements",
                 title: "Email Announcements",
-                note: "Receive important platform announcements in email."
+                note: "Receive important platform announcements in email.",
+                icon: "📧",
+                color: "#6366f1"
               },
               {
                 key: "noticeAlerts",
                 title: "Notice Alerts",
-                note: "Get notified when your selected college publishes a notice."
+                note: "Get notified when your selected college publishes a notice.",
+                icon: "🔔",
+                color: "#f59e0b"
               },
               {
                 key: "quizReminders",
                 title: "Quiz Reminders",
-                note: "Receive reminders for representative-published quiz updates."
+                note: "Receive reminders for representative-published quiz updates.",
+                icon: "📝",
+                color: "#10b981"
               },
               {
                 key: "darkModePreferred",
                 title: "Theme Preference Sync",
-                note: "Remember your preferred account view styling locally."
+                note: "Remember your preferred account view styling locally.",
+                icon: "🎨",
+                color: "#ec4899"
               }
             ].map((item) => (
-              <article className="panel-card" key={item.key}>
-                <h3>{item.title}</h3>
-                <p className="muted">{item.note}</p>
-                <div className="panel-actions">
+              <article 
+                className="overview-stat-tile" 
+                key={item.key}
+                style={{
+                  background: `linear-gradient(135deg, ${item.color}12, ${item.color}03)`,
+                  borderColor: `${item.color}25`,
+                  display: "flex",
+                  flexDirection: "column",
+                  minHeight: "160px"
+                }}
+              >
+                <div className="stat-tile-accent" style={{ background: item.color }} />
+                <div className="stat-tile-header" style={{ marginBottom: "12px" }}>
+                  <span className="stat-tile-icon" style={{ background: `${item.color}20`, color: item.color, fontSize: "1.1rem" }}>
+                    {item.icon}
+                  </span>
+                  <p className="overview-stat-label" style={{ fontSize: "0.95rem", fontWeight: 700, color: "var(--text-primary)" }}>{item.title}</p>
+                </div>
+                <p className="stat-tile-note" style={{ flexGrow: 1, fontSize: "0.85rem", marginBottom: "16px", color: "var(--color-slate-400-adaptive)", lineHeight: 1.5 }}>
+                  {item.note}
+                </p>
+                <div style={{ marginTop: "auto" }}>
                   <button
                     className={preferences[item.key] ? "action-button approve" : "action-button neutral"}
                     disabled={settingsLoading || preferencesSaving}
                     onClick={() => togglePreference(item.key)}
                     type="button"
+                    style={{ 
+                      width: "100%", 
+                      margin: 0, 
+                      padding: "10px", 
+                      fontSize: "0.85rem",
+                      background: preferences[item.key] ? `${item.color}20` : undefined,
+                      color: preferences[item.key] ? item.color : undefined,
+                      borderColor: preferences[item.key] ? `${item.color}40` : undefined
+                    }}
                   >
-                    {preferencesSaving ? "Saving..." : preferences[item.key] ? "Enabled" : "Disabled"}
+                    {preferencesSaving ? "Saving..." : preferences[item.key] ? "✓ Enabled" : "Disabled"}
                   </button>
                 </div>
               </article>
