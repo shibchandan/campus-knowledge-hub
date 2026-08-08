@@ -240,9 +240,9 @@ export function AiStudioPage() {
             {(answer.categories || []).map((section) => (
               <article className="panel-card" key={section.heading}>
                 <h3>{section.heading}</h3>
-                <ul className="ai-points">
+                <div className="ai-points">
                   {(section.points || []).map((point, index) => (
-                    <li key={index} style={{ marginBottom: "0.5rem" }}>
+                    <div key={index} className="ai-point" style={{ marginBottom: "0.5rem" }}>
                       <ReactMarkdown
                         remarkPlugins={[remarkGfm]}
                         components={{
@@ -254,7 +254,6 @@ export function AiStudioPage() {
                                 children={String(children).replace(/\n$/, "")}
                                 style={vscDarkPlus}
                                 language={match[1]}
-                                PreTag="div"
                                 customStyle={{ borderRadius: "8px", marginTop: "0.5rem" }}
                               />
                             ) : (
@@ -265,11 +264,11 @@ export function AiStudioPage() {
                           }
                         }}
                       >
-                        {point}
+                        {point.replace(/\\n/g, '\n')}
                       </ReactMarkdown>
-                    </li>
+                    </div>
                   ))}
-                </ul>
+                </div>
               </article>
             ))}
           </div>

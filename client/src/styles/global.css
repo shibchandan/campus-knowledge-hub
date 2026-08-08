@@ -2002,9 +2002,12 @@ h3 {
 
 .ai-points {
   margin: 8px 0 0;
-  padding-left: 18px;
   display: grid;
-  gap: 6px;
+  gap: 12px;
+}
+
+.ai-points .ai-point {
+  /* Style for individual points */
 }
 
 .resource-text {
@@ -6123,12 +6126,12 @@ html[data-theme="dark"] .analytics-card.gradient-success {
 }
 
 
-.ai-points li p {
+.ai-points .ai-point p {
   margin: 0;
   display: inline-block;
   width: 100%;
 }
-.ai-points li p:not(:last-child) {
+.ai-points .ai-point p:not(:last-child) {
   margin-bottom: 0.5rem;
 }
 
