@@ -6133,3 +6133,47 @@ html[data-theme="dark"] .analytics-card.gradient-success {
 }
 
 
+
+
+/* PROFESSIONAL COLLEGE DASHBOARD OVERRIDES */
+[data-theme="dark"] .college-search {
+  background: rgba(15, 23, 42, 0.5);
+  color: #f8fafc;
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  padding: 14px 16px;
+  box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.2);
+  border-radius: 99px;
+}
+
+[data-theme="dark"] .college-search:focus {
+  border-color: rgba(139, 92, 246, 0.6);
+  background: rgba(15, 23, 42, 0.8);
+  box-shadow: 0 0 0 4px rgba(139, 92, 246, 0.2), inset 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+[data-theme="dark"] .filter-chip-button,
+[data-theme="dark"] .clear-filter-button {
+  background: rgba(255, 255, 255, 0.04);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  color: #cbd5e1;
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.02), 0 2px 8px rgba(0, 0, 0, 0.1);
+  border-radius: 99px;
+}
+
+[data-theme="dark"] .filter-chip-button:hover,
+[data-theme="dark"] .clear-filter-button:hover {
+  background: rgba(255, 255, 255, 0.08);
+  border-color: rgba(139, 92, 246, 0.4);
+  box-shadow: 0 4px 12px rgba(139, 92, 246, 0.15);
+  color: #f8fafc;
+}
+
+[data-theme="dark"] .filter-chip-button.active {
+  background: linear-gradient(135deg, rgba(139, 92, 246, 0.2), rgba(99, 102, 241, 0.2));
+  border-color: rgba(139, 92, 246, 0.6);
+  color: #e0e7ff;
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.1), 0 0 12px rgba(139, 92, 246, 0.2);
+}
+
