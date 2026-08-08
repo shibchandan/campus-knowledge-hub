@@ -254,7 +254,7 @@ export function AiStudioPage() {
                                 children={String(children).replace(/\n$/, "")}
                                 style={vscDarkPlus}
                                 language={match[1]}
-                                customStyle={{ borderRadius: "8px", marginTop: "0.5rem" }}
+                                customStyle={{ borderRadius: "8px", marginTop: "0.5rem", maxWidth: "100%", overflowX: "auto" }}
                               />
                             ) : (
                               <code {...props} className={className} style={{ background: "var(--glass-border)", padding: "0.15rem 0.3rem", borderRadius: "4px", color: "var(--color-primary)", fontFamily: "monospace" }}>

@@ -2007,7 +2007,9 @@ h3 {
 }
 
 .ai-points .ai-point {
-  /* Style for individual points */
+  min-width: 0;
+  max-width: 100%;
+  overflow-x: auto;
 }
 
 .resource-text {
