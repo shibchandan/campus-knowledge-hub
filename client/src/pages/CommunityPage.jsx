@@ -424,7 +424,7 @@ export function CommunityPage() {
                             {msg.sender?.fullName || "Anonymous"}
                           </span>
                         )}
-                        <div style={{ 
+                        <div className="message-bubble" style={{ 
                           background: isMine ? "linear-gradient(135deg, #6366f1 0%, #4f46e5 100%)" : "rgba(255, 255, 255, 0.05)",
                           color: isMine ? "white" : "#f1f5f9",
                           padding: "0.85rem 1.25rem",
@@ -459,10 +459,10 @@ export function CommunityPage() {
 
                           {/* Quick React Bar (Hover) */}
                           <div className="quick-react" style={{ 
-                            position: "absolute", bottom: "-20px", right: isMine ? "auto" : "0", left: isMine ? "0" : "auto",
-                            background: "rgba(15, 23, 42, 0.8)", border: "1px solid rgba(255, 255, 255, 0.1)", borderRadius: "24px",
-                            padding: "0.3rem 0.6rem", display: "flex", gap: "0.5rem", opacity: 0.5, transition: "all 0.2s ease",
-                            backdropFilter: "blur(8px)", zIndex: 10
+                            position: "absolute", bottom: "-30px", right: isMine ? "0" : "auto", left: isMine ? "auto" : "0",
+                            background: "rgba(15, 23, 42, 0.95)", border: "1px solid rgba(255, 255, 255, 0.15)", borderRadius: "24px",
+                            padding: "0.4rem 0.8rem", display: "flex", gap: "0.5rem", opacity: 0, transition: "all 0.2s cubic-bezier(0.4, 0, 0.2, 1)",
+                            backdropFilter: "blur(12px)", zIndex: 10, boxShadow: "0 8px 16px rgba(0,0,0,0.3)", transform: "translateY(5px)"
                           }}>
                             {["👍", "❤️", "😂", "🚀"].map(emoji => (
                               <span key={emoji} onClick={() => handleReact(msg._id, emoji)} style={{ cursor: "pointer", fontSize: "1rem", transition: "transform 0.15s" }} onMouseEnter={(e)=>e.target.style.transform="scale(1.2)"} onMouseLeave={(e)=>e.target.style.transform="scale(1)"}>{emoji}</span>
