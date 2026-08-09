@@ -133,7 +133,8 @@ export function DashboardLayout() {
                 </PrefetchLink>
               ))}
             </div>
-          ))}
+          );
+        })}
         </nav>
 
         <div className="sidebar-footer">
