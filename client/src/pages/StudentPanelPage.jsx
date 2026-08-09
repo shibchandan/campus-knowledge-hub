@@ -97,21 +97,53 @@ export function StudentPanelPage() {
           </p>
         </div>
       )}
-      <SectionCard
-        title="Student Panel"
-        description="View admin-approved colleges and courses available on the platform."
-      >
-        {error ? <p className="auth-error">{error}</p> : null}
-        <div className="stat-grid">
-          {stats.map((item) => (
-            <article className="stat-card" key={item.label}>
-              <p className="stat-label">{item.label}</p>
-              <h3>{item.value}</h3>
-              <p className="muted">{item.note}</p>
-            </article>
-          ))}
+      <section className="overview-hero-band">
+        <div className="overview-hero-main">
+          <div className="overview-hero-header">
+            <span className="overview-eyebrow-chip">
+              <span>🎓</span>
+              <span>Student Panel</span>
+            </span>
+            <h1 className="overview-hero-title">
+              {user?.collegeName ? `${user.collegeName} Hub` : "Student Dashboard"}
+            </h1>
+            <p className="overview-hero-subtitle">
+              View admin-approved colleges and courses available on the platform.
+            </p>
+          </div>
+
+          {error ? <p className="auth-error">{error}</p> : null}
+
+          <div className="overview-stat-strip">
+            {stats.map((item, index) => {
+              const statIcons = ["🏫", "📚", "⏳"];
+              const statColors = ["#6366f1", "#10b981", "#f59e0b"];
+              const statGradients = [
+                "linear-gradient(135deg, rgba(99,102,241,0.15), rgba(99,102,241,0.03))",
+                "linear-gradient(135deg, rgba(16,185,129,0.15), rgba(16,185,129,0.03))",
+                "linear-gradient(135deg, rgba(245,158,11,0.15), rgba(245,158,11,0.03))",
+              ];
+              return (
+                <article
+                  className="overview-stat-tile"
+                  key={item.label}
+                  style={{ background: statGradients[index], borderColor: `${statColors[index]}30` }}
+                >
+                  <div className="stat-tile-accent" style={{ background: statColors[index] }} />
+                  <div className="stat-tile-header">
+                    <span className="stat-tile-icon" style={{ background: `${statColors[index]}20`, color: statColors[index] }}>
+                      {statIcons[index]}
+                    </span>
+                    <p className="overview-stat-label">{item.label}</p>
+                  </div>
+                  <h2 className="stat-tile-value" style={{ color: statColors[index] }}>{item.value}</h2>
+                  <p className="stat-tile-note">{item.note}</p>
+                </article>
+              );
+            })}
+          </div>
         </div>
-      </SectionCard>
+      </section>
 
       <SectionCard
         title="Approved Course Directory"
