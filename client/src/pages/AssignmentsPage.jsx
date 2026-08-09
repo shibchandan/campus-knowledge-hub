@@ -4,6 +4,8 @@ import { apiClient } from "../lib/apiClient";
 import { useAuth } from "../auth/AuthContext";
 import { useToast } from "../ui/ToastContext";
 import { useNavigate, Link } from "react-router-dom";
+import "../styles/Assignments.css";
+import "../styles/Auth.css";
 
 const initialForm = {
   title: "",
@@ -153,18 +155,18 @@ export function AssignmentsPage() {
         title="Live Assignments (Ephemeral)"
         description="Share assignments and solutions with your college. All posts self-destruct after 6 hours."
       >
-        <div className="list-toolbar">
+        <div className="assignment-premium-search-container">
           <input
-            className="college-search"
+            className="assignment-premium-search-input"
             onChange={(event) => setSearchTerm(event.target.value)}
             placeholder="Search assignments by title or subject..."
             type="text"
             value={searchTerm}
           />
           <div style={{ display: "flex", gap: "1rem", alignItems: "center" }}>
-            <p className="muted">{filtered.length} active posts</p>
+            <p className="assignment-premium-desc" style={{marginRight: "1rem"}}>{filtered.length} active posts</p>
             <button 
-              className="action-button approve" 
+              className="auth-premium-submit" style={{width: "auto", margin: 0}} 
               onClick={() => {
                 if (!user) {
                   showError("Please log in to start.");
@@ -193,22 +195,22 @@ export function AssignmentsPage() {
             </div>
             <form onSubmit={handleCreateSubmit} style={{ display: "flex", flexDirection: "column", gap: "1rem" }}>
               <div style={{ display: "grid", gridTemplateColumns: "2fr 1fr", gap: "1rem" }}>
-                <div className="auth-field">
+                <div className="auth-premium-field">
                   <label>Title</label>
-                  <input required type="text" value={form.title} onChange={e => setForm({...form, title: e.target.value})} placeholder="e.g., Physics Assignment 3 Help" />
+                  <input className="assignment-premium-search-input" style={{background:"rgba(0,0,0,0.25)"}} required type="text" value={form.title} onChange={e => setForm({...form, title: e.target.value})} placeholder="e.g., Physics Assignment 3 Help" />
                 </div>
-                <div className="auth-field">
+                <div className="auth-premium-field">
                   <label>Subject Code</label>
-                  <input required type="text" value={form.subject} onChange={e => setForm({...form, subject: e.target.value})} placeholder="e.g., PHY101" />
+                  <input className="assignment-premium-search-input" style={{background:"rgba(0,0,0,0.25)"}} required type="text" value={form.subject} onChange={e => setForm({...form, subject: e.target.value})} placeholder="e.g., PHY101" />
                 </div>
               </div>
               
-              <div className="auth-field">
+              <div className="auth-premium-field">
                 <label>Question or Context</label>
-                <textarea required rows={4} value={form.message} onChange={e => setForm({...form, message: e.target.value})} placeholder="Describe the assignment or what you need help with..." style={{ background: "var(--color-bg-primary)", color: "var(--color-text-primary)", border: "1px solid var(--color-border)", borderRadius: "8px", padding: "0.75rem", width: "100%", fontFamily: "inherit", resize: "vertical" }}></textarea>
+                <textarea className="assignment-premium-textarea" required rows={4} value={form.message} onChange={e => setForm({...form, message: e.target.value})} placeholder="Describe the assignment or what you need help with..."></textarea>
               </div>
 
-              <div className="auth-field">
+              <div className="auth-premium-field">
                 <label>Optional Attachment (PDF/Image)</label>
                 <input 
                   type="file" 
@@ -222,7 +224,7 @@ export function AssignmentsPage() {
                 {form.attachmentName && <span className="success-note">Attached: {form.attachmentName}</span>}
               </div>
 
-              <div className="auth-field" style={{ display: "flex", alignItems: "center", gap: "0.5rem", background: "rgba(245, 158, 11, 0.1)", padding: "1rem", borderRadius: "8px", border: "1px solid rgba(245, 158, 11, 0.3)" }}>
+              <div className="auth-premium-field" style={{ display: "flex", alignItems: "center", gap: "0.5rem", background: "rgba(245, 158, 11, 0.1)", padding: "1rem", borderRadius: "8px", border: "1px solid rgba(245, 158, 11, 0.3)" }}>
                 <input 
                   type="checkbox" 
                   id="globalCheck"
@@ -242,7 +244,7 @@ export function AssignmentsPage() {
                 </label>
               </div>
 
-              <button type="submit" disabled={creating || uploadingFile} className="auth-submit" style={{ background: "#f59e0b" }}>
+              <button type="submit" disabled={creating || uploadingFile} className="auth-premium-submit assignment-premium-submit-amber">
                 {creating ? "Posting..." : "Post (Deletes in 6 hrs)"}
               </button>
             </form>
@@ -264,45 +266,42 @@ export function AssignmentsPage() {
         ) : (
           <div className="community-grid">
             {filtered.map((a) => (
-              <article className="community-card-enhanced" key={a._id} style={{ borderLeft: "4px solid #f59e0b" }}>
-                <div className="community-card-body">
-                  <div className="community-card-top-row">
+              <article className="assignment-premium-card">
+                <div className="assignment-premium-header">
+                  <div className="assignment-premium-badges">
                     <div style={{ display: "flex", gap: "0.5rem" }}>
-                      <span className="community-semester-tag" style={{ background: "#f59e0b20", color: "#f59e0b" }}>
+                      <span className="assignment-premium-badge">
                         {a.subject}
                       </span>
                       {a.isGlobal && (
-                        <span className="community-semester-tag" style={{ background: "#3b82f620", color: "#3b82f6", border: "1px solid #3b82f6" }}>
+                        <span className="assignment-premium-badge" style={{ borderColor: "#3b82f6", color: "#60a5fa", background: "rgba(59, 130, 246, 0.15)" }}>
                           🌐 GLOBAL
                         </span>
                       )}
                     </div>
-                    <span className="muted" style={{ fontSize: "0.8rem" }}>
-                      Expires soon
-                    </span>
+                    <span className="assignment-premium-meta">Expires soon</span>
                   </div>
-                  <h3 className="community-card-title">{a.title}</h3>
-                  <p className="muted community-card-desc">{a.message}</p>
+                  <h3 className="assignment-premium-title">{a.title}</h3>
+                  <p className="assignment-premium-desc">{a.message}</p>
                   
-                  <div className="community-card-details">
-                    <span className="community-detail-item">
+                  <div className="assignment-premium-meta">
+                    <span className="assignment-premium-meta-item">
                       👤 {a.author?.fullName || "Anonymous"}
                     </span>
                     {a.attachmentUrl && (
-                      <span className="community-detail-item" style={{ color: "#3b82f6" }}>
+                      <span className="assignment-premium-meta-item" style={{ color: "#3b82f6" }}>
                         📎 Has Attachment
                       </span>
                     )}
                   </div>
                 </div>
-                <div className="community-card-footer">
-                  <span className="community-replies-badge" style={{ background: "#1f2937", color: "white" }}>
+                <div className="assignment-premium-footer">
+                  <span className="assignment-premium-reply-count">
                     {a.replies?.length || 0} Replies
                   </span>
                   <Link 
                     to={`/assignments/${a._id}`}
-                    className="community-join-btn" 
-                    style={{ color: "#f59e0b", textDecoration: "none" }}
+                    className="assignment-premium-action"
                   >
                     View & Reply →
                   </Link>
