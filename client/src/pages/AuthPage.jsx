@@ -3,6 +3,7 @@ import { Navigate, useLocation, useNavigate, Link } from "react-router-dom";
 import { Footer } from "../components/Footer";
 import { useAuth } from "../auth/AuthContext";
 import { apiClient } from "../lib/apiClient";
+import "../styles/Auth.css";
 
 const initialRegisterState = {
   fullName: "",
@@ -319,11 +320,11 @@ export function AuthPage() {
   }
 
   return (
-    <div className="auth-shell">
-      <div className="auth-panel">
-        <div className="auth-hero">
-          <div className="auth-logo-box">
-            <img src="/logo.png" alt="Campus Knowledge Hub" className="auth-main-logo" width="200" height="200" fetchpriority="high" />
+    <div className="auth-premium-shell">
+      <div className="auth-premium-panel">
+        <div className="auth-premium-hero">
+          <div className="auth-premium-logo-box">
+            <img src="/logo.png" alt="Campus Knowledge Hub" className="auth-premium-main-logo" width="200" height="200" fetchpriority="high" />
           </div>
           <p className="eyebrow">Campus Knowledge Hub</p>
           <h1>Login To Your Academic Dashboard</h1>
@@ -332,23 +333,23 @@ export function AuthPage() {
           </p>
         </div>
 
-        <div className="auth-tabs">
+        <div className="auth-premium-tabs">
           <button
-            className={mode === "login" ? "auth-tab active" : "auth-tab"}
+            className={mode === "login" ? "auth-premium-tab active" : "auth-premium-tab"}
             onClick={() => switchMode("login")}
             type="button"
           >
             Login
           </button>
           <button
-            className={mode === "register" ? "auth-tab active" : "auth-tab"}
+            className={mode === "register" ? "auth-premium-tab active" : "auth-premium-tab"}
             onClick={() => switchMode("register")}
             type="button"
           >
             Register
           </button>
           <button
-            className={mode === "forgot" || mode === "reset" ? "auth-tab active" : "auth-tab"}
+            className={mode === "forgot" || mode === "reset" ? "auth-premium-tab active" : "auth-premium-tab"}
             onClick={() => switchMode("forgot")}
             type="button"
           >
@@ -356,18 +357,18 @@ export function AuthPage() {
           </button>
         </div>
 
-        {error ? <p className="auth-error">{error}</p> : null}
-        {success ? <p className="success-note">{success}</p> : null}
+        {error ? <p className="auth-premium-error">{error}</p> : null}
+        {success ? <p className="auth-premium-success">{success}</p> : null}
 
         {twoFactorRequired ? (
-          <form className="auth-form" onSubmit={handleTwoFactorSubmit}>
-            <div className="auth-hero" style={{ padding: 0, marginBottom: "1.5rem" }}>
+          <form className="auth-premium-form" onSubmit={handleTwoFactorSubmit}>
+            <div className="auth-premium-hero" style={{ padding: 0, marginBottom: "1.5rem" }}>
               <h2>Two-Factor Verification</h2>
               <p className="muted">
                 Your account is protected with Two-Factor Authentication. Enter the 6-digit code from your authenticator app.
               </p>
             </div>
-            <label className="auth-field">
+            <label className="auth-premium-field">
               <span>Authenticator Code</span>
               <input
                 type="text"
@@ -381,11 +382,11 @@ export function AuthPage() {
                 autoFocus
               />
             </label>
-            <button className="auth-submit" disabled={loading} type="submit">
+            <button className="auth-premium-submit" disabled={loading} type="submit">
               {loading ? "Verifying..." : "Verify Code"}
             </button>
             <button
-              className="auth-link-button"
+              className="auth-premium-link-button"
               onClick={() => {
                 setTwoFactorRequired(false);
                 setTwoFactorUserId("");
@@ -398,14 +399,14 @@ export function AuthPage() {
             </button>
           </form>
         ) : mode === "verifyEmail" ? (
-          <form className="auth-form" onSubmit={handleVerifyRegistrationSubmit}>
-            <div className="auth-hero" style={{ padding: 0, marginBottom: "1.5rem" }}>
+          <form className="auth-premium-form" onSubmit={handleVerifyRegistrationSubmit}>
+            <div className="auth-premium-hero" style={{ padding: 0, marginBottom: "1.5rem" }}>
               <h2>Verify Your Email</h2>
               <p className="muted">
                 We've sent a 6-digit verification code to <strong>{verificationEmail}</strong>.
               </p>
             </div>
-            <label className="auth-field">
+            <label className="auth-premium-field">
               <span>Verification Code</span>
               <input
                 type="text"
@@ -419,12 +420,12 @@ export function AuthPage() {
                 autoFocus
               />
             </label>
-            <button className="auth-submit" disabled={loading} type="submit">
+            <button className="auth-premium-submit" disabled={loading} type="submit">
               {loading ? "Verifying..." : "Verify Account"}
             </button>
             <div style={{ display: 'flex', gap: '1rem', marginTop: '1rem' }}>
               <button
-                className="auth-button secondary"
+                className="auth-premium-button secondary"
                 onClick={handleResendRegistrationOtp}
                 disabled={loading || verificationCooldown > 0}
                 type="button"
@@ -434,7 +435,7 @@ export function AuthPage() {
               </button>
             </div>
             <button
-              className="auth-link-button"
+              className="auth-premium-link-button"
               onClick={() => switchMode("login")}
               type="button"
             >
@@ -442,8 +443,8 @@ export function AuthPage() {
             </button>
           </form>
         ) : mode === "login" ? (
-          <form className="auth-form" onSubmit={handleLoginSubmit}>
-            <label className="auth-field">
+          <form className="auth-premium-form" onSubmit={handleLoginSubmit}>
+            <label className="auth-premium-field">
               <span>Email <span style={{ color: "red" }}>*</span></span>
               <input
                 type="email"
@@ -456,7 +457,7 @@ export function AuthPage() {
               />
             </label>
 
-            <label className="auth-field">
+            <label className="auth-premium-field">
               <span>Password <span style={{ color: "red" }}>*</span></span>
               <PasswordInput
                 value={loginForm.password}
@@ -468,19 +469,15 @@ export function AuthPage() {
               />
             </label>
 
-            <button className="auth-submit" disabled={loading} type="submit">
+            <button className="auth-premium-submit" disabled={loading} type="submit">
               {loading ? "Signing in..." : "Login"}
-            </button>
-
-            <button className="auth-link-button" onClick={() => switchMode("forgot")} type="button">
-              Forgot your password?
             </button>
           </form>
         ) : null}
 
         {mode === "register" ? (
-          <form className="auth-form" onSubmit={handleRegisterSubmit}>
-            <label className="auth-field">
+          <form className="auth-premium-form" onSubmit={handleRegisterSubmit}>
+            <label className="auth-premium-field">
               <span>Full Name <span style={{ color: "red" }}>*</span></span>
               <input
                 type="text"
@@ -493,7 +490,7 @@ export function AuthPage() {
               />
             </label>
 
-            <label className="auth-field">
+            <label className="auth-premium-field">
               <span>Email <span style={{ color: "red" }}>*</span></span>
               <input
                 type="email"
@@ -506,7 +503,7 @@ export function AuthPage() {
               />
             </label>
 
-            <label className="auth-field">
+            <label className="auth-premium-field">
               <span>Password <span style={{ color: "red" }}>*</span></span>
               <PasswordInput
                 value={registerForm.password}
@@ -519,7 +516,7 @@ export function AuthPage() {
               />
             </label>
 
-            <label className="auth-field">
+            <label className="auth-premium-field">
               <span>Role <span style={{ color: "red" }}>*</span></span>
               <select
                 value={registerForm.role}
@@ -552,7 +549,7 @@ export function AuthPage() {
 
             <button
               type="submit"
-              className="auth-button"
+              className="auth-premium-submit"
               disabled={loading}
             >
               {loading ? "Registering..." : "Register"}
@@ -561,8 +558,8 @@ export function AuthPage() {
         ) : null}
 
         {mode === "forgot" ? (
-          <form className="auth-form" onSubmit={handleForgotPasswordSubmit}>
-            <label className="auth-field">
+          <form className="auth-premium-form" onSubmit={handleForgotPasswordSubmit}>
+            <label className="auth-premium-field">
               <span>Registered Email</span>
               <input
                 type="email"
@@ -575,19 +572,19 @@ export function AuthPage() {
               />
             </label>
 
-            <button className="auth-submit" disabled={loading} type="submit">
+            <button className="auth-premium-submit" disabled={loading} type="submit">
               {loading ? "Sending OTP..." : "Send OTP"}
             </button>
 
-            <button className="auth-link-button" onClick={() => switchMode("login")} type="button">
+            <button className="auth-premium-link-button" onClick={() => switchMode("login")} type="button">
               Back to login
             </button>
           </form>
         ) : null}
 
         {mode === "reset" ? (
-          <form className="auth-form" onSubmit={handleResetPasswordSubmit}>
-            <label className="auth-field">
+          <form className="auth-premium-form" onSubmit={handleResetPasswordSubmit}>
+            <label className="auth-premium-field">
               <span>Email</span>
               <input
                 type="email"
@@ -600,7 +597,7 @@ export function AuthPage() {
               />
             </label>
 
-            <label className="auth-field">
+            <label className="auth-premium-field">
               <span>OTP</span>
               <input
                 inputMode="numeric"
@@ -616,7 +613,7 @@ export function AuthPage() {
               />
             </label>
 
-            <label className="auth-field">
+            <label className="auth-premium-field">
               <span>New Password</span>
               <PasswordInput
                 minLength={6}
@@ -629,7 +626,7 @@ export function AuthPage() {
               />
             </label>
 
-            <label className="auth-field">
+            <label className="auth-premium-field">
               <span>Confirm Password</span>
               <PasswordInput
                 minLength={6}
@@ -642,11 +639,11 @@ export function AuthPage() {
               />
             </label>
 
-            <button className="auth-submit" disabled={loading} type="submit">
+            <button className="auth-premium-submit" disabled={loading} type="submit">
               {loading ? "Resetting..." : "Reset Password"}
             </button>
 
-            <button className="auth-link-button" onClick={() => switchMode("forgot")} type="button">
+            <button className="auth-premium-link-button" onClick={() => switchMode("forgot")} type="button">
               Request a new OTP
             </button>
           </form>
