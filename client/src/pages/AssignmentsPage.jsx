@@ -58,7 +58,7 @@ export function AssignmentsPage() {
       const formData = new FormData();
       formData.append("file", file);
       // Reusing the general upload route
-      const uploadRes = await apiClient.post("/resources/upload", formData, {
+      const uploadRes = await apiClient.post("/assignments/upload", formData, {
         headers: { "Content-Type": "multipart/form-data" }
       });
 

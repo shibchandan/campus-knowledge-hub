@@ -109,13 +109,20 @@ export function DashboardLayout() {
         </div>
 
         <nav className="nav">
-          {navSections.map((section) => (
-            <div className="nav-section" key={section.label}>
-              <p className="nav-section-label">{section.label}</p>
-              {section.links.map((link) => (
-                <PrefetchLink
-                  key={link.to}
-                  to={link.to}
+          {navSections.map((section) => {
+            const visibleLinks = section.links.filter(link => {
+              if (link.to === "/integrity" && user?.role === "student") return false;
+              return true;
+            });
+            if (visibleLinks.length === 0) return null;
+
+            return (
+              <div className="nav-section" key={section.label}>
+                <p className="nav-section-label">{section.label}</p>
+                {visibleLinks.map((link) => (
+                  <PrefetchLink
+                    key={link.to}
+                    to={link.to}
                   prefetchRoute={link.prefetchRoute}
                   onClick={() => setIsSidebarOpen(false)}
                   className={({ isActive }) => (isActive ? "nav-link active" : "nav-link")}

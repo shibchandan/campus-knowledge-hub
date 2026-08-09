@@ -2,6 +2,9 @@ import { Assignment } from "./assignment.model.js";
 import { normalizeCollegeName } from "../../utils/requestValidation.js";
 import { User } from "../auth/auth.model.js";
 import PDFDocument from "pdfkit";
+import { storeUploadedFile, removeStoredFile } from "../../services/resourceStorage.service.js";
+import { readString } from "../../utils/requestValidation.js";
+import createHttpError from "http-errors";
 
 export async function createAssignment(req, res, next) {
   try {
@@ -195,6 +198,25 @@ export async function downloadAssignmentAsPdf(req, res, next) {
 
     doc.end();
   } catch (error) {
+    next(error);
+  }
+}
+export async function uploadAssignmentFile(req, res, next) {
+  try {
+    if (!req.file) {
+      throw createHttpError("No file provided for upload.", 400);
+    }
+
+    const storedFile = await storeUploadedFile(req.file);
+    
+    res.json({
+      success: true,
+      url: storedFile.fileUrl || storedFile.previewUrl
+    });
+  } catch (error) {
+    if (req.file?.path) {
+      import("fs/promises").then(fs => fs.unlink(req.file.path).catch(() => {}));
+    }
     next(error);
   }
 }
