@@ -1416,58 +1416,58 @@ export function RepresentativePanelPage() {
         </div>
       </section>
 
-      <div className="tab-navigation">
+      <div className="admin-tabs">
         <button 
-          className={`tab-btn ${activeTab === 'overview' ? 'active' : ''}`}
+          className={`admin-tab-btn ${activeTab === 'overview' ? 'active' : ''}`}
           onClick={() => setActiveTab('overview')}
         >
           Overview
         </button>
         <button 
-          className={`tab-btn ${activeTab === 'college-profile' ? 'active' : ''}`}
+          className={`admin-tab-btn ${activeTab === 'college-profile' ? 'active' : ''}`}
           onClick={() => setActiveTab('college-profile')}
         >
           College Profile
         </button>
         <button 
-          className={`tab-btn ${activeTab === 'academic-setup' ? 'active' : ''}`}
+          className={`admin-tab-btn ${activeTab === 'academic-setup' ? 'active' : ''}`}
           onClick={() => setActiveTab('academic-setup')}
         >
           Academic Setup
         </button>
         <button 
-          className={`tab-btn ${activeTab === 'notices' ? 'active' : ''}`}
+          className={`admin-tab-btn ${activeTab === 'notices' ? 'active' : ''}`}
           onClick={() => setActiveTab('notices')}
         >
           Notices
         </button>
         <button 
-          className={`tab-btn ${activeTab === 'quizzes' ? 'active' : ''}`}
+          className={`admin-tab-btn ${activeTab === 'quizzes' ? 'active' : ''}`}
           onClick={() => setActiveTab('quizzes')}
         >
           Quizzes
         </button>
         <button 
-          className={`tab-btn ${activeTab === 'reports' ? 'active' : ''}`}
+          className={`admin-tab-btn ${activeTab === 'reports' ? 'active' : ''}`}
           onClick={() => setActiveTab('reports')}
         >
           Reported Content
           {reports.length > 0 && <span className="notification-badge">{reports.length}</span>}
         </button>
         <button 
-          className={`tab-btn ${activeTab === 'request-course' ? 'active' : ''}`}
+          className={`admin-tab-btn ${activeTab === 'request-course' ? 'active' : ''}`}
           onClick={() => setActiveTab('request-course')}
         >
           Request Course
         </button>
         <button 
-          className={`tab-btn ${activeTab === 'analytics' ? 'active' : ''}`}
+          className={`admin-tab-btn ${activeTab === 'analytics' ? 'active' : ''}`}
           onClick={() => setActiveTab('analytics')}
         >
           Analytics
         </button>
         <button 
-          className={`tab-btn danger ${activeTab === 'settings' ? 'active' : ''}`}
+          className={`admin-tab-btn danger ${activeTab === 'settings' ? 'active' : ''}`}
           onClick={() => setActiveTab('settings')}
         >
           Settings
