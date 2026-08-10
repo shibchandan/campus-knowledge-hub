@@ -571,20 +571,15 @@ export function RepresentativePanelPage() {
   }
 
   async function handleDeleteCourse(course) {
-    const isConfirmed = await confirm({
+    const currentPassword = await confirm({
       title: "Delete Course",
       message: `Are you sure you want to delete the approved course "${course.courseName}"?`,
       confirmText: "Delete Course",
-      intent: "danger"
+      intent: "danger",
+      requirePassword: true
     });
-    if (!isConfirmed) return;
-
-    const currentPassword = requestDeletePassword(
-      `${course.courseName} from ${course.collegeName}`
-    );
-    if (!currentPassword) {
-      return;
-    }
+    
+    if (!currentPassword || typeof currentPassword !== "string") return;
 
     setError("");
     setSuccess("");
@@ -610,20 +605,15 @@ export function RepresentativePanelPage() {
   }
 
   async function handleDeleteCollege(course) {
-    const isConfirmed = await confirm({
+    const currentPassword = await confirm({
       title: "Remove College Link",
-      message: `Are you sure you want to remove "${course.collegeName}"?`,
+      message: `Are you sure you want to remove "${course.collegeName}"? This deletes all associated courses.`,
       confirmText: "Remove Link",
-      intent: "danger"
+      intent: "danger",
+      requirePassword: true
     });
-    if (!isConfirmed) return;
-
-    const currentPassword = requestDeletePassword(
-      `${course.collegeName} and all college records created under your account`
-    );
-    if (!currentPassword) {
-      return;
-    }
+    
+    if (!currentPassword || typeof currentPassword !== "string") return;
 
     setError("");
     setSuccess("");
@@ -652,20 +642,15 @@ export function RepresentativePanelPage() {
   }
 
   async function handleDeleteProfile(profile) {
-    const isConfirmed = await confirm({
+    const currentPassword = await confirm({
       title: "Delete Profile Detail",
       message: `Are you sure you want to delete these details for "${profile.collegeName}"?`,
       confirmText: "Delete Details",
-      intent: "danger"
+      intent: "danger",
+      requirePassword: true
     });
-    if (!isConfirmed) return;
-
-    const currentPassword = requestDeletePassword(
-      `the profile details for ${profile.collegeName}`
-    );
-    if (!currentPassword) {
-      return;
-    }
+    
+    if (!currentPassword || typeof currentPassword !== "string") return;
 
     setError("");
     setSuccess("");

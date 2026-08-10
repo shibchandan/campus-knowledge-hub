@@ -6,9 +6,13 @@ const ConfirmContext = createContext(null);
 export function ConfirmProvider({ children }) {
   const [isOpen, setIsOpen] = useState(false);
   const [options, setOptions] = useState({});
+  const [password, setPassword] = useState("");
+  const [error, setError] = useState("");
   const resolveRef = useRef(null);
 
   const confirm = useCallback((opts) => {
+    setPassword("");
+    setError("");
     setOptions(opts);
     setIsOpen(true);
     return new Promise((resolve) => {
@@ -17,9 +21,18 @@ export function ConfirmProvider({ children }) {
   }, []);
 
   const handleConfirm = useCallback(() => {
-    setIsOpen(false);
-    if (resolveRef.current) resolveRef.current(true);
-  }, []);
+    if (options.requirePassword) {
+      if (!password.trim()) {
+        setError("Password is required to proceed.");
+        return;
+      }
+      setIsOpen(false);
+      if (resolveRef.current) resolveRef.current(password.trim());
+    } else {
+      setIsOpen(false);
+      if (resolveRef.current) resolveRef.current(true);
+    }
+  }, [options.requirePassword, password]);
 
   const handleCancel = useCallback(() => {
     setIsOpen(false);
@@ -85,6 +98,27 @@ export function ConfirmProvider({ children }) {
               <p style={{ margin: 0, marginBottom: "1.5rem", color: "var(--color-slate-400-adaptive, #94a3b8)", fontSize: "0.95rem", lineHeight: 1.5 }}>
                 {options.message || "Are you sure you want to proceed?"}
               </p>
+
+              {options.requirePassword && (
+                <div style={{ marginBottom: "1.5rem" }}>
+                  <input
+                    type="password"
+                    placeholder="Enter your current password to confirm"
+                    value={password}
+                    onChange={(e) => { setPassword(e.target.value); setError(""); }}
+                    style={{
+                      width: "100%",
+                      padding: "0.75rem",
+                      borderRadius: "8px",
+                      background: "rgba(255,255,255,0.05)",
+                      border: error ? "1px solid #ef4444" : "1px solid rgba(255,255,255,0.1)",
+                      color: "#fff",
+                      outline: "none"
+                    }}
+                  />
+                  {error && <span style={{ color: "#ef4444", fontSize: "0.8rem", marginTop: "4px", display: "block" }}>{error}</span>}
+                </div>
+              )}
               
               <div style={{ display: "flex", justifyContent: "flex-end", gap: "0.75rem" }}>
                 <button
