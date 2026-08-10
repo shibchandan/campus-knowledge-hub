@@ -103,6 +103,7 @@ export function ConfirmProvider({ children }) {
                 <div style={{ marginBottom: "1.5rem" }}>
                   <input
                     type="password"
+                    autoComplete="new-password"
                     placeholder="Enter your current password to confirm"
                     value={password}
                     onChange={(e) => { setPassword(e.target.value); setError(""); }}
