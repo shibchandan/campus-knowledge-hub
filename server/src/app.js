@@ -22,6 +22,9 @@ export function createApp() {
   app.disable("x-powered-by");
   app.set("trust proxy", env.trustProxy);
 
+  // Prevent browser requests for favicon from polluting 404 error logs
+  app.get("/favicon.ico", (req, res) => res.status(204).end());
+
   app.use(
     cors({
       origin: (origin, callback) => {
