@@ -87,14 +87,7 @@ function renderRichText(text = "") {
 
         return (
           <div key={idx} className="table-responsive" style={{ overflowX: "auto", margin: "1rem 0" }}>
-            <table style={{
-              width: "100%",
-              borderCollapse: "collapse",
-              background: "rgba(255, 255, 255, 0.02)",
-              border: "1px solid rgba(255, 255, 255, 0.05)",
-              borderRadius: "8px",
-              fontSize: "0.85rem"
-            }}>
+            <table className="dashboard-premium-table">
               <thead>
                 <tr style={{ background: "rgba(255, 255, 255, 0.04)" }}>
                   {elem.headers.map((h, hIdx) => (
@@ -858,7 +851,7 @@ export function DashboardPage() {
           <div className="overview-side-block overview-side-workspace">
             <div className="side-block-header">
               <span className="side-block-icon">🖥️</span>
-              <p className="overview-side-label">Active Workspace</p>
+              <p className="dashboard-premium-label">Active Workspace</p>
             </div>
             <div className="overview-workspace-info">
               <div className="workspace-avatar">
@@ -875,7 +868,7 @@ export function DashboardPage() {
           <div className="overview-side-block">
             <div className="side-block-header">
               <span className="side-block-icon">📊</span>
-              <p className="overview-side-label">Live Snapshot</p>
+              <p className="dashboard-premium-label">Live Snapshot</p>
             </div>
             <div className="overview-snapshot-list">
               <div className="snapshot-item">
@@ -900,7 +893,7 @@ export function DashboardPage() {
           <div className="overview-side-block overview-side-notice">
             <div className="side-block-header">
               <span className="side-block-icon">📰</span>
-              <p className="overview-side-label">Latest Notice</p>
+              <p className="dashboard-premium-label">Latest Notice</p>
             </div>
             {latestNoticePreview ? (
               <div className="overview-notice-preview">
@@ -1082,7 +1075,7 @@ export function DashboardPage() {
                 <div className="overview-operation-pane">
                   <div className="overview-pane-header">
                     <div>
-                      <p className="overview-side-label">Course manager</p>
+                      <p className="dashboard-premium-label">Course manager</p>
                       <h3>Add or open a course</h3>
                     </div>
                     <p className="muted">Create the course first, then continue into branch and semester setup.</p>
@@ -1153,7 +1146,7 @@ export function DashboardPage() {
                 <div className="overview-operation-pane">
                   <div className="overview-pane-header">
                     <div>
-                      <p className="overview-side-label">Branch creator</p>
+                      <p className="dashboard-premium-label">Branch creator</p>
                       <h3>Add a branch to a course</h3>
                     </div>
                     <p className="muted">Create a branch with semesters. Subjects can be added from the branch page.</p>
@@ -1248,7 +1241,7 @@ export function DashboardPage() {
               description="Institution highlights and placement statistics for this college."
             >
               {availablePrograms.length > 1 ? (
-                <div className="overview-inline-chips" style={{ marginBottom: "1.5rem" }}>
+                <div className="dashboard-premium-chips">
                   {availablePrograms.map((prog) => (
                     <button
                       key={prog.id}
@@ -1288,9 +1281,9 @@ export function DashboardPage() {
                     marginBottom: "1.5rem"
                   }}>
                     {profileHighlights.map((item) => (
-                      <div key={item.label} className="detail-card">
-                        <span className="overview-side-label">{item.label}</span>
-                        <strong>{item.value}</strong>
+                      <div key={item.label} className="dashboard-premium-card">
+                        <span className="dashboard-premium-label">{item.label}</span>
+                        <span className="dashboard-premium-value">{item.value}</span>
                       </div>
                     ))}
                   </div>
@@ -1301,31 +1294,24 @@ export function DashboardPage() {
                     gridTemplateColumns: "repeat(auto-fit, minmax(280px, 1fr))",
                     gap: "1.5rem"
                   }}>
-                    <article className="detail-card">
-                      <span className="overview-side-label">Placement Report Summary</span>
+                    <article className="dashboard-premium-card">
+                      <span className="dashboard-premium-label">Placement Report Summary</span>
                       <div style={{ margin: 0, fontSize: "0.95rem", lineHeight: "1.6" }}>
                         {profile.placementReport && renderRichText(profile.placementReport)}
                         {profile.placementList && profile.placementList.length > 0 && (
-                          <div className="table-responsive" style={{ overflowX: "auto", margin: "0.5rem 0" }}>
-                            <table style={{
-                              width: "100%",
-                              borderCollapse: "collapse",
-                              background: "rgba(255, 255, 255, 0.03)",
-                              borderRadius: "12px",
-                              overflow: "hidden",
-                              fontSize: "0.85rem"
-                            }}>
+                          <div className="dashboard-premium-table-wrapper">
+                            <table className="dashboard-premium-table">
                               <thead>
-                                <tr style={{ background: "rgba(255, 255, 255, 0.06)" }}>
-                                  <th style={{ padding: "12px 14px", textAlign: "left", fontWeight: "var(--fw-head)", color: "#ffffff", borderBottom: "1px solid rgba(255, 255, 255, 0.08)" }}>Branch</th>
-                                  <th style={{ padding: "12px 14px", textAlign: "left", fontWeight: "var(--fw-head)", color: "#ffffff", borderBottom: "1px solid rgba(255, 255, 255, 0.08)" }}>Avg/Highest Package</th>
+                                <tr>
+                                  <th>Branch</th>
+                                  <th>Avg/Highest Package</th>
                                 </tr>
                               </thead>
                               <tbody>
                                 {profile.placementList.map((row, rIdx) => (
-                                  <tr key={rIdx} style={{ borderBottom: rIdx === profile.placementList.length - 1 ? "none" : "1px solid rgba(255, 255, 255, 0.04)" }}>
-                                    <td style={{ padding: "8px 10px", color: "#cbd5e1" }}>{row.branch}</td>
-                                    <td style={{ padding: "8px 10px", color: "#cbd5e1" }}>{row.value}</td>
+                                  <tr key={rIdx}>
+                                    <td>{row.branch}</td>
+                                    <td>{row.value}</td>
                                   </tr>
                                 ))}
                               </tbody>
@@ -1363,31 +1349,24 @@ export function DashboardPage() {
                         </div>
                       ) : null}
                     </article>
-                    <article className="detail-card">
-                      <span className="overview-side-label">Cut Off Summary</span>
+                    <article className="dashboard-premium-card">
+                      <span className="dashboard-premium-label">Cut Off Summary</span>
                       <div style={{ margin: 0, fontSize: "0.95rem", lineHeight: "1.6" }}>
                         {profile.cutOffSummary && renderRichText(profile.cutOffSummary)}
                         {profile.cutOffList && profile.cutOffList.length > 0 && (
-                          <div className="table-responsive" style={{ overflowX: "auto", margin: "0.5rem 0" }}>
-                            <table style={{
-                              width: "100%",
-                              borderCollapse: "collapse",
-                              background: "rgba(255, 255, 255, 0.03)",
-                              borderRadius: "12px",
-                              overflow: "hidden",
-                              fontSize: "0.85rem"
-                            }}>
+                          <div className="dashboard-premium-table-wrapper">
+                            <table className="dashboard-premium-table">
                               <thead>
-                                <tr style={{ background: "rgba(255, 255, 255, 0.06)" }}>
-                                  <th style={{ padding: "12px 14px", textAlign: "left", fontWeight: "var(--fw-head)", color: "#ffffff", borderBottom: "1px solid rgba(255, 255, 255, 0.08)" }}>Branch</th>
-                                  <th style={{ padding: "12px 14px", textAlign: "left", fontWeight: "var(--fw-head)", color: "#ffffff", borderBottom: "1px solid rgba(255, 255, 255, 0.08)" }}>Closing Rank/Score</th>
+                                <tr>
+                                  <th>Branch</th>
+                                  <th>Closing Rank/Score</th>
                                 </tr>
                               </thead>
                               <tbody>
                                 {profile.cutOffList.map((row, rIdx) => (
-                                  <tr key={rIdx} style={{ borderBottom: rIdx === profile.cutOffList.length - 1 ? "none" : "1px solid rgba(255, 255, 255, 0.04)" }}>
-                                    <td style={{ padding: "8px 10px", color: "#cbd5e1" }}>{row.branch}</td>
-                                    <td style={{ padding: "8px 10px", color: "#cbd5e1" }}>{row.value}</td>
+                                  <tr key={rIdx}>
+                                    <td>{row.branch}</td>
+                                    <td>{row.value}</td>
                                   </tr>
                                 ))}
                               </tbody>
@@ -1399,8 +1378,8 @@ export function DashboardPage() {
                         )}
                       </div>
                     </article>
-                    <article className="detail-card">
-                      <span className="overview-side-label">Other Rankings & Info</span>
+                    <article className="dashboard-premium-card">
+                      <span className="dashboard-premium-label">Other Rankings & Info</span>
                       <div style={{ margin: 0, fontSize: "0.95rem", lineHeight: "1.6" }}>{renderRichText(profile.rankings?.other) || <p className="muted" style={{ margin: 0 }}>Not provided</p>}</div>
                     </article>
                   </div>
