@@ -1,3 +1,4 @@
+import mongoose from "mongoose";
 import { CollegeCourse, CollegeProfile, CollegeRequest } from "./governance.model.js";
 import { AcademicSubject } from "../academic/academic.model.js";
 import { AcademicStructure } from "../academic/academicStructure.model.js";
@@ -607,7 +608,7 @@ export async function createApprovedCollegeCourse(req, res, next) {
 export async function getRepresentativeColleges(req, res, next) {
   try {
     const data = await CollegeCourse.aggregate([
-      { $match: { addedByRepresentative: readMongoId(req.user.id, { field: "userId" }) } },
+      { $match: { addedByRepresentative: new mongoose.Types.ObjectId(readMongoId(req.user.id, { field: "userId" })) } },
       { $sort: { createdAt: -1 } },
       {
         $lookup: {
