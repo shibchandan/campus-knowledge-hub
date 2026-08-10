@@ -209,6 +209,7 @@ function mapSubjectToForm(subject) {
 
 export function RepresentativePanelPage() {
   const { user, refreshCurrentUser } = useAuth();
+  const { confirm } = useConfirm();
   const { colleges: platformColleges, refreshColleges } = useCollege();
   const { showError, showSuccess } = useToast();
   const [form, setForm] = useState(initialForm);

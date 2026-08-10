@@ -1289,14 +1289,15 @@ Please review the resource on the platform database and take appropriate action.
 
 export async function getCollegeResourceReports(req, res, next) {
   try {
-    const collegeNameNormalized = req.user.collegeNameNormalized;
-    
-    if (!collegeNameNormalized) {
-      throw createHttpError("You are not associated with a college.", 400);
+    const managedCourses = await CollegeCourse.find({ addedByRepresentative: req.user._id });
+    const collegeNames = [...new Set(managedCourses.map(c => normalizeCollegeName(c.collegeName)))];
+
+    if (collegeNames.length === 0) {
+      return res.json({ success: true, data: [] });
     }
 
     const reports = await ResourceReport.find({
-      collegeNameNormalized,
+      collegeNameNormalized: { $in: collegeNames },
       status: "pending"
     })
       .populate("resourceId", "title categoryId fileUrl linkUrl uploadedBy")
@@ -1315,11 +1316,12 @@ export async function getCollegeResourceReports(req, res, next) {
 export async function dismissResourceReport(req, res, next) {
   try {
     const reportId = readMongoId(req.params.reportId, { field: "reportId" });
-    const collegeNameNormalized = req.user.collegeNameNormalized;
+    const managedCourses = await CollegeCourse.find({ addedByRepresentative: req.user._id });
+    const collegeNames = [...new Set(managedCourses.map(c => normalizeCollegeName(c.collegeName)))];
 
     const report = await ResourceReport.findOne({
       _id: reportId,
-      collegeNameNormalized
+      collegeNameNormalized: { $in: collegeNames }
     });
 
     if (!report) {
