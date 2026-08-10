@@ -7,6 +7,7 @@ import { useDebounce } from "../hooks/useDebounce";
 import { useAuth } from "../auth/AuthContext";
 import { useConfirm } from "../ui/ConfirmContext";
 import { SectionCard } from "../components/SectionCard";
+import "../styles/Dashboard.css";
 import { useCollege } from "../college/CollegeContext";
 import { apiClient } from "../lib/apiClient";
 import { requestDeletePassword } from "../lib/deleteWithPassword";
@@ -1697,7 +1698,7 @@ export function RepresentativePanelPage() {
               <button
                 type="button"
                 onClick={handleAddCutOffRow}
-                className="action-button neutral"
+                className="glowing-btn primary small" style={{ marginRight: "10px", marginBottom: "10px", display: "inline-block" }}
                 style={{ width: "fit-content", padding: "6px 12px", fontSize: "0.85rem", marginTop: "0.25rem" }}
               >
                 + Add Branch Cut-off
@@ -1788,7 +1789,7 @@ export function RepresentativePanelPage() {
               <button
                 type="button"
                 onClick={handleAddPlacementRow}
-                className="action-button neutral"
+                className="glowing-btn primary small" style={{ marginRight: "10px", marginBottom: "10px", display: "inline-block" }}
                 style={{ width: "fit-content", padding: "6px 12px", fontSize: "0.85rem", marginTop: "0.25rem" }}
               >
                 + Add Branch Placement
@@ -1842,7 +1843,7 @@ export function RepresentativePanelPage() {
                   : "Save College Details"}
             </button>
             {editingProfileId ? (
-              <button className="action-button neutral" onClick={resetProfileForm} type="button">
+              <button className="glowing-btn primary small" style={{ marginRight: "10px", marginBottom: "10px", display: "inline-block" }} onClick={resetProfileForm} type="button">
                 Cancel Edit
               </button>
             ) : null}
@@ -2317,7 +2318,7 @@ export function RepresentativePanelPage() {
                   />
                 </label>
                 <div className="panel-actions">
-                  <button className="action-button neutral" onClick={addQuizQuestion} type="button">
+                  <button className="glowing-btn primary small" style={{ marginRight: "10px", marginBottom: "10px", display: "inline-block" }} onClick={addQuizQuestion} type="button">
                     Add Question
                   </button>
                   <button
@@ -2341,7 +2342,7 @@ export function RepresentativePanelPage() {
                   : "Create Quiz Arrangement"}
             </button>
             {editingQuizId ? (
-              <button className="action-button neutral" onClick={resetQuizForm} type="button">
+              <button className="glowing-btn primary small" style={{ marginRight: "10px", marginBottom: "10px", display: "inline-block" }} onClick={resetQuizForm} type="button">
                 Cancel Edit
               </button>
             ) : null}
@@ -2390,7 +2391,7 @@ export function RepresentativePanelPage() {
                     End Quiz
                   </button>
                 )}
-                <Link className="action-button neutral" to={`/quizzes/${quiz._id}/results`}>
+                <Link className="glowing-btn primary small" style={{ marginRight: "10px", marginBottom: "10px", display: "inline-block" }} to={`/quizzes/${quiz._id}/results`}>
                   View Results
                 </Link>
               </div>
@@ -2437,7 +2438,7 @@ export function RepresentativePanelPage() {
               ) === index;
 
             return (
-            <article className="panel-card" key={item._id}>
+            <article className="dashboard-premium-card" style={{ marginBottom: "1.5rem" }} key={item._id}>
               <h3>{item.collegeName}</h3>
               <p className="muted">
                 Course: {item.courseName} | Semester count is branch-defined
@@ -2447,22 +2448,20 @@ export function RepresentativePanelPage() {
               </p>
               <div className="panel-actions">
                 <Link
-                  className="action-button neutral"
+                  className="glowing-btn primary small" style={{ marginRight: "10px", marginBottom: "10px", display: "inline-block" }}
                   to={`/dashboard/${normalizeRouteId(item.courseName)}`}
                 >
                   Open Course Page
                 </Link>
-                <button className="action-button approve" onClick={() => handleEditCourse(item)} type="button">
+                <button className="glowing-btn secondary small" style={{ marginRight: "10px", marginBottom: "10px" }} onClick={() => handleEditCourse(item)} type="button">
                   Edit Course
                 </button>
-                <button className="action-button reject" onClick={() => handleDeleteCourse(item)} type="button">
+                <button className="glowing-btn danger small" style={{ marginRight: "10px", marginBottom: "10px" }} onClick={() => handleDeleteCourse(item)} type="button">
                   Delete Course
                 </button>
                 {isFirstCollegeCard ? (
                   <button
-                    className="action-button reject"
-                    onClick={() => handleDeleteCollege(item)}
-                    type="button"
+                    className="glowing-btn danger small" style={{ marginBottom: "10px" }} onClick={() => handleDeleteCollege(item)} type="button"
                   >
                     Delete College
                   </button>
