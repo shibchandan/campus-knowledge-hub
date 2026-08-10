@@ -27,6 +27,7 @@ export async function fetchCsrfToken() {
 
 apiClient.interceptors.request.use(async (config) => {
   const method = config.method?.toLowerCase();
+  
   if (["post", "put", "delete", "patch"].includes(method)) {
     if (!csrfToken) {
       await fetchCsrfToken();
@@ -35,6 +36,52 @@ apiClient.interceptors.request.use(async (config) => {
       config.headers["x-csrf-token"] = csrfToken;
     }
   }
+
+  // Proactively check if token is expiring soon to prevent 401 console errors
+  const token = getStoredAuthToken();
+  if (token && !config.url?.includes('/auth/refresh') && !config.url?.includes('/auth/login')) {
+    try {
+      const payloadBase64 = token.split('.')[1];
+      if (payloadBase64) {
+        const payload = JSON.parse(atob(payloadBase64));
+        if (payload.exp) {
+          // If token expires in less than 30 seconds
+          const isExpiringSoon = (payload.exp * 1000) - Date.now() < 30000;
+          if (isExpiringSoon && !isRefreshing) {
+            isRefreshing = true;
+            try {
+              const raw = window.localStorage.getItem(AUTH_STORAGE_KEY);
+              const parsed = raw ? JSON.parse(raw) : null;
+              const currentRefreshToken = parsed?.refreshToken || "";
+
+              const { data } = await axios.post(`${apiClient.defaults.baseURL}/auth/refresh`, {
+                refreshToken: currentRefreshToken
+              }, { withCredentials: true });
+              
+              const newToken = data.data.token;
+              const newRefreshToken = data.data.refreshToken;
+              
+              if (parsed) {
+                parsed.token = newToken;
+                if (newRefreshToken) parsed.refreshToken = newRefreshToken;
+                window.localStorage.setItem(AUTH_STORAGE_KEY, JSON.stringify(parsed));
+              }
+
+              setAuthToken(newToken);
+              config.headers['Authorization'] = `Bearer ${newToken}`;
+            } catch (err) {
+              // Ignore proactive refresh errors and let request proceed to fail naturally
+            } finally {
+              isRefreshing = false;
+            }
+          }
+        }
+      }
+    } catch (e) {
+      // Ignore token decode errors
+    }
+  }
+
   return config;
 });
 
