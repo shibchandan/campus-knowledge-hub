@@ -557,6 +557,8 @@ export function RepresentativePanelPage() {
       collegeName: course.collegeName,
       courseName: course.courseName
     });
+    setActiveTab("add-course");
+    window.scrollTo(0, 0);
   }
 
   function handleEditProfile(profile) {
@@ -564,6 +566,8 @@ export function RepresentativePanelPage() {
     setSuccess("");
     setEditingProfileId(profile._id);
     setProfileForm(mapProfileToForm(profile));
+    setActiveTab("college-profile");
+    window.scrollTo(0, 0);
   }
 
   async function handleDeleteCourse(course) {
