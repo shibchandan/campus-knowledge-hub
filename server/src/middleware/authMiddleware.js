@@ -29,9 +29,7 @@ export async function protect(req, _res, next) {
     token = req.query.accessToken;
   }
 
-  if (!token) {
-    token = getTokenFromCookies(req);
-  }
+
 
   if (!token) {
     const error = new Error("Unauthorized");
@@ -94,9 +92,6 @@ export async function optionalProtect(req, _res, next) {
     token = req.query.accessToken;
   }
 
-  if (!token) {
-    token = getTokenFromCookies(req);
-  }
 
   if (!token) {
     return next();
