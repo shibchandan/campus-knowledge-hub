@@ -9,7 +9,7 @@ import path from "path";
 import { uploadDirectory } from "../../middleware/uploadMiddleware.js";
 import { createAuditLog } from "../../services/audit.service.js";
 import { awardReputation } from "../../services/reputation.service.js";
-import { removeStoredFile, storeUploadedFile } from "../../services/resourceStorage.service.js";
+import { removeStoredFile, storeUploadedFile, generatePresignedUploadUrl } from "../../services/resourceStorage.service.js";
 import { sendAdminNotification } from "../../services/email.service.js";
 import { removeTempFile, scanFileForMalware } from "../../services/malwareScan.service.js";
 import { extractTextFromFile } from "../../services/pdfExtract.service.js";
@@ -391,6 +391,34 @@ async function grantProtectedResourceAccess(resource, buyerId, accessType, amoun
   );
 }
 
+export async function getPresignedUrl(req, res, next) {
+  try {
+    const { categoryId, originalName, mimeType, fileSize } = req.query;
+
+    const categoryKey = readString(categoryId, { field: "categoryId", min: 2, max: 40 });
+    const policy = getPolicy(categoryKey);
+
+    if (policy.requireFile && !originalName) {
+      throw createHttpError(`${categoryKey} category requires a file.`, 400);
+    }
+
+    if (!mimeAllowed(mimeType, policy.mimeAllowlist)) {
+      throw createHttpError(`Invalid file type for ${categoryKey} category.`, 400);
+    }
+
+    const numericSize = parseInt(fileSize, 10);
+    if (!isNaN(numericSize) && policy.maxFileSize && numericSize > policy.maxFileSize) {
+      throw createHttpError(`File is too large for ${categoryKey} category.`, 413);
+    }
+
+    const presignedData = await generatePresignedUploadUrl({ originalName, mimeType });
+
+    res.json({ success: true, data: presignedData });
+  } catch (error) {
+    next(error);
+  }
+}
+
 export async function uploadResource(req, res, next) {
   try {
     const {
@@ -406,8 +434,18 @@ export async function uploadResource(req, res, next) {
       visibility,
       accessPrice,
       allowBasicSubscription,
-      externalLink
+      externalLink,
+      presignedFile
     } = req.body;
+
+    let parsedPresignedFile = null;
+    if (presignedFile) {
+      try {
+        parsedPresignedFile = typeof presignedFile === 'string' ? JSON.parse(presignedFile) : presignedFile;
+      } catch (e) {
+        throw createHttpError("Invalid presignedFile payload format.");
+      }
+    }
 
     const cleanedCollegeName = readString(collegeName, { field: "collegeName", min: 3, max: 120 });
     const cleanedProgramId = readString(programId, { field: "programId", min: 2, max: 60 });
@@ -464,7 +502,7 @@ export async function uploadResource(req, res, next) {
       throw createHttpError("Invalid external link URL format.");
     }
 
-    if (policy.requireFile && !req.file && !cleanExternalLink) {
+    if (policy.requireFile && !req.file && !cleanExternalLink && !parsedPresignedFile) {
       throw createHttpError(`${categoryKey} category requires a file upload or an external link.`);
     }
 
@@ -480,7 +518,7 @@ export async function uploadResource(req, res, next) {
       throw createHttpError(`File is too large for ${categoryKey} category.`, 413);
     }
 
-    if (!req.file && !cleanedText && !cleanExternalLink) {
+    if (!req.file && !cleanedText && !cleanExternalLink && !parsedPresignedFile) {
       throw createHttpError("Upload a file, provide text content, or share an external link.");
     }
 
@@ -489,10 +527,25 @@ export async function uploadResource(req, res, next) {
     }
 
     // Auto-extract text from PDFs for RAG context — user-typed text takes priority
-    const extractedText = await extractTextFromFile(req.file);
+    const extractedText = req.file ? await extractTextFromFile(req.file) : "";
     const finalTextContent = cleanedText || extractedText;
 
-    const storedFile = await storeUploadedFile(req.file);
+    let storedFile;
+    if (parsedPresignedFile) {
+      storedFile = {
+        fileOriginalName: parsedPresignedFile.fileOriginalName,
+        fileStoredName: parsedPresignedFile.cloudObjectKey,
+        fileMimeType: parsedPresignedFile.fileMimeType,
+        fileSize: parsedPresignedFile.fileSize,
+        fileUrl: parsedPresignedFile.fileUrl,
+        previewUrl: parsedPresignedFile.fileUrl,
+        cloudObjectKey: parsedPresignedFile.cloudObjectKey,
+        storageProvider: "cloudflare-r2"
+      };
+    } else {
+      storedFile = await storeUploadedFile(req.file);
+    }
+    
     const fileUrl = cleanExternalLink || storedFile.fileUrl || "";
     const previewUrl = cleanExternalLink || storedFile.previewUrl || fileUrl;
     const fileOriginalName = cleanExternalLink ? "External Link" : storedFile.fileOriginalName;

@@ -15,7 +15,8 @@ import {
   uploadResource,
   reportResource,
   getCollegeResourceReports,
-  dismissResourceReport
+  dismissResourceReport,
+  getPresignedUrl
 } from "./resource.controller.js";
 
 export const resourceRouter = Router();
@@ -38,6 +39,7 @@ resourceRouter.post("/:resourceId/verify-unlock-payment", protect, verifyProtect
 resourceRouter.patch("/:resourceId", protect, invalidateCacheMiddleware("/api/resources"), updateResource);
 resourceRouter.delete("/:resourceId", protect, invalidateCacheMiddleware("/api/resources"), deleteResource);
 resourceRouter.post("/:resourceId/report", protect, reportResource);
+resourceRouter.get("/presigned-url", protect, getPresignedUrl);
 resourceRouter.post(
   "/upload",
   protect,

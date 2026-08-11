@@ -30,6 +30,10 @@ export async function protect(req, _res, next) {
   }
 
   if (!token) {
+    token = getTokenFromCookies(req);
+  }
+
+  if (!token) {
     const error = new Error("Unauthorized");
     error.statusCode = 401;
     return next(error);
@@ -88,6 +92,10 @@ export async function optionalProtect(req, _res, next) {
 
   if (!token && req.query && req.query.accessToken) {
     token = req.query.accessToken;
+  }
+
+  if (!token) {
+    token = getTokenFromCookies(req);
   }
 
   if (!token) {

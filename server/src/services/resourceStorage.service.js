@@ -2,6 +2,7 @@ import fs from "fs/promises";
 import path from "path";
 import { randomUUID } from "crypto";
 import { DeleteObjectCommand, PutObjectCommand, S3Client } from "@aws-sdk/client-s3";
+import { getSignedUrl } from "@aws-sdk/s3-request-presigner";
 import { v2 as cloudinary } from "cloudinary";
 import { env } from "../config/env.js";
 import { uploadDirectory } from "../middleware/uploadMiddleware.js";
@@ -40,6 +41,35 @@ function buildObjectKey(file) {
   const cleanExt = extension && extension.length <= 10 ? extension : "";
   const datePrefix = new Date().toISOString().slice(0, 10);
   return `${env.r2Folder}/${datePrefix}/${randomUUID()}${cleanExt}`;
+}
+
+export async function generatePresignedUploadUrl({ originalName, mimeType }) {
+  if (!cloudflareR2Configured()) {
+    const err = new Error("Cloudflare R2 is not configured for presigned URLs.");
+    err.statusCode = 500;
+    throw err;
+  }
+
+  const extension = path.extname(originalName || "").toLowerCase();
+  const cleanExt = extension && extension.length <= 10 ? extension : "";
+  const datePrefix = new Date().toISOString().slice(0, 10);
+  const objectKey = `${env.r2Folder}/${datePrefix}/${randomUUID()}${cleanExt}`;
+
+  const client = createR2Client();
+  const command = new PutObjectCommand({
+    Bucket: env.r2BucketName,
+    Key: objectKey,
+    ContentType: mimeType
+  });
+
+  const presignedUrl = await getSignedUrl(client, command, { expiresIn: 900 }); // 15 mins
+  const publicUrl = `${env.r2PublicBaseUrl.replace(/\/$/, "")}/${objectKey}`;
+
+  return {
+    presignedUrl,
+    cloudObjectKey: objectKey,
+    fileUrl: publicUrl
+  };
 }
 
 export async function storeUploadedFile(file) {

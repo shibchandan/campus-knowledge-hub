@@ -570,14 +570,49 @@ export function SubjectCategoryPage() {
       if (uploadTab === "file") {
         formData.append("textContent", uploadForm.textContent);
         formData.append("externalLink", "");
+        
         if (selectedFile) {
-          formData.append("file", selectedFile);
+          // Request presigned URL from our backend
+          const presignedRes = await apiClient.get("/resources/presigned-url", {
+            params: {
+              categoryId,
+              originalName: selectedFile.name,
+              mimeType: selectedFile.type,
+              fileSize: selectedFile.size
+            }
+          });
+          
+          const { presignedUrl, cloudObjectKey, fileUrl } = presignedRes.data.data;
+          
+          // Upload directly to Cloudflare R2 using fetch to avoid our axios interceptors
+          setSuccess("Uploading file to cloud storage...");
+          const uploadResponse = await fetch(presignedUrl, {
+            method: "PUT",
+            body: selectedFile,
+            headers: {
+              "Content-Type": selectedFile.type
+            }
+          });
+
+          if (!uploadResponse.ok) {
+            throw new Error(`Cloud upload failed: ${uploadResponse.statusText}`);
+          }
+          
+          // Tell the backend where the file is
+          formData.append("presignedFile", JSON.stringify({
+            cloudObjectKey,
+            fileUrl,
+            fileOriginalName: selectedFile.name,
+            fileMimeType: selectedFile.type,
+            fileSize: selectedFile.size
+          }));
         }
       } else {
         formData.append("textContent", "");
         formData.append("externalLink", uploadForm.externalLink || "");
       }
 
+      setSuccess("Saving resource details...");
       await apiClient.post("/resources/upload", formData, {
         headers: { "Content-Type": "multipart/form-data" }
       });
