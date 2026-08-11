@@ -461,9 +461,7 @@ export function AccountSettingsPage() {
         formData.append("studentProof", studentProofFile);
       }
 
-      const response = await apiClient.post("/auth/student-verification/submit", formData, {
-        headers: { "Content-Type": "multipart/form-data" }
-      });
+      const response = await apiClient.post("/auth/student-verification/submit", formData);
 
       setSuccess(response.data.message || "Student verification submitted successfully.");
       setStudentProofFile(null);
@@ -624,9 +622,9 @@ export function AccountSettingsPage() {
             </button>
           </form>
 
-          {user?.role === "student" ? (
+          {(user?.role === "student" || user?.role === "representative") ? (
             <div className="panel-subsection">
-              <h3>Student Verification</h3>
+              <h3>{user?.role === "representative" ? "Representative Verification" : "Student Verification"}</h3>
               <p className="muted">
                 Your college-locked modules open after admin verifies your college ID and proof. Official college email verification adds extra confidence.
               </p>
@@ -691,15 +689,6 @@ export function AccountSettingsPage() {
                               Cancel
                             </button>
                           </div>
-                          <label style={{ display: "flex", alignItems: "center", gap: "8px", marginTop: "12px", cursor: "pointer", fontSize: "0.85rem", color: "var(--text-secondary)" }}>
-                            <input
-                              type="checkbox"
-                              checked={studentVerificationForm.requestRepresentative}
-                              onChange={(e) => setStudentVerificationForm(c => ({ ...c, requestRepresentative: e.target.checked }))}
-                              style={{ width: "auto", margin: 0 }}
-                            />
-                            Request to become the College Representative
-                          </label>
                         </div>
                       ) : (
                         <>
@@ -811,6 +800,17 @@ export function AccountSettingsPage() {
                       )}
                     </div>
                   </label>
+                  {user?.role === "student" && (
+                    <label className="auth-field checkbox" style={{ marginTop: "1rem", marginBottom: "1rem" }}>
+                      <input
+                        type="checkbox"
+                        checked={studentVerificationForm.requestRepresentative}
+                        onChange={(e) => setStudentVerificationForm(c => ({ ...c, requestRepresentative: e.target.checked }))}
+                        disabled={verificationSubmitLoading}
+                      />
+                      <span>I want to be a Representative for my college (Admin will review).</span>
+                    </label>
+                  )}
                   <label className="auth-field">
                     <span>College Student ID</span>
                     <input

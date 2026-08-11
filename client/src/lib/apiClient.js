@@ -69,7 +69,10 @@ apiClient.interceptors.request.use(async (config) => {
 
               setAuthToken(newToken);
               config.headers['Authorization'] = `Bearer ${newToken}`;
+              
+              processQueue(null, newToken);
             } catch (err) {
+              processQueue(err, null);
               // Ignore proactive refresh errors and let request proceed to fail naturally
             } finally {
               isRefreshing = false;

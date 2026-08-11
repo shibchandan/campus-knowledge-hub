@@ -916,8 +916,8 @@ export async function submitStudentVerification(req, res, next) {
       throw error;
     }
 
-    if (user.role !== "student") {
-      const error = new Error("Only student accounts can submit student verification.");
+    if (user.role !== "student" && user.role !== "representative") {
+      const error = new Error("Only student or representative accounts can submit verification.");
       error.statusCode = 403;
       throw error;
     }
