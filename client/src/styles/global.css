@@ -2000,6 +2000,13 @@ h3 {
   margin-bottom: 6px;
 }
 
+.detail-card p {
+  font-size: 1.15rem;
+  font-weight: 600;
+  color: var(--color-text, #0f172a);
+  margin: 0;
+}
+
 .ai-points {
   margin: 8px 0 0;
   display: grid;
@@ -3080,6 +3087,11 @@ h3 {
 [data-theme="dark"] .panel-card h3,
 [data-theme="dark"] .detail-card h3 {
   color: #f8fafc;
+}
+
+[data-theme="dark"] .panel-card p:not(.muted),
+[data-theme="dark"] .detail-card p:not(.muted) {
+  color: #f1f5f9;
 }
 
 .panel-card:hover, .detail-card:hover {
