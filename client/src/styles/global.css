@@ -3047,7 +3047,7 @@ h3 {
 }
 
 /* Premium Minimal Style Overrides & Transitions */
-.card, .panel-card {
+.card, .panel-card, .detail-card {
   background: rgba(255, 255, 255, 0.7);
   backdrop-filter: blur(12px);
   border: 1px solid rgba(15, 23, 42, 0.06);
@@ -3056,18 +3056,19 @@ h3 {
 }
 
 [data-theme="dark"] .card, 
-[data-theme="dark"] .panel-card {
+[data-theme="dark"] .panel-card,
+[data-theme="dark"] .detail-card {
   background: rgba(15, 23, 42, 0.5);
   border-color: rgba(139, 92, 246, 0.2);
   box-shadow: 0 8px 24px -6px rgba(0, 0, 0, 0.4), inset 0 1px 0 rgba(255, 255, 255, 0.05);
 }
 
-.panel-card {
+.panel-card, .detail-card {
   position: relative;
   overflow: hidden;
 }
 
-.panel-card::before {
+.panel-card::before, .detail-card::before {
   content: "";
   position: absolute;
   top: 0; left: 0; right: 0;
@@ -3076,17 +3077,19 @@ h3 {
   pointer-events: none;
 }
 
-[data-theme="dark"] .panel-card h3 {
+[data-theme="dark"] .panel-card h3,
+[data-theme="dark"] .detail-card h3 {
   color: #f8fafc;
 }
 
-.panel-card:hover {
+.panel-card:hover, .detail-card:hover {
   transform: translateY(-4px) scale(1.01);
   box-shadow: 0 12px 30px -5px rgba(139, 92, 246, 0.15);
   border-color: rgba(139, 92, 246, 0.4);
 }
 
-[data-theme="dark"] .panel-card:hover {
+[data-theme="dark"] .panel-card:hover,
+[data-theme="dark"] .detail-card:hover {
   background: rgba(30, 41, 59, 0.8);
   box-shadow: 0 0 20px rgba(139, 92, 246, 0.2), inset 0 1px 0 rgba(255, 255, 255, 0.1);
   border-color: rgba(139, 92, 246, 0.5);
