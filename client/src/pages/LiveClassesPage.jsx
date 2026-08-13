@@ -1,4 +1,5 @@
-import { useEffect, useState } from "react";
+import { useEffect, useState, useCallback } from "react";
+import { JitsiMeeting } from "@jitsi/react-sdk";
 import { SectionCard } from "../components/SectionCard";
 import { useCollege } from "../college/CollegeContext";
 import { apiClient } from "../lib/apiClient";
@@ -10,26 +11,26 @@ export function LiveClassesPage() {
   const { user } = useAuth();
   const { showSuccess, showError } = useToast();
   const { selectedCollege } = useCollege();
-  
+
   const [classes, setClasses] = useState([]);
   const [loading, setLoading] = useState(false);
   const [searchTerm, setSearchTerm] = useState("");
   const [statusFilter, setStatusFilter] = useState("All");
-  
+  const [activeRoom, setActiveRoom] = useState(null);
+
   const [formData, setFormData] = useState({
     title: "",
     subject: "",
     semester: "",
-    meetingUrl: "",
     description: "",
     scheduledAt: "",
     duration: 60
   });
   const [submitting, setSubmitting] = useState(false);
-  
+
   const canSchedule = user?.role === "representative" || user?.role === "admin";
 
-  const loadClasses = async () => {
+  const loadClasses = useCallback(async () => {
     setLoading(true);
     try {
       const response = await apiClient.get("/live-classes");
@@ -39,11 +40,11 @@ export function LiveClassesPage() {
     } finally {
       setLoading(false);
     }
-  };
+  }, []);
 
   useEffect(() => {
     loadClasses();
-  }, [selectedCollege?.name]);
+  }, [loadClasses, selectedCollege?.name]);
 
   const handleInputChange = (e) => {
     const { name, value } = e.target;
@@ -60,13 +61,12 @@ export function LiveClassesPage() {
         title: "",
         subject: "",
         semester: "",
-        meetingUrl: "",
         description: "",
         scheduledAt: "",
         duration: 60
       });
       loadClasses();
-    } catch (err) {
+    } catch {
       showError("Failed to schedule live class.");
     } finally {
       setSubmitting(false);
@@ -78,9 +78,17 @@ export function LiveClassesPage() {
       await apiClient.patch(`/live-classes/${id}`, { status });
       showSuccess(`Class marked as ${status}`);
       loadClasses();
-    } catch (err) {
+    } catch {
       showError(`Failed to update status to ${status}`);
     }
+  };
+
+  const joinRoom = (cls) => {
+    setActiveRoom(cls);
+  };
+
+  const leaveRoom = () => {
+    setActiveRoom(null);
   };
 
   const filtered = classes.filter((cls) => {
@@ -90,7 +98,7 @@ export function LiveClassesPage() {
       if (statusFilter === "Live Now" && status !== "live") return false;
       if (statusFilter === "Completed" && status !== "completed") return false;
     }
-    
+
     if (!searchTerm.trim()) return true;
     const term = searchTerm.toLowerCase();
     return (
@@ -101,11 +109,67 @@ export function LiveClassesPage() {
 
   const hasClasses = classes.length > 0;
 
+  // ─── ACTIVE VIDEO ROOM ───
+  if (activeRoom) {
+    return (
+      <div className="jitsi-room-container">
+        <div className="jitsi-room-header">
+          <div className="jitsi-room-info">
+            <span className="status-badge live"><span className="pulse-dot" />Live</span>
+            <h2>{activeRoom.title}</h2>
+            <span className="muted">{activeRoom.subject} • {activeRoom.semester}</span>
+          </div>
+          <button className="leave-btn" onClick={leaveRoom}>
+            ✕ Leave Class
+          </button>
+        </div>
+        <div className="jitsi-room-frame">
+          <JitsiMeeting
+            domain="meet.jit.si"
+            roomName={activeRoom.roomName}
+            configOverwrite={{
+              startWithAudioMuted: true,
+              startWithVideoMuted: false,
+              disableModeratorIndicator: true,
+              prejoinPageEnabled: false,
+              toolbarButtons: [
+                "microphone", "camera", "desktop", "chat",
+                "raisehand", "participants-pane", "tileview",
+                "fullscreen", "hangup"
+              ]
+            }}
+            interfaceConfigOverwrite={{
+              SHOW_JITSI_WATERMARK: false,
+              SHOW_WATERMARK_FOR_GUESTS: false,
+              SHOW_BRAND_WATERMARK: false,
+              TOOLBAR_ALWAYS_VISIBLE: true,
+              DEFAULT_BACKGROUND: "#0d111c"
+            }}
+            userInfo={{
+              displayName: user?.fullName || "Student",
+              email: user?.email || ""
+            }}
+            onReadyToClose={leaveRoom}
+            getIFrameRef={(node) => {
+              if (node) {
+                node.style.height = "100%";
+                node.style.width = "100%";
+                node.style.border = "none";
+                node.style.borderRadius = "12px";
+              }
+            }}
+          />
+        </div>
+      </div>
+    );
+  }
+
+  // ─── CLASS LISTING ───
   return (
     <div className="page-stack">
       <SectionCard
         title="Live Classes"
-        description="Join live sessions hosted by your college representatives. Connect, learn, and interact in real-time."
+        description="Join live sessions hosted by your college representatives. Connect, learn, and interact in real-time — directly inside the app."
         variant="hero"
       >
         {canSchedule && (
@@ -118,7 +182,7 @@ export function LiveClassesPage() {
                   name="title"
                   value={formData.title}
                   onChange={handleInputChange}
-                  placeholder="Title"
+                  placeholder="Class Title"
                   className="auth-field"
                   required
                 />
@@ -143,17 +207,6 @@ export function LiveClassesPage() {
                   required
                 />
                 <input
-                  type="url"
-                  name="meetingUrl"
-                  value={formData.meetingUrl}
-                  onChange={handleInputChange}
-                  placeholder="Paste your Google Meet / Zoom link"
-                  className="auth-field"
-                  required
-                />
-              </div>
-              <div className="form-row">
-                <input
                   type="datetime-local"
                   name="scheduledAt"
                   value={formData.scheduledAt}
@@ -161,6 +214,8 @@ export function LiveClassesPage() {
                   className="auth-field"
                   required
                 />
+              </div>
+              <div className="form-row">
                 <input
                   type="number"
                   name="duration"
@@ -181,7 +236,7 @@ export function LiveClassesPage() {
                 rows="3"
               />
               <button type="submit" className="glowing-btn primary" disabled={submitting}>
-                {submitting ? "Scheduling..." : "Schedule Class"}
+                {submitting ? "Scheduling..." : "📡 Schedule Class"}
               </button>
             </form>
           </div>
@@ -214,7 +269,7 @@ export function LiveClassesPage() {
         ) : !hasClasses ? (
           <div className="live-classes-empty-state">
             <span className="live-classes-empty-icon">📡</span>
-            <h3>No Live Classes</h3>
+            <h3>No Live Classes Yet</h3>
             <p className="muted">
               No live classes are currently scheduled. Representatives will announce upcoming sessions here.
             </p>
@@ -223,25 +278,25 @@ export function LiveClassesPage() {
           <div className="live-classes-grid">
             {filtered.map((cls) => {
               const status = cls.status || "scheduled";
-              
+
               return (
-                <article className="live-class-card" key={cls._id || cls.title}>
+                <article className="live-class-card" key={cls._id}>
                   <div className={`status-badge ${status}`}>
                     {status === "live" && <span className="pulse-dot" />}
                     {status.charAt(0).toUpperCase() + status.slice(1)}
                   </div>
-                  
+
                   <h3 className="live-class-title">{cls.title}</h3>
-                  
+
                   <div className="live-class-tags">
                     <span className="chip subject-chip">{cls.subject}</span>
                     <span className="chip semester-chip">{cls.semester}</span>
                   </div>
-                  
+
                   {cls.description && (
                     <p className="live-class-desc muted">{cls.description}</p>
                   )}
-                  
+
                   <div className="live-class-meta">
                     <span className="meta-item">
                       📅 {new Date(cls.scheduledAt).toLocaleString("en-IN", {
@@ -255,14 +310,12 @@ export function LiveClassesPage() {
 
                   <div className="live-class-actions">
                     {status === "scheduled" || status === "live" ? (
-                      <a
-                        href={cls.meetingUrl}
-                        target="_blank"
-                        rel="noreferrer"
+                      <button
                         className="join-btn glowing-btn primary"
+                        onClick={() => joinRoom(cls)}
                       >
-                        Join Class
-                      </a>
+                        🎥 Join Class
+                      </button>
                     ) : (
                       <button className="join-btn disabled" disabled>
                         {status === "completed" ? "Session Ended" : "Cancelled"}
@@ -272,10 +325,10 @@ export function LiveClassesPage() {
                     {(user?._id === cls.host?._id || user?.role === "admin") && (status === "scheduled" || status === "live") && (
                       <div className="host-actions">
                         <button onClick={() => updateStatus(cls._id, "completed")} className="action-btn complete">
-                          Mark Complete
+                          ✓ Complete
                         </button>
                         <button onClick={() => updateStatus(cls._id, "cancelled")} className="action-btn cancel">
-                          Cancel
+                          ✕ Cancel
                         </button>
                       </div>
                     )}

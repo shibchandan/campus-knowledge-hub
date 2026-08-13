@@ -9,6 +9,7 @@
     "preview": "vite preview"
   },
   "dependencies": {
+    "@jitsi/react-sdk": "^1.4.4",
     "@vercel/speed-insights": "^2.0.0",
     "axios": "^1.8.4",
     "framer-motion": "^12.40.0",

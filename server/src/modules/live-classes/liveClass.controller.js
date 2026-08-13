@@ -1,10 +1,15 @@
+import crypto from "crypto";
 import { LiveClass } from "./liveClass.model.js";
 
 export async function createLiveClass(req, res, next) {
   try {
+    const roomId = crypto.randomBytes(8).toString("hex");
+    const roomName = `campus-hub-${roomId}`;
+
     const liveClass = await LiveClass.create({
       ...req.body,
-      host: req.user.id
+      host: req.user.id,
+      roomName
     });
 
     res.status(201).json({ success: true, data: liveClass });
