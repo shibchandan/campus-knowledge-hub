@@ -1,6 +1,8 @@
 import { useState, useRef, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { apiClient } from "../lib/apiClient";
+import { useLocation } from "react-router-dom";
+import ReactMarkdown from "react-markdown";
 import { useAuth } from "../auth/AuthContext";
 import "./Chatbot.css";
 
@@ -85,6 +87,7 @@ const SendIcon = ({ className, style }) => (
 
 export function Chatbot() {
   const { isAuthenticated } = useAuth();
+  const location = useLocation();
   const [isOpen, setIsOpen] = useState(false);
   const [inputText, setInputText] = useState("");
   const [messages, setMessages] = useState([
@@ -113,17 +116,29 @@ export function Chatbot() {
     setIsLoading(true);
 
     try {
-      const response = await apiClient.post("/ai/ask", {
+      // Extract context from URL
+      const match = location.pathname.match(/^\/dashboard\/([^\/]+)(?:\/branch\/([^\/]+)(?:\/([^\/]+)(?:\/([^\/]+)(?:\/([^\/]+))?)?)?)?/);
+      const payload = {
         question: text,
         intent: intentOverride
-      });
+      };
+
+      if (match) {
+        payload.programId = match[1];
+        if (match[2]) payload.branchId = match[2];
+        if (match[3]) payload.semesterId = match[3];
+        if (match[4]) payload.subjectId = match[4];
+        if (match[5]) payload.categoryId = match[5];
+      }
+
+      const response = await apiClient.post("/ai/ask", payload);
 
       const aiData = response.data?.data;
       
       let botResponse = aiData?.summary || "I couldn't generate a response.";
       if (aiData?.categories?.length > 0) {
         aiData.categories.forEach(cat => {
-          botResponse += `\n\n**${cat.heading}**\n` + cat.points.map(p => `• ${p}`).join('\n');
+          botResponse += `\n\n### ${cat.heading}\n` + cat.points.map(p => `- ${p}`).join('\n');
         });
       }
 
@@ -189,10 +204,16 @@ export function Chatbot() {
                       backgroundColor: msg.role === "user" ? "#4f46e5" : "#1e293b",
                       borderTopLeftRadius: msg.role === "bot" ? "0.125rem" : "1rem",
                       borderTopRightRadius: msg.role === "user" ? "0.125rem" : "1rem",
-                      whiteSpace: "pre-wrap"
+                      whiteSpace: msg.role === "user" ? "pre-wrap" : "normal"
                     }}
                   >
-                    {msg.content}
+                    {msg.role === "bot" ? (
+                      <ReactMarkdown className="markdown-body" components={{ p: 'span' }}>
+                        {msg.content}
+                      </ReactMarkdown>
+                    ) : (
+                      msg.content
+                    )}
                   </div>
                   {msg.role === "bot" && msg.sources?.length > 0 && (
                     <div className="cb-sources">

@@ -7,6 +7,7 @@ import { useCollege } from "../college/CollegeContext";
 import { useTheme } from "../theme/ThemeContext";
 import { NotificationDropdown } from "../components/NotificationDropdown";
 import { GlobalSearch } from "../components/GlobalSearch";
+import { Chatbot } from "../components/Chatbot";
 import { ContactAdminModal } from "../components/ContactAdminModal";
 import { UserDropdown } from "../components/UserDropdown";
 import { PrefetchLink } from "../components/PrefetchLink";
@@ -323,7 +324,7 @@ export function DashboardLayout() {
       </main>
 
       <ContactAdminModal isOpen={isContactOpen} onClose={() => setIsContactOpen(false)} />
-
+      <Chatbot />
       <GlobalSearch />
     </div>
   );
