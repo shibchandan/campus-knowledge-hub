@@ -1688,8 +1688,8 @@ export function RepresentativePanelPage() {
               <button
                 type="button"
                 onClick={handleAddCutOffRow}
-                className="glowing-btn primary small" style={{ marginRight: "10px", marginBottom: "10px", display: "inline-block" }}
-                style={{ width: "fit-content", padding: "6px 12px", fontSize: "0.85rem", marginTop: "0.25rem" }}
+                className="glowing-btn primary small" 
+                style={{ marginRight: "10px", marginBottom: "10px", display: "inline-block", width: "fit-content", padding: "6px 12px", fontSize: "0.85rem", marginTop: "0.25rem" }}
               >
                 + Add Branch Cut-off
               </button>
@@ -1779,8 +1779,8 @@ export function RepresentativePanelPage() {
               <button
                 type="button"
                 onClick={handleAddPlacementRow}
-                className="glowing-btn primary small" style={{ marginRight: "10px", marginBottom: "10px", display: "inline-block" }}
-                style={{ width: "fit-content", padding: "6px 12px", fontSize: "0.85rem", marginTop: "0.25rem" }}
+                className="glowing-btn primary small" 
+                style={{ marginRight: "10px", marginBottom: "10px", display: "inline-block", width: "fit-content", padding: "6px 12px", fontSize: "0.85rem", marginTop: "0.25rem" }}
               >
                 + Add Branch Placement
               </button>
