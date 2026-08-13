@@ -26,6 +26,7 @@ const navSections = [
     links: [
       { to: "/dashboard", label: "Overview", icon: "📊", prefetchRoute: "/notices" },
       { to: "/lectures", label: "Lectures", icon: "🎬", prefetchRoute: "/lectures" },
+      { to: "/live-classes", label: "Live Classes", icon: "📡", prefetchRoute: "/live-classes" },
       { to: "/notes", label: "Notes & PYQs", icon: "📝", prefetchRoute: "/resources" },
       { to: "/quizzes", label: "Quizzes", icon: "✅", prefetchRoute: "/quizzes" },
       { to: "/assignments", label: "Live Assignments", icon: "⏳", prefetchRoute: "/assignments" }

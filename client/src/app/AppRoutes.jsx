@@ -14,6 +14,7 @@ const BranchSemesterPage = lazy(() => import("../pages/BranchSemesterPage").then
 const SubjectResourcePage = lazy(() => import("../pages/SubjectResourcePage").then(m => ({ default: m.SubjectResourcePage })));
 const SubjectCategoryPage = lazy(() => import("../pages/SubjectCategoryPage").then(m => ({ default: m.SubjectCategoryPage })));
 const LecturesPage = lazy(() => import("../pages/LecturesPage").then(m => ({ default: m.LecturesPage })));
+const LiveClassesPage = lazy(() => import("../pages/LiveClassesPage").then(m => ({ default: m.LiveClassesPage })));
 const NotesPage = lazy(() => import("../pages/NotesPage").then(m => ({ default: m.NotesPage })));
 const QuizzesPage = lazy(() => import("../pages/QuizzesPage").then(m => ({ default: m.QuizzesPage })));
 const QuizArrangementPage = lazy(() => import("../pages/QuizArrangementPage").then(m => ({ default: m.QuizArrangementPage })));
@@ -89,6 +90,7 @@ export function AppRoutes() {
           element={<SubjectCategoryPage />}
         />
         <Route path="lectures" element={<LecturesPage />} />
+        <Route path="live-classes" element={<LiveClassesPage />} />
         <Route path="notes" element={<NotesPage />} />
         <Route path="quizzes" element={<QuizzesPage />} />
         <Route path="quizzes/:quizId" element={<QuizArrangementPage />} />
