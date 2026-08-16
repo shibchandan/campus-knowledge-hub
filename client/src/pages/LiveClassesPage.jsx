@@ -177,65 +177,83 @@ export function LiveClassesPage() {
             <h3>Schedule a Live Class</h3>
             <form onSubmit={handleScheduleSubmit} className="schedule-form">
               <div className="form-row">
-                <input
-                  type="text"
-                  name="title"
-                  value={formData.title}
-                  onChange={handleInputChange}
-                  placeholder="Class Title"
-                  className="auth-field"
-                  required
-                />
-                <input
-                  type="text"
-                  name="subject"
-                  value={formData.subject}
-                  onChange={handleInputChange}
-                  placeholder="Subject"
-                  className="auth-field"
-                  required
-                />
+                <div className="form-group">
+                  <label>Class Title</label>
+                  <input
+                    type="text"
+                    name="title"
+                    value={formData.title}
+                    onChange={handleInputChange}
+                    placeholder="Enter class title"
+                    className="auth-field"
+                    required
+                  />
+                </div>
+                <div className="form-group">
+                  <label>Subject</label>
+                  <input
+                    type="text"
+                    name="subject"
+                    value={formData.subject}
+                    onChange={handleInputChange}
+                    placeholder="e.g. Data Structures"
+                    className="auth-field"
+                    required
+                  />
+                </div>
               </div>
               <div className="form-row">
-                <input
-                  type="text"
-                  name="semester"
-                  value={formData.semester}
-                  onChange={handleInputChange}
-                  placeholder="Semester"
-                  className="auth-field"
-                  required
-                />
-                <input
-                  type="datetime-local"
-                  name="scheduledAt"
-                  value={formData.scheduledAt}
-                  onChange={handleInputChange}
-                  className="auth-field"
-                  required
-                />
+                <div className="form-group">
+                  <label>Semester</label>
+                  <input
+                    type="text"
+                    name="semester"
+                    value={formData.semester}
+                    onChange={handleInputChange}
+                    placeholder="e.g. 4th Semester"
+                    className="auth-field"
+                    required
+                  />
+                </div>
+                <div className="form-group">
+                  <label>Scheduled Date & Time</label>
+                  <input
+                    type="datetime-local"
+                    name="scheduledAt"
+                    value={formData.scheduledAt}
+                    onChange={handleInputChange}
+                    className="auth-field datetime-field"
+                    required
+                  />
+                </div>
               </div>
               <div className="form-row">
-                <input
-                  type="number"
-                  name="duration"
-                  value={formData.duration}
+                <div className="form-group">
+                  <label>Duration (minutes)</label>
+                  <input
+                    type="number"
+                    name="duration"
+                    value={formData.duration}
+                    onChange={handleInputChange}
+                    placeholder="60"
+                    className="auth-field"
+                    min="1"
+                    required
+                  />
+                </div>
+              </div>
+              <div className="form-group">
+                <label>Description (optional)</label>
+                <textarea
+                  name="description"
+                  value={formData.description}
                   onChange={handleInputChange}
-                  placeholder="Duration (minutes)"
+                  placeholder="What will this class cover?"
                   className="auth-field"
-                  min="1"
-                  required
+                  rows="3"
                 />
               </div>
-              <textarea
-                name="description"
-                value={formData.description}
-                onChange={handleInputChange}
-                placeholder="Description (optional)"
-                className="auth-field"
-                rows="3"
-              />
-              <button type="submit" className="glowing-btn primary" disabled={submitting}>
+              <button type="submit" className="glass-btn primary form-submit-btn" disabled={submitting}>
                 {submitting ? "Scheduling..." : "📡 Schedule Class"}
               </button>
             </form>
@@ -311,7 +329,7 @@ export function LiveClassesPage() {
                   <div className="live-class-actions">
                     {status === "scheduled" || status === "live" ? (
                       <button
-                        className="join-btn glowing-btn primary"
+                        className="join-btn glass-btn primary"
                         onClick={() => joinRoom(cls)}
                       >
                         🎥 Join Class
