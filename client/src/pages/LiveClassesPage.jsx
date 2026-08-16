@@ -91,8 +91,18 @@ export function LiveClassesPage() {
     setActiveRoom(null);
   };
 
-  const filtered = classes.filter((cls) => {
-    const status = cls.status || "scheduled";
+  const filtered = classes.map((cls) => {
+    let effectiveStatus = cls.status || "scheduled";
+    const now = new Date();
+    const classStart = new Date(cls.scheduledAt);
+    const classEnd = new Date(classStart.getTime() + (cls.duration || 60) * 60000);
+
+    if ((effectiveStatus === "scheduled" || effectiveStatus === "live") && now > classEnd) {
+      effectiveStatus = "completed";
+    }
+    return { ...cls, effectiveStatus };
+  }).filter((cls) => {
+    const status = cls.effectiveStatus;
     if (statusFilter !== "All") {
       if (statusFilter === "Upcoming" && status !== "scheduled") return false;
       if (statusFilter === "Live Now" && status !== "live") return false;
@@ -295,7 +305,7 @@ export function LiveClassesPage() {
         ) : (
           <div className="live-classes-grid">
             {filtered.map((cls) => {
-              const status = cls.status || "scheduled";
+              const status = cls.effectiveStatus;
 
               return (
                 <article className="live-class-card" key={cls._id}>
