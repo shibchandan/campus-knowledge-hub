@@ -536,7 +536,7 @@ h3 {
   display: flex;
   align-items: center;
   gap: 12px;
-  padding: 11px 14px;
+  padding: 8px 14px;
   border-radius: 12px;
   background: var(--glass-bg-subtle);
   border: 1px solid transparent;
@@ -589,6 +589,7 @@ h3 {
 
 .college-chip {
   padding: 12px 16px;
+  margin-left: 16px;
   border-radius: 16px;
   background: var(--glass-bg);
   backdrop-filter: var(--glass-blur);
@@ -4667,6 +4668,12 @@ h3 {
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
   gap: 14px;
+}
+
+.stretched-link-btn::after {
+  content: "";
+  position: absolute;
+  inset: 0;
 }
 
 .notes-stat-card {

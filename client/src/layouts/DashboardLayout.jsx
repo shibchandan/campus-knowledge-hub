@@ -75,7 +75,8 @@ export function DashboardLayout() {
     : "G";
 
   return (
-    <div className={`shell ${isSidebarOpen ? "sidebar-open" : ""} ${isSidebarCollapsed ? "sidebar-collapsed" : ""}`.trim()}>
+    <>
+      <div className={`shell ${isSidebarOpen ? "sidebar-open" : ""} ${isSidebarCollapsed ? "sidebar-collapsed" : ""}`.trim()}>
       {isSidebarOpen ? (
         <button
           aria-label="Close menu overlay"
@@ -323,10 +324,11 @@ export function DashboardLayout() {
           </button>
         </footer>
       </main>
+      </div>
 
       <ContactAdminModal isOpen={isContactOpen} onClose={() => setIsContactOpen(false)} />
       <Chatbot />
       <GlobalSearch />
-    </div>
+    </>
   );
 }

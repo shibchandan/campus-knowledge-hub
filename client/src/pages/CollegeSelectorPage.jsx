@@ -239,7 +239,7 @@ export function CollegeSelectorPage() {
                     : "College Name"
               }
             />
-            <button className="glass-btn secondary" onClick={clearAllFilters} type="button">
+            <button className="glass-btn secondary" onClick={clearAllFilters} type="button" style={{ height: '36px', padding: '0 16px', display: 'flex', alignItems: 'center' }}>
               Clear All
             </button>
           </div>
@@ -336,10 +336,6 @@ export function CollegeSelectorPage() {
               <article
                 className={`college-card college-card-enhanced ${typeClass}`}
                 key={college.id}
-                onClick={() => handleOpenCollege(college.id)}
-                role="button"
-                tabIndex={0}
-                onKeyDown={(e) => e.key === "Enter" && handleOpenCollege(college.id)}
               >
                 <div className="college-card-accent" />
                 <div className="college-card-body">
@@ -354,8 +350,14 @@ export function CollegeSelectorPage() {
                   </p>
                 </div>
                 <div className="college-card-footer">
-                  <span className="college-open-label">Open Dashboard</span>
-                  <span className="college-open-arrow">→</span>
+                  <button 
+                    className="college-open-label stretched-link-btn" 
+                    onClick={() => handleOpenCollege(college.id)}
+                    style={{ background: 'transparent', border: 'none', padding: 0, cursor: 'pointer', font: 'inherit', color: 'inherit', display: 'flex', alignItems: 'center', width: '100%', justifyContent: 'space-between' }}
+                  >
+                    <span>Open Dashboard</span>
+                    <span className="college-open-arrow">→</span>
+                  </button>
                 </div>
               </article>
             );
