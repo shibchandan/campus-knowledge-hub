@@ -41,7 +41,13 @@ function FilterChip({ active, label, onClick, value }) {
       type="button"
     >
       <span>{value ? `${label}: ${value}` : label}</span>
-      <span className="filter-chip-caret">{active ? "x" : "v"}</span>
+      <span className="filter-chip-caret" aria-hidden="true">
+        {active ? (
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M18 6L6 18M6 6l12 12"/></svg>
+        ) : (
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M6 9l6 6 6-6"/></svg>
+        )}
+      </span>
     </button>
   );
 }
@@ -192,9 +198,11 @@ export function CollegeSelectorPage() {
 
   return (
     <div className="page-stack">
+      <h1 className="sr-only">Colleges</h1>
       <SectionCard
         title="Choose College Dashboard"
         description="Filter colleges and open any college dashboard."
+        kicker={null}
       >
         <div className="college-search-wrap">
           <input
@@ -231,7 +239,7 @@ export function CollegeSelectorPage() {
                     : "College Name"
               }
             />
-            <button className="clear-filter-button" onClick={clearAllFilters} type="button">
+            <button className="glass-btn secondary" onClick={clearAllFilters} type="button">
               Clear All
             </button>
           </div>
@@ -260,8 +268,8 @@ export function CollegeSelectorPage() {
                     ? "Type Of College"
                     : "Sort Colleges"}
               </h3>
-              <button className="filter-modal-close" onClick={() => setOpenFilter("")} type="button">
-                x
+              <button className="glass-btn danger" style={{ padding: '0.4rem 0.8rem' }} aria-label="Close filters" onClick={() => setOpenFilter("")} type="button">
+                ✕
               </button>
             </div>
 
