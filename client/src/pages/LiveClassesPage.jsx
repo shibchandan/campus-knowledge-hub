@@ -23,7 +23,8 @@ export function LiveClassesPage() {
     subject: "",
     semester: "",
     description: "",
-    scheduledAt: "",
+    scheduledDate: "",
+    scheduledTime: "",
     duration: 60
   });
   const [submitting, setSubmitting] = useState(false);
@@ -53,16 +54,31 @@ export function LiveClassesPage() {
 
   const handleScheduleSubmit = async (e) => {
     e.preventDefault();
+    if (!formData.scheduledDate || !formData.scheduledTime) {
+      showError("Please provide both date and time.");
+      return;
+    }
     setSubmitting(true);
     try {
-      await apiClient.post("/live-classes", formData);
+      const scheduledAt = new Date(`${formData.scheduledDate}T${formData.scheduledTime}`).toISOString();
+      const payload = {
+        title: formData.title,
+        subject: formData.subject,
+        semester: formData.semester,
+        description: formData.description,
+        duration: formData.duration,
+        scheduledAt
+      };
+      
+      await apiClient.post("/live-classes", payload);
       showSuccess("Live class scheduled successfully!");
       setFormData({
         title: "",
         subject: "",
         semester: "",
         description: "",
-        scheduledAt: "",
+        scheduledDate: "",
+        scheduledTime: "",
         duration: 60
       });
       loadClasses();
@@ -225,16 +241,29 @@ export function LiveClassesPage() {
                     required
                   />
                 </div>
-                <div className="form-group">
-                  <label>Scheduled Date & Time</label>
-                  <input
-                    type="datetime-local"
-                    name="scheduledAt"
-                    value={formData.scheduledAt}
-                    onChange={handleInputChange}
-                    className="auth-field datetime-field"
-                    required
-                  />
+                <div className="form-group" style={{ display: 'flex', gap: '16px', flexDirection: 'row', alignItems: 'flex-start' }}>
+                  <div style={{ flex: 1, display: 'flex', flexDirection: 'column', gap: '6px' }}>
+                    <label>Scheduled Date</label>
+                    <input
+                      type="date"
+                      name="scheduledDate"
+                      value={formData.scheduledDate}
+                      onChange={handleInputChange}
+                      className="auth-field datetime-field"
+                      required
+                    />
+                  </div>
+                  <div style={{ flex: 1, display: 'flex', flexDirection: 'column', gap: '6px' }}>
+                    <label>Scheduled Time</label>
+                    <input
+                      type="time"
+                      name="scheduledTime"
+                      value={formData.scheduledTime}
+                      onChange={handleInputChange}
+                      className="auth-field datetime-field"
+                      required
+                    />
+                  </div>
                 </div>
               </div>
               <div className="form-row">
