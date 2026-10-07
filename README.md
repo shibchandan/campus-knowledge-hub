@@ -59,6 +59,58 @@ To understand the architecture, business logic, and database schemas powering th
 
 ---
 
+## 🏗️ System Architecture
+
+```mermaid
+flowchart TD
+    User(["👤 User\n(Student / Rep / Admin)"])
+
+    subgraph VERCEL["☁️ Vercel Edge CDN"]
+        FE["⚛️ React 18 Frontend\n───────────────────\n• Vite Build Tool\n• React Router DOM\n• Context API State\n• Framer Motion UI\n• Dark / Light Theme"]
+    end
+
+    subgraph RENDER["🖥️ Render Cloud"]
+        API["🟢 Node.js + Express API\n───────────────────\n• cluster.js (Multi-core)\n• JWT Auth Middleware\n• RBAC Role Checking\n• CORS Configuration\n• XSS Sanitization"]
+    end
+
+    subgraph DATA["🗄️ Data Layer"]
+        MONGO[("🍃 MongoDB Atlas\n───────────\nDenormalized Schemas\nCompound Indexes\nUsers, Resources\nQuizzes, Classes")]
+        REDIS[("⚡ Redis Cache\n───────────\nCollege Lists\nHeavy Queries\nSession Cache")]
+    end
+
+    subgraph EXTERNAL["🔌 External Microservices"]
+        R2["☁️ Cloudflare R2\n──────────────\nPDF / PPT / PPTX\nDirect Upload via\nPresigned URLs"]
+        JITSI["📹 Jitsi WebRTC\n──────────────\nLive Video Classes\nBrowser-to-Browser\nNo Server Load"]
+        RAZORPAY["💳 Razorpay\n──────────────\nPayment Checkout\nWebhook Signature\nVerification"]
+    end
+
+    User -->|"HTTPS Browser Request"| FE
+    FE -->|"① Axios + JWT in Auth Header\n    JSON Payload over HTTPS"| API
+    API -->|"② Check Redis Cache First\n    then Query MongoDB"| REDIS
+    REDIS -.->|"Cache Miss → DB Query"| MONGO
+    MONGO -.->|"JSON Response"| API
+    API -->|"③ JSON Response"| FE
+    FE -->|"④ Direct PUT Upload\n    via Presigned URL\n    Bypasses Node Server"| R2
+    API -.->|"Generates Presigned URL\nusing AWS SDK"| R2
+    FE -->|"⑤ WebRTC Video Stream\n    Direct to Jitsi Servers"| JITSI
+    FE -->|"⑥ Opens Checkout Modal"| RAZORPAY
+    RAZORPAY -->|"Payment Receipt + Signature"| FE
+    FE -->|"Signature Verification"| API
+```
+
+### The 6 Data Flow Arrows Explained
+
+| Arrow | From → To | What it does |
+|-------|-----------|--------------|
+| **①** | Frontend → Backend | JWT-authenticated JSON request via Axios over HTTPS |
+| **②** | Backend → Database | Hits Redis first, falls back to MongoDB on cache miss |
+| **③** | Backend → Frontend | Returns JSON response to the React UI |
+| **④** | Frontend → Cloudflare R2 | **Bypasses backend entirely.** Direct file upload via Presigned URL |
+| **⑤** | Frontend → Jitsi | **Bypasses backend entirely.** Direct WebRTC video stream |
+| **⑥** | Frontend → Razorpay → Backend | Checkout modal → payment receipt → backend signature verification |
+
+---
+
 ## 💻 Local Development Setup
 
 ### 1. Clone the repository
