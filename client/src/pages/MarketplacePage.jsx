@@ -125,6 +125,8 @@ export function MarketplacePage() {
       previewVideoUrl: item.previewVideoUrl || "",
       resourceType: item.resourceType || "course"
     });
+    // Scroll to the form at the top of the page so user sees it immediately
+    window.scrollTo({ top: 0, behavior: "smooth" });
   }
 
   function resetForm() {
@@ -275,6 +277,11 @@ export function MarketplacePage() {
         title="Academic Course Marketplace"
         description="Students, representatives, and admins can list courses for free or paid access."
       >
+        {editingId ? (
+          <p style={{ color: "#f59e0b", fontWeight: 600, marginBottom: "0.75rem" }}>
+            ✏️ Editing course — make your changes below and click Update Course.
+          </p>
+        ) : null}
         <form className="panel-form" onSubmit={handleSubmit}>
           <label className="auth-field">
             <span>Course Title</span>
@@ -343,6 +350,28 @@ export function MarketplacePage() {
               placeholder="https://..."
               type="url"
               value={form.downloadUrl}
+            />
+          </label>
+          <label className="auth-field">
+            <span>Thumbnail Image URL (optional)</span>
+            <input
+              onChange={(event) =>
+                setForm((current) => ({ ...current, thumbnailUrl: event.target.value }))
+              }
+              placeholder="https://..."
+              type="url"
+              value={form.thumbnailUrl}
+            />
+          </label>
+          <label className="auth-field">
+            <span>Preview Video URL (optional)</span>
+            <input
+              onChange={(event) =>
+                setForm((current) => ({ ...current, previewVideoUrl: event.target.value }))
+              }
+              placeholder="https://..."
+              type="url"
+              value={form.previewVideoUrl}
             />
           </label>
           <div className="panel-actions">
@@ -536,6 +565,23 @@ export function MarketplacePage() {
                     <span className="marketplace-detail-item">⏱️ Duration: {item.subscriptionDurationDays || 30} days</span>
                   ) : null}
                 </div>
+              </div>
+              <div className="marketplace-card-footer">
+                <button
+                  className="action-button approve"
+                  onClick={() => startEdit(item)}
+                  type="button"
+                >
+                  Edit
+                </button>
+                <button
+                  className="action-button reject"
+                  disabled={busyId === item._id}
+                  onClick={() => handleArchive(item._id)}
+                  type="button"
+                >
+                  Archive
+                </button>
               </div>
             </article>
           ))}
