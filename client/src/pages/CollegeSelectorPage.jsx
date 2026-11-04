@@ -244,16 +244,23 @@ export function CollegeSelectorPage() {
             </button>
           </div>
 
-          {selectedCollege ? (
-            <p className="muted">
-              Current college: <strong>{selectedCollege.name}</strong>
-            </p>
-          ) : (
-            <p className="muted">No college selected yet.</p>
-          )}
-          <p className="muted">
-            {filteredColleges.length} colleges visible {activeFilterCount ? `| ${activeFilterCount} filters active` : ""}
-          </p>
+          <div style={{ display: "flex", alignItems: "center", gap: "10px", flexWrap: "wrap", marginTop: "6px" }}>
+            <span style={{
+              display: "inline-flex", alignItems: "center", gap: "5px",
+              background: "rgba(255,255,255,0.07)", borderRadius: "20px",
+              padding: "3px 12px", fontSize: "0.8rem", color: "var(--text-muted, #9ca3af)"
+            }}>
+              🏫 {selectedCollege ? <><strong style={{ color: "#e2e8f0" }}>{selectedCollege.name}</strong></> : "No college selected"}
+            </span>
+            <span style={{
+              display: "inline-flex", alignItems: "center", gap: "5px",
+              background: "rgba(255,255,255,0.07)", borderRadius: "20px",
+              padding: "3px 12px", fontSize: "0.8rem", color: "var(--text-muted, #9ca3af)"
+            }}>
+              📋 <strong style={{ color: "#e2e8f0" }}>{filteredColleges.length}</strong>&nbsp;colleges found
+              {activeFilterCount ? <>&nbsp;·&nbsp;<span style={{ color: "#818cf8" }}>{activeFilterCount} filter{activeFilterCount > 1 ? "s" : ""} active</span></> : null}
+            </span>
+          </div>
         </div>
       </SectionCard>
 
