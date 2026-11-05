@@ -28,6 +28,7 @@ import {
 import { authorize, protect } from "../../middleware/authMiddleware.js";
 import { createRateLimiter } from "../../middleware/rateLimit.js";
 import { upload, validateUploadedFile } from "../../middleware/uploadMiddleware.js";
+import { tightSizeGuard } from "../../middleware/requestSizeGuard.js";
 
 export const authRouter = Router();
 
@@ -53,13 +54,13 @@ const otpRateLimiter = createRateLimiter({
 });
 
 authRouter.post("/register", authRateLimiter, uploadRateLimiter, upload.single("studentProof"), validateUploadedFile, register);
-authRouter.post("/verify-registration-otp", authRateLimiter, verifyRegistrationOtp);
-authRouter.post("/resend-registration-otp", otpRateLimiter, resendRegistrationOtp);
-authRouter.post("/login", authRateLimiter, login);
-authRouter.post("/refresh", refresh);
+authRouter.post("/verify-registration-otp", authRateLimiter, tightSizeGuard, verifyRegistrationOtp);
+authRouter.post("/resend-registration-otp", otpRateLimiter, tightSizeGuard, resendRegistrationOtp);
+authRouter.post("/login", authRateLimiter, tightSizeGuard, login);
+authRouter.post("/refresh", tightSizeGuard, refresh);
 authRouter.post("/logout", protect, logout);
-authRouter.post("/forgot-password", otpRateLimiter, forgotPassword);
-authRouter.post("/reset-password", authRateLimiter, resetPassword);
+authRouter.post("/forgot-password", otpRateLimiter, tightSizeGuard, forgotPassword);
+authRouter.post("/reset-password", authRateLimiter, tightSizeGuard, resetPassword);
 authRouter.get("/me", protect, getCurrentUser);
 authRouter.patch("/me", protect, updateProfile);
 authRouter.post("/change-password", protect, authRateLimiter, changePassword);
