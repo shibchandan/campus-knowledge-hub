@@ -1721,23 +1721,21 @@ export function SubjectCategoryPage() {
 
         <div className="pagination-bar">
           <button
-            className="open-college-button"
             disabled={pagination.page <= 1}
             onClick={() => loadResources(pagination.page - 1)}
             type="button"
           >
-            Previous
+            ← Prev
           </button>
-          <p className="muted">
-            Page {pagination.page} of {pagination.totalPages} | Total {pagination.total}
-          </p>
+          <span className="pagination-info">
+            Page {pagination.page} of {pagination.totalPages} · {pagination.total} result{pagination.total !== 1 ? "s" : ""}
+          </span>
           <button
-            className="open-college-button"
             disabled={pagination.page >= pagination.totalPages}
             onClick={() => loadResources(pagination.page + 1)}
             type="button"
           >
-            Next
+            Next →
           </button>
         </div>
       </SectionCard>
