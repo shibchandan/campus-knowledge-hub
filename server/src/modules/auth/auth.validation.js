@@ -10,15 +10,25 @@ function createHttpError(message, statusCode = 400) {
   return error;
 }
 
+// ── CWE-521 / NIST SP 800-63B §5.1.1 — Weak Password Requirements ───────────
 function validatePasswordStrength(password) {
   if (password.length < 8) {
     throw createHttpError("Password must be at least 8 characters long.");
   }
-  if (!/[a-zA-Z]/.test(password)) {
-    throw createHttpError("Password must contain at least one letter.");
+  if (!/[a-z]/.test(password)) {
+    throw createHttpError("Password must contain at least one lowercase letter.");
+  }
+  if (!/[A-Z]/.test(password)) {
+    throw createHttpError("Password must contain at least one uppercase letter.");
   }
   if (!/[0-9]/.test(password)) {
     throw createHttpError("Password must contain at least one number.");
+  }
+  if (!/[^a-zA-Z0-9]/.test(password)) {
+    throw createHttpError("Password must contain at least one special character (e.g. @, #, !, $).");
+  }
+  if (password.length > 128) {
+    throw createHttpError("Password must not exceed 128 characters.");
   }
 }
 
