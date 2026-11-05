@@ -1,8 +1,13 @@
-import { createContext, useContext, useEffect, useMemo, useState, useCallback } from "react";
+import { createContext, useContext, useEffect, useMemo, useState, useCallback, useRef } from "react";
 import { apiClient, setAuthToken } from "../lib/apiClient";
 
 const AUTH_STORAGE_KEY = "campus-knowledge-hub-auth";
 const COLLEGE_STORAGE_KEY = "campus-knowledge-hub-college";
+
+// ── NIST SP 800-63B §7.2 — Session Idle Timeout ──────────────────────────────
+const IDLE_WARN_MS  = 25 * 60 * 1000; // warn after 25 min idle
+const IDLE_LOGOUT_MS = 30 * 60 * 1000; // force logout after 30 min idle
+const IDLE_EVENTS   = ["mousemove", "keydown", "pointerdown", "scroll", "touchstart"];
 
 const AuthStateContext = createContext(null);
 const AuthDispatchContext = createContext(null);
@@ -144,6 +149,37 @@ export function AuthProvider({ children }) {
       setSession(null);
     }
   }, []);
+
+  // Idle session timeout (NIST SP 800-63B §7.2)
+  const logoutRef = useRef(logout);
+  useEffect(() => {
+    logoutRef.current = logout;
+  }, [logout]);
+
+  useEffect(() => {
+    if (!session?.token) return;
+
+    let timeoutId;
+    const resetTimer = () => {
+      clearTimeout(timeoutId);
+      timeoutId = setTimeout(() => {
+        logoutRef.current?.();
+      }, IDLE_LOGOUT_MS);
+    };
+
+    resetTimer();
+
+    IDLE_EVENTS.forEach((event) => {
+      window.addEventListener(event, resetTimer, { passive: true });
+    });
+
+    return () => {
+      clearTimeout(timeoutId);
+      IDLE_EVENTS.forEach((event) => {
+        window.removeEventListener(event, resetTimer);
+      });
+    };
+  }, [session?.token]);
 
   const stateValue = useMemo(
     () => ({
