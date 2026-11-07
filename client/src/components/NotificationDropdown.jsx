@@ -4,14 +4,14 @@ import { apiClient } from "../lib/apiClient";
 import { useAuth } from "../auth/AuthContext";
 
 export function NotificationDropdown() {
-  const { user } = useAuth();
+  const { user, isBootstrapping } = useAuth();
   const [isOpen, setIsOpen] = useState(false);
   const [notifications, setNotifications] = useState([]);
   const [unreadCount, setUnreadCount] = useState(0);
   const dropdownRef = useRef(null);
 
   const fetchNotifications = async () => {
-    if (!user) return;
+    if (!user || isBootstrapping) return;
     try {
       const response = await apiClient.get("/notifications?limit=10");
       if (response.data.success) {
@@ -19,18 +19,20 @@ export function NotificationDropdown() {
         setUnreadCount(response.data.meta.unreadCount);
       }
     } catch (error) {
-      console.error("Failed to fetch notifications:", error);
+      if (error.response?.status !== 401) {
+        console.error("Failed to fetch notifications:", error);
+      }
     }
   };
 
   useEffect(() => {
-    if (user) {
+    if (!isBootstrapping && user) {
       fetchNotifications();
       // Fetch periodically every 2 minutes
       const interval = setInterval(fetchNotifications, 120000);
       return () => clearInterval(interval);
     }
-  }, [user]);
+  }, [user, isBootstrapping]);
 
   useEffect(() => {
     function handleClickOutside(event) {
