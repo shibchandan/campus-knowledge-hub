@@ -1,3 +1,4 @@
+import { lazy, Suspense } from "react";
 import { SpeedInsights } from "@vercel/speed-insights/react";
 import { AuthProvider } from "./auth/AuthContext";
 import { CollegeProvider } from "./college/CollegeContext";
@@ -6,8 +7,8 @@ import { ToastProvider } from "./ui/ToastContext";
 import { ConfirmProvider } from "./ui/ConfirmContext";
 import { ScrollToTop } from "./components/ScrollToTop";
 import { AppRoutes } from "./app/AppRoutes";
-import { SitemapPage } from "./pages/SitemapPage";
-import { Chatbot } from "./components/Chatbot";
+
+const Chatbot = lazy(() => import("./components/Chatbot").then(m => ({ default: m.Chatbot })));
 
 function App() {
   return (
@@ -19,7 +20,9 @@ function App() {
               <ScrollToTop />
               <AppRoutes />
               <SpeedInsights />
-              <Chatbot />
+              <Suspense fallback={null}>
+                <Chatbot />
+              </Suspense>
             </ConfirmProvider>
           </CollegeProvider>
         </AuthProvider>
