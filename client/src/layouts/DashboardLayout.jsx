@@ -287,14 +287,16 @@ export function DashboardLayout() {
         </AnimatePresence>
         
         <footer style={{
-          padding: "2rem 1.5rem",
+          marginTop: "auto",
+          padding: "1.5rem",
           display: "flex",
           justifyContent: "space-between",
           alignItems: "center",
           flexWrap: "wrap",
-          gap: "1rem",
+          gap: "1.25rem",
           borderTop: "1px solid var(--glass-border)",
-          background: "transparent"
+          background: "var(--glass-bg-subtle)",
+          borderRadius: "12px"
         }}>
           <div style={{ display: "flex", alignItems: "center", gap: "1.5rem", flexWrap: "wrap" }}>
             <p style={{ margin: 0, color: "var(--color-slate-400-adaptive)", fontSize: "0.875rem" }}>
@@ -308,14 +310,18 @@ export function DashboardLayout() {
           <button
             onClick={() => setIsContactOpen(true)}
             style={{
-              background: "none",
-              border: "none",
+              display: "inline-flex",
+              alignItems: "center",
+              justifyContent: "center",
+              minHeight: "44px",
+              padding: "0.5rem 1rem",
+              background: "var(--glass-bg)",
+              border: "1px solid var(--glass-border)",
+              borderRadius: "8px",
               color: "#3b82f6",
               cursor: "pointer",
               fontSize: "0.875rem",
-              fontWeight: "var(--fw-sub)",
-              textDecoration: "underline",
-              padding: 0
+              fontWeight: "var(--fw-sub)"
             }}
             type="button"
           >
