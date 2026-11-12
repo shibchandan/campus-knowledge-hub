@@ -17,6 +17,8 @@ export function NoticeForm({
           <span>College Name (optional)</span>
           {isDropdown ? (
             <select
+              id="collegeName"
+              name="collegeName"
               onChange={(event) => onChange("collegeName", event.target.value)}
               value={formValue.collegeName || ""}
             >
@@ -33,6 +35,8 @@ export function NoticeForm({
             </select>
           ) : (
             <input
+              id="collegeName"
+              name="collegeName"
               onChange={(event) => onChange("collegeName", event.target.value)}
               placeholder="Leave empty for global"
               type="text"
@@ -43,6 +47,8 @@ export function NoticeForm({
         <label className="auth-field">
           <span>Notice Title</span>
           <input
+            id="title"
+            name="title"
             onChange={(event) => onChange("title", event.target.value)}
             placeholder="Enter title"
             required
@@ -53,6 +59,8 @@ export function NoticeForm({
         <label className="auth-field">
           <span>Status</span>
           <select
+            id="isPublished"
+            name="isPublished"
             onChange={(event) => onChange("isPublished", event.target.value === "published")}
             value={formValue.isPublished ? "published" : "draft"}
           >
@@ -65,6 +73,8 @@ export function NoticeForm({
         <span>Content</span>
         <textarea
           className="panel-textarea"
+          id="content"
+          name="content"
           onChange={(event) => onChange("content", event.target.value)}
           placeholder="Details about notice..."
           required

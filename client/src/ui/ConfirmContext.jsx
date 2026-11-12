@@ -102,6 +102,8 @@ export function ConfirmProvider({ children }) {
               {options.requirePassword && (
                 <div style={{ marginBottom: "1.5rem" }}>
                   <input
+                    id="confirmPassword"
+                    name="confirmPassword"
                     type="password"
                     autoComplete="new-password"
                     placeholder="Enter your current password to confirm"

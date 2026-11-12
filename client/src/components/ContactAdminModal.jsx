@@ -112,6 +112,8 @@ export function ContactAdminModal({ isOpen, onClose }) {
           <label className="auth-field">
             <span>Your Email Address</span>
             <input
+              id="contactEmail"
+              name="contactEmail"
               type="email"
               value={contactEmail}
               onChange={(e) => setContactEmail(e.target.value)}
@@ -124,6 +126,8 @@ export function ContactAdminModal({ isOpen, onClose }) {
           <label className="auth-field">
             <span>Subject</span>
             <input
+              id="contactSubject"
+              name="contactSubject"
               type="text"
               value={contactSubject}
               onChange={(e) => setContactSubject(e.target.value)}
@@ -135,6 +139,8 @@ export function ContactAdminModal({ isOpen, onClose }) {
           <label className="auth-field">
             <span>Message</span>
             <textarea
+              id="contactMessage"
+              name="contactMessage"
               value={contactMessage}
               onChange={(e) => setContactMessage(e.target.value)}
               placeholder="Enter your message to the administration team..."

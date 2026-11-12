@@ -158,6 +158,8 @@ export function StudentPanelPage() {
             placeholder="Search college, course, or representative..."
           />
           <select
+            id="sortBy"
+            name="sortBy"
             className="college-search"
             onChange={(event) => setSortBy(event.target.value)}
             value={sortBy}

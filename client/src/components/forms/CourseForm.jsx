@@ -18,6 +18,8 @@ export function CourseForm({
           <span>College Name</span>
           {isDropdown ? (
             <select
+              id="collegeName"
+              name="collegeName"
               onChange={(event) => onChange("collegeName", event.target.value)}
               required
               value={formValue.collegeName}
@@ -35,6 +37,8 @@ export function CourseForm({
             </select>
           ) : (
             <input
+              id="collegeName"
+              name="collegeName"
               onChange={(event) => onChange("collegeName", event.target.value)}
               placeholder="Motilal Nehru National Institute of Technology, Prayagraj"
               required
@@ -46,6 +50,8 @@ export function CourseForm({
         <label className="auth-field">
           <span>Course Name</span>
           <input
+            id="courseName"
+            name="courseName"
             onChange={(event) => onChange("courseName", event.target.value)}
             placeholder="BTech"
             required

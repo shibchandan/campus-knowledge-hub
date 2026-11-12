@@ -16,6 +16,8 @@ export function StructureForm({
         <label className="auth-field">
           <span>College Name</span>
           <select
+            id="collegeName"
+            name="collegeName"
             onChange={(event) => onChange("collegeName", event.target.value)}
             required
             value={formValue.collegeName}
@@ -31,6 +33,8 @@ export function StructureForm({
         <label className="auth-field">
           <span>Program ID</span>
           <select
+            id="programId"
+            name="programId"
             onChange={(event) => onChange("programId", event.target.value)}
             required
             value={formValue.programId}
@@ -46,6 +50,8 @@ export function StructureForm({
         <label className="auth-field">
           <span>Program Name</span>
           <input
+            id="programName"
+            name="programName"
             onChange={(event) => onChange("programName", event.target.value)}
             placeholder="BTech"
             required
@@ -56,6 +62,8 @@ export function StructureForm({
         <label className="auth-field">
           <span>Branch ID</span>
           <input
+            id="branchId"
+            name="branchId"
             onChange={(event) => onChange("branchId", event.target.value)}
             placeholder="cs"
             required
@@ -66,6 +74,8 @@ export function StructureForm({
         <label className="auth-field">
           <span>Branch Name</span>
           <input
+            id="branchName"
+            name="branchName"
             onChange={(event) => onChange("branchName", event.target.value)}
             placeholder="Computer Science"
             required
@@ -76,6 +86,8 @@ export function StructureForm({
         <label className="auth-field">
           <span>Branch Description</span>
           <input
+            id="branchDescription"
+            name="branchDescription"
             onChange={(event) => onChange("branchDescription", event.target.value)}
             placeholder="Core computer science curriculum"
             type="text"
@@ -85,6 +97,8 @@ export function StructureForm({
         <label className="auth-field">
           <span>Semester ID</span>
           <input
+            id="semesterId"
+            name="semesterId"
             onChange={(event) => onChange("semesterId", event.target.value)}
             placeholder="sem3"
             required
@@ -95,6 +109,8 @@ export function StructureForm({
         <label className="auth-field">
           <span>Semester Name</span>
           <input
+            id="semesterName"
+            name="semesterName"
             onChange={(event) => onChange("semesterName", event.target.value)}
             placeholder="Semester 3"
             required
@@ -105,7 +121,9 @@ export function StructureForm({
         <label className="auth-field">
           <span>Semester Order</span>
           <input
+            id="semesterOrder"
             min="1"
+            name="semesterOrder"
             onChange={(event) => onChange("semesterOrder", event.target.value)}
             required
             type="number"

@@ -268,6 +268,8 @@ export function Chatbot() {
               
               <div className="cb-input-wrapper">
                 <input
+                  id="chatbotInput"
+                  name="chatbotInput"
                   type="text"
                   value={inputText}
                   onChange={(e) => setInputText(e.target.value)}

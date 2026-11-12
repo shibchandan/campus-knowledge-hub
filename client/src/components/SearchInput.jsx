@@ -36,6 +36,8 @@ export function SearchInput({
       
       <input
         ref={inputRef}
+        id="searchInput"
+        name="searchInput"
         type="text"
         value={value}
         onChange={onChange}

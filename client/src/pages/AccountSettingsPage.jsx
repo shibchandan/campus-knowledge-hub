@@ -594,6 +594,8 @@ export function AccountSettingsPage() {
               <label className="auth-field">
                 <span>Full Name</span>
                 <input
+                  id="profileForm"
+                  name="profileForm"
                   onChange={(event) =>
                     setProfileForm((current) => ({ ...current, fullName: event.target.value }))
                   }
@@ -605,6 +607,8 @@ export function AccountSettingsPage() {
               <label className="auth-field">
                 <span>Avatar URL</span>
                 <input
+                  id="profileForm_1"
+                  name="profileForm_1"
                   onChange={(event) =>
                     setProfileForm((current) => ({ ...current, avatarUrl: event.target.value }))
                   }
@@ -672,6 +676,8 @@ export function AccountSettingsPage() {
                         <div>
                           <div style={{ position: "relative" }}>
                             <input
+                              id="studentVerificationForm"
+                              name="studentVerificationForm"
                               type="text"
                               value={studentVerificationForm.collegeName}
                               onChange={(e) => setStudentVerificationForm(c => ({...c, collegeName: e.target.value}))}
@@ -694,6 +700,8 @@ export function AccountSettingsPage() {
                         <>
                           <div style={{ position: "relative" }}>
                             <input
+                              id="collegeSearchQuery"
+                              name="collegeSearchQuery"
                               ref={collegeInputRef}
                               type="text"
                               value={collegeSearchQuery}
@@ -803,6 +811,8 @@ export function AccountSettingsPage() {
                   {user?.role === "student" && (
                     <label className="auth-field checkbox" style={{ marginTop: "1rem", marginBottom: "1rem" }}>
                       <input
+                        id="studentVerificationForm_1"
+                        name="studentVerificationForm_1"
                         type="checkbox"
                         checked={studentVerificationForm.requestRepresentative}
                         onChange={(e) => setStudentVerificationForm(c => ({ ...c, requestRepresentative: e.target.checked }))}
@@ -814,6 +824,8 @@ export function AccountSettingsPage() {
                   <label className="auth-field">
                     <span>College Student ID</span>
                     <input
+                      id="studentVerificationForm_2"
+                      name="studentVerificationForm_2"
                       onChange={(event) =>
                         setStudentVerificationForm((current) => ({
                           ...current,
@@ -829,6 +841,8 @@ export function AccountSettingsPage() {
                   <label className="auth-field">
                     <span>Official College Email (optional)</span>
                     <input
+                      id="studentVerificationForm_3"
+                      name="studentVerificationForm_3"
                       onChange={(event) =>
                         setStudentVerificationForm((current) => ({
                           ...current,
@@ -849,6 +863,8 @@ export function AccountSettingsPage() {
                       >
                         {verificationSubmitLoading ? "Submitting..." : "Choose File"}
                         <input
+                          id="proofFile"
+                          name="proofFile"
                           accept="image/*,.pdf"
                           onChange={handleProofFileChange}
                           type="file"
@@ -906,6 +922,8 @@ export function AccountSettingsPage() {
                     <label className="auth-field">
                       <span>College Email OTP</span>
                       <input
+                        id="collegeEmailOtp"
+                        name="collegeEmailOtp"
                         inputMode="numeric"
                         maxLength={6}
                         minLength={6}
@@ -945,6 +963,8 @@ export function AccountSettingsPage() {
                     <label className="auth-field">
                       <span>New Email Address</span>
                       <input
+                        id="migrationEmail"
+                        name="migrationEmail"
                         onChange={(event) => setMigrationEmail(event.target.value)}
                         placeholder="new.email@college.edu"
                         required
@@ -1121,6 +1141,8 @@ export function AccountSettingsPage() {
               <label className="auth-field">
                 <span>Label</span>
                 <input
+                  id="blockedUserForm"
+                  name="blockedUserForm"
                   onChange={(event) =>
                     setBlockedUserForm((current) => ({ ...current, label: event.target.value }))
                   }
@@ -1133,6 +1155,8 @@ export function AccountSettingsPage() {
               <label className="auth-field">
                 <span>Email (optional)</span>
                 <input
+                  id="blockedUserForm_1"
+                  name="blockedUserForm_1"
                   onChange={(event) =>
                     setBlockedUserForm((current) => ({ ...current, email: event.target.value }))
                   }
@@ -1144,6 +1168,8 @@ export function AccountSettingsPage() {
               <label className="auth-field">
                 <span>Reason (optional)</span>
                 <input
+                  id="blockedUserForm_2"
+                  name="blockedUserForm_2"
                   onChange={(event) =>
                     setBlockedUserForm((current) => ({ ...current, reason: event.target.value }))
                   }
@@ -1247,6 +1273,8 @@ export function AccountSettingsPage() {
               <span>Current Password</span>
               <div className="inline-field">
                 <input
+                  id="passwordForm"
+                  name="passwordForm"
                   onChange={(event) =>
                     setPasswordForm((current) => ({
                       ...current,
@@ -1270,6 +1298,8 @@ export function AccountSettingsPage() {
               <span>New Password</span>
               <div className="inline-field">
                 <input
+                  id="passwordForm_1"
+                  name="passwordForm_1"
                   minLength={6}
                   onChange={(event) =>
                     setPasswordForm((current) => ({ ...current, newPassword: event.target.value }))
@@ -1291,6 +1321,8 @@ export function AccountSettingsPage() {
               <span>Confirm New Password</span>
               <div className="inline-field">
                 <input
+                  id="passwordForm_2"
+                  name="passwordForm_2"
                   minLength={6}
                   onChange={(event) =>
                     setPasswordForm((current) => ({
@@ -1351,6 +1383,8 @@ export function AccountSettingsPage() {
                   <label className="auth-field">
                     <span>Enter Current Password</span>
                     <input
+                      id="disablePassword"
+                      name="disablePassword"
                       onChange={(event) => setDisablePassword(event.target.value)}
                       placeholder="Confirm your password to disable 2FA"
                       required
@@ -1420,6 +1454,8 @@ export function AccountSettingsPage() {
                     <label className="auth-field">
                       <span>Enter 6-Digit Authentication Code</span>
                       <input
+                        id="setupCode"
+                        name="setupCode"
                         maxLength={6}
                         minLength={6}
                         onChange={(event) => setSetupCode(event.target.value)}

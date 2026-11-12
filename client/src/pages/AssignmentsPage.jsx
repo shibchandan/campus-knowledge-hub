@@ -157,6 +157,8 @@ export function AssignmentsPage() {
       >
         <div className="assignment-premium-search-container">
           <input
+            id="searchTerm"
+            name="searchTerm"
             className="assignment-premium-search-input"
             onChange={(event) => setSearchTerm(event.target.value)}
             placeholder="Search assignments by title or subject..."
@@ -197,22 +199,24 @@ export function AssignmentsPage() {
               <div style={{ display: "grid", gridTemplateColumns: "2fr 1fr", gap: "1rem" }}>
                 <div className="auth-premium-field">
                   <label>Title</label>
-                  <input className="assignment-premium-search-input" style={{background:"rgba(0,0,0,0.25)"}} required type="text" value={form.title} onChange={e => setForm({...form, title: e.target.value})} placeholder="e.g., Physics Assignment 3 Help" />
+                  <input id="title" name="title" className="assignment-premium-search-input" style={{background:"rgba(0,0,0,0.25)"}} required type="text" value={form.title} onChange={e => setForm({...form, title: e.target.value})} placeholder="e.g., Physics Assignment 3 Help" />
                 </div>
                 <div className="auth-premium-field">
                   <label>Subject Code</label>
-                  <input className="assignment-premium-search-input" style={{background:"rgba(0,0,0,0.25)"}} required type="text" value={form.subject} onChange={e => setForm({...form, subject: e.target.value})} placeholder="e.g., PHY101" />
+                  <input id="subject" name="subject" className="assignment-premium-search-input" style={{background:"rgba(0,0,0,0.25)"}} required type="text" value={form.subject} onChange={e => setForm({...form, subject: e.target.value})} placeholder="e.g., PHY101" />
                 </div>
               </div>
               
               <div className="auth-premium-field">
                 <label>Question or Context</label>
-                <textarea className="assignment-premium-textarea" required rows={4} value={form.message} onChange={e => setForm({...form, message: e.target.value})} placeholder="Describe the assignment or what you need help with..."></textarea>
+                <textarea id="message" name="message" className="assignment-premium-textarea" required rows={4} value={form.message} onChange={e => setForm({...form, message: e.target.value})} placeholder="Describe the assignment or what you need help with..."></textarea>
               </div>
 
               <div className="auth-premium-field">
                 <label>Optional Attachment (PDF/Image)</label>
                 <input 
+                  id="attachment"
+                  name="attachment"
                   type="file" 
                   ref={fileInputRef} 
                   onChange={handleFileChange}

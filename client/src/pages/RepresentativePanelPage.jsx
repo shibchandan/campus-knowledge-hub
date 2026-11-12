@@ -1525,6 +1525,8 @@ export function RepresentativePanelPage() {
             <label className="auth-field">
               <span>College Name</span>
               <input
+                id="profileForm"
+                name="profileForm"
                 onChange={(event) =>
                   setProfileForm((current) => ({ ...current, collegeName: event.target.value }))
                 }
@@ -1537,6 +1539,8 @@ export function RepresentativePanelPage() {
             <label className="auth-field">
               <span>Program / Course Scope</span>
               <select
+                id="profileForm_1"
+                name="profileForm_1"
                 onChange={(event) =>
                   setProfileForm((current) => ({ ...current, courseId: event.target.value }))
                 }
@@ -1554,6 +1558,8 @@ export function RepresentativePanelPage() {
           <label className="auth-field">
             <span>Location / Address</span>
             <input
+              id="profileForm_2"
+              name="profileForm_2"
               onChange={(event) =>
                 setProfileForm((current) => ({ ...current, location: event.target.value }))
               }
@@ -1565,6 +1571,8 @@ export function RepresentativePanelPage() {
           <label className="auth-field">
             <span>Entrance Exams (comma separated)</span>
             <input
+              id="profileForm_3"
+              name="profileForm_3"
               onChange={(event) =>
                 setProfileForm((current) => ({ ...current, entranceExams: event.target.value }))
               }
@@ -1577,6 +1585,8 @@ export function RepresentativePanelPage() {
             <label className="auth-field">
               <span>NIRF Ranking</span>
               <input
+                id="profileForm_4"
+                name="profileForm_4"
                 onChange={(event) =>
                   setProfileForm((current) => ({ ...current, nirf: event.target.value }))
                 }
@@ -1587,6 +1597,8 @@ export function RepresentativePanelPage() {
             <label className="auth-field">
               <span>QS Ranking</span>
               <input
+                id="profileForm_5"
+                name="profileForm_5"
                 onChange={(event) =>
                   setProfileForm((current) => ({ ...current, qs: event.target.value }))
                 }
@@ -1597,6 +1609,8 @@ export function RepresentativePanelPage() {
             <label className="auth-field">
               <span>Other Ranking</span>
               <input
+                id="profileForm_6"
+                name="profileForm_6"
                 onChange={(event) =>
                   setProfileForm((current) => ({ ...current, otherRanking: event.target.value }))
                 }
@@ -1608,6 +1622,8 @@ export function RepresentativePanelPage() {
           <div className="auth-field" style={{ display: "flex", flexDirection: "column", gap: "0.5rem" }}>
             <span style={{ fontSize: "0.9rem", fontWeight: "var(--fw-head)", color: "#f8fafc" }}>Cut Off Summary (Text / General Details)</span>
             <textarea
+              id="profileForm_7"
+              name="profileForm_7"
               onChange={(event) =>
                 setProfileForm((current) => ({ ...current, cutOffSummary: event.target.value }))
               }
@@ -1645,6 +1661,8 @@ export function RepresentativePanelPage() {
                     <div key={`cutoff-${index}`} style={{ display: "flex", gap: "0.75rem", alignItems: "center" }}>
                       <div style={{ flex: 1, display: "grid", gridTemplateColumns: "1fr 1fr", gap: "0.75rem" }}>
                         <input
+                          id="cutoffBranch"
+                          name="cutoffBranch"
                           type="text"
                           placeholder="e.g. CSE"
                           value={row.branch}
@@ -1652,6 +1670,8 @@ export function RepresentativePanelPage() {
                           style={{ width: "100%" }}
                         />
                         <input
+                          id="cutoffValue"
+                          name="cutoffValue"
                           type="text"
                           placeholder="e.g. 5000"
                           value={row.value}
@@ -1699,6 +1719,8 @@ export function RepresentativePanelPage() {
           <div className="auth-field" style={{ display: "flex", flexDirection: "column", gap: "0.5rem", marginTop: "1rem" }}>
             <span style={{ fontSize: "0.9rem", fontWeight: "var(--fw-head)", color: "#f8fafc" }}>Placement Report Summary (Text / General Details)</span>
             <textarea
+              id="profileForm_8"
+              name="profileForm_8"
               onChange={(event) =>
                 setProfileForm((current) => ({ ...current, placementReport: event.target.value }))
               }
@@ -1736,6 +1758,8 @@ export function RepresentativePanelPage() {
                     <div key={`placement-${index}`} style={{ display: "flex", gap: "0.75rem", alignItems: "center" }}>
                       <div style={{ flex: 1, display: "grid", gridTemplateColumns: "1fr 1fr", gap: "0.75rem" }}>
                         <input
+                          id="placementBranch"
+                          name="placementBranch"
                           type="text"
                           placeholder="e.g. CSE"
                           value={row.branch}
@@ -1743,6 +1767,8 @@ export function RepresentativePanelPage() {
                           style={{ width: "100%" }}
                         />
                         <input
+                          id="placementValue"
+                          name="placementValue"
                           type="text"
                           placeholder="e.g. 24 LPA"
                           value={row.value}
@@ -1789,6 +1815,8 @@ export function RepresentativePanelPage() {
           <label className="auth-field">
             <span>Placement Report URL</span>
             <input
+              id="profileForm_9"
+              name="profileForm_9"
               onChange={(event) =>
                 setProfileForm((current) => ({ ...current, placementReportUrl: event.target.value }))
               }
@@ -1800,6 +1828,8 @@ export function RepresentativePanelPage() {
             <label className="auth-field">
               <span>Average Package (LPA)</span>
               <input
+                id="profileForm_10"
+                name="profileForm_10"
                 onChange={(event) =>
                   setProfileForm((current) => ({
                     ...current,
@@ -1813,6 +1843,8 @@ export function RepresentativePanelPage() {
             <label className="auth-field">
               <span>Highest Package (LPA)</span>
               <input
+                id="profileForm_11"
+                name="profileForm_11"
                 onChange={(event) =>
                   setProfileForm((current) => ({
                     ...current,
@@ -1854,6 +1886,8 @@ export function RepresentativePanelPage() {
               <label className="form-field" style={{ flex: 1, marginBottom: 0 }}>
                 <span>New Representative's Email</span>
                 <input
+                  id="transferEmail"
+                  name="transferEmail"
                   type="email"
                   required
                   placeholder="student@college.edu"
@@ -1961,6 +1995,8 @@ export function RepresentativePanelPage() {
 
         <div className="toolbar-grid">
           <input
+            id="noticeSearch"
+            name="noticeSearch"
             className="college-search"
             onChange={(event) => setNoticeSearch(event.target.value)}
             placeholder="Search notice title, content, or college..."
@@ -2017,6 +2053,8 @@ export function RepresentativePanelPage() {
 
         <div className="toolbar-grid">
           <input
+            id="structureSearch"
+            name="structureSearch"
             className="college-search"
             onChange={(event) => setStructureSearch(event.target.value)}
             placeholder="Search college, branch, program, or semester..."
@@ -2072,6 +2110,8 @@ export function RepresentativePanelPage() {
 
         <div className="toolbar-grid">
           <input
+            id="subjectSearch"
+            name="subjectSearch"
             className="college-search"
             onChange={(event) => setSubjectSearch(event.target.value)}
             placeholder="Search subject, branch id, semester id, or college..."
@@ -2118,6 +2158,8 @@ export function RepresentativePanelPage() {
             <label className="auth-field">
               <span>College Name</span>
               <select
+                id="quizForm"
+                name="quizForm"
                 onChange={(event) =>
                   setQuizForm((current) => ({
                     ...current,
@@ -2139,6 +2181,8 @@ export function RepresentativePanelPage() {
             <label className="auth-field">
               <span>Course / Program</span>
               <select
+                id="quizForm_1"
+                name="quizForm_1"
                 onChange={(event) =>
                   setQuizForm((current) => ({ ...current, programId: event.target.value }))
                 }
@@ -2156,6 +2200,8 @@ export function RepresentativePanelPage() {
             <label className="auth-field">
               <span>Duration</span>
               <input
+                id="quizForm_2"
+                name="quizForm_2"
                 onChange={(event) =>
                   setQuizForm((current) => ({ ...current, duration: event.target.value }))
                 }
@@ -2168,6 +2214,8 @@ export function RepresentativePanelPage() {
             <label className="auth-field">
               <span>Difficulty</span>
               <select
+                id="quizForm_3"
+                name="quizForm_3"
                 onChange={(event) =>
                   setQuizForm((current) => ({ ...current, difficulty: event.target.value }))
                 }
@@ -2183,6 +2231,8 @@ export function RepresentativePanelPage() {
             <label className="auth-field">
               <span>Quiz Title</span>
               <input
+                id="quizForm_4"
+                name="quizForm_4"
                 onChange={(event) =>
                   setQuizForm((current) => ({ ...current, title: event.target.value }))
                 }
@@ -2194,6 +2244,8 @@ export function RepresentativePanelPage() {
             <label className="auth-field">
               <span>Quiz Mode</span>
               <input
+                id="quizForm_5"
+                name="quizForm_5"
                 onChange={(event) =>
                   setQuizForm((current) => ({ ...current, mode: event.target.value }))
                 }
@@ -2206,6 +2258,8 @@ export function RepresentativePanelPage() {
             <label className="auth-field">
               <span>Status</span>
               <select
+                id="quizForm_6"
+                name="quizForm_6"
                 onChange={(event) =>
                   setQuizForm((current) => ({
                     ...current,
@@ -2223,6 +2277,8 @@ export function RepresentativePanelPage() {
             <label className="auth-field">
               <span>Security PIN (Optional)</span>
               <input
+                id="quizForm_7"
+                name="quizForm_7"
                 onChange={(event) =>
                   setQuizForm((current) => ({ ...current, accessPassword: event.target.value }))
                 }
@@ -2234,6 +2290,8 @@ export function RepresentativePanelPage() {
             <label className="auth-field">
               <span>Timer Minutes (Optional)</span>
               <input
+                id="quizForm_8"
+                name="quizForm_8"
                 onChange={(event) =>
                   setQuizForm((current) => ({ ...current, timerMinutes: event.target.value }))
                 }
@@ -2247,6 +2305,8 @@ export function RepresentativePanelPage() {
           <label className="auth-field">
             <span>Arrangement Note</span>
             <textarea
+              id="quizForm_9"
+              name="quizForm_9"
               className="panel-textarea"
               onChange={(event) =>
                 setQuizForm((current) => ({ ...current, note: event.target.value }))
@@ -2258,6 +2318,8 @@ export function RepresentativePanelPage() {
           <label className="auth-field">
             <span>Resource Match</span>
             <input
+              id="quizForm_10"
+              name="quizForm_10"
               onChange={(event) =>
                 setQuizForm((current) => ({ ...current, resourceMatch: event.target.value }))
               }
@@ -2274,6 +2336,8 @@ export function RepresentativePanelPage() {
                 <label className="auth-field">
                   <span>Prompt</span>
                   <textarea
+                    id="quizPrompt"
+                    name="quizPrompt"
                     className="panel-textarea"
                     onChange={(event) =>
                       handleQuizQuestionChange(questionIndex, "prompt", event.target.value)
@@ -2287,6 +2351,8 @@ export function RepresentativePanelPage() {
                     <label className="auth-field" key={`q${questionIndex}-opt${optionIndex}`}>
                       <span>Option {optionIndex + 1}</span>
                       <input
+                        id="quizOption"
+                        name="quizOption"
                         onChange={(event) =>
                           handleQuizOptionChange(questionIndex, optionIndex, event.target.value)
                         }
@@ -2299,6 +2365,8 @@ export function RepresentativePanelPage() {
                 <label className="auth-field">
                   <span>Correct Answer</span>
                   <input
+                    id="quizAnswer"
+                    name="quizAnswer"
                     onChange={(event) =>
                       handleQuizQuestionChange(questionIndex, "answer", event.target.value)
                     }
@@ -2341,6 +2409,8 @@ export function RepresentativePanelPage() {
 
         <div className="toolbar-grid">
           <input
+            id="quizSearch"
+            name="quizSearch"
             className="college-search"
             onChange={(event) => setQuizSearch(event.target.value)}
             placeholder="Search quiz title, mode, difficulty, or college..."
@@ -2398,6 +2468,8 @@ export function RepresentativePanelPage() {
       >
         <div className="toolbar-grid">
           <input
+            id="collegeSearch"
+            name="collegeSearch"
             className="college-search"
             onChange={(event) => setCollegeSearch(event.target.value)}
             placeholder="Search your college, course, or exam details..."
@@ -2405,6 +2477,8 @@ export function RepresentativePanelPage() {
             value={collegeSearch}
           />
           <select
+            id="collegeSort"
+            name="collegeSort"
             className="college-search"
             onChange={(event) => setCollegeSort(event.target.value)}
             value={collegeSort}

@@ -997,6 +997,8 @@ export function DashboardPage() {
             {filteredPrograms.length > 0 && (
             <div className="list-toolbar">
               <input
+                id="programSearch"
+                name="programSearch"
                 className="college-search"
                 onChange={(event) => setProgramSearch(event.target.value)}
                 placeholder="Search program, branch coverage, or summary..."
@@ -1086,11 +1088,13 @@ export function DashboardPage() {
                       <div className="panel-form-grid">
                         <label className="auth-field">
                           <span>College Name</span>
-                          <input readOnly type="text" value={selectedCollege.name} />
+                          <input id="collegeName" name="collegeName" readOnly type="text" value={selectedCollege.name} />
                         </label>
                         <label className="auth-field">
                           <span>Course Name</span>
                           <input
+                            id="courseName"
+                            name="courseName"
                             onChange={(event) =>
                               setCourseForm((current) => ({ ...current, courseName: event.target.value }))
                             }
@@ -1163,6 +1167,8 @@ export function DashboardPage() {
                         <label className="auth-field">
                           <span>Program</span>
                           <select
+                            id="programId"
+                            name="programId"
                             onChange={(event) =>
                               setBranchForm((current) => ({ ...current, programId: event.target.value }))
                             }
@@ -1179,6 +1185,8 @@ export function DashboardPage() {
                         <label className="auth-field">
                           <span>Branch Name</span>
                           <input
+                            id="branchName"
+                            name="branchName"
                             onChange={(event) =>
                               setBranchForm((current) => ({ ...current, branchName: event.target.value }))
                             }
@@ -1191,6 +1199,8 @@ export function DashboardPage() {
                         <label className="auth-field">
                           <span>Semester Count</span>
                           <input
+                            id="semesterCount"
+                            name="semesterCount"
                             min="1"
                             max="20"
                             onChange={(event) =>
@@ -1207,6 +1217,8 @@ export function DashboardPage() {
                         <label className="auth-field">
                           <span>Branch Description</span>
                           <input
+                            id="branchDescription"
+                            name="branchDescription"
                             onChange={(event) =>
                               setBranchForm((current) => ({
                                 ...current,
@@ -1451,6 +1463,8 @@ export function DashboardPage() {
           {!selectedCollege ? <p className="muted">Select a college to see its notices.</p> : null}
           <div className="list-toolbar">
             <input
+              id="noticeSearch"
+              name="noticeSearch"
               className="college-search"
               onChange={(event) => setNoticeSearch(event.target.value)}
               placeholder="Search notice title or content..."

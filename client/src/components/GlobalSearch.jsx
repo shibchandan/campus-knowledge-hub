@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef, useMemo } from "react";
+﻿import { useState, useEffect, useRef, useMemo } from "react";
 import { useNavigate } from "react-router-dom";
 import { useCollege } from "../college/CollegeContext";
 import { useDebounce } from "../hooks/useDebounce";
@@ -179,6 +179,8 @@ export function GlobalSearch() {
           </svg>
           <input
             ref={inputRef}
+            id="globalSearch"
+            name="globalSearch"
             value={query}
             onChange={e => setQuery(e.target.value)}
             onKeyDown={handleKeyDown}

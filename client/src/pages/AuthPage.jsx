@@ -33,12 +33,14 @@ const initialResetState = {
   confirmPassword: ""
 };
 
-function PasswordInput({ value, onChange, placeholder, required, minLength }) {
+function PasswordInput({ value, onChange, placeholder, required, minLength, id, name }) {
   const [visible, setVisible] = useState(false);
 
   return (
     <div className="password-input-wrapper">
       <input
+        id={id}
+        name={name || id}
         type={visible ? "text" : "password"}
         value={value}
         onChange={onChange}
@@ -371,6 +373,8 @@ export function AuthPage() {
             <label className="auth-premium-field">
               <span>Authenticator Code</span>
               <input
+                id="twoFactorCode"
+                name="twoFactorCode"
                 type="text"
                 inputMode="numeric"
                 maxLength={6}
@@ -409,6 +413,8 @@ export function AuthPage() {
             <label className="auth-premium-field">
               <span>Verification Code</span>
               <input
+                id="verificationOtp"
+                name="verificationOtp"
                 type="text"
                 inputMode="numeric"
                 maxLength={6}
@@ -447,6 +453,8 @@ export function AuthPage() {
             <label className="auth-premium-field">
               <span>Email <span style={{ color: "red" }}>*</span></span>
               <input
+                id="loginForm"
+                name="loginForm"
                 type="email"
                 value={loginForm.email}
                 onChange={(event) =>
@@ -460,6 +468,8 @@ export function AuthPage() {
             <label className="auth-premium-field">
               <span>Password <span style={{ color: "red" }}>*</span></span>
               <PasswordInput
+                id="loginPassword"
+                name="loginPassword"
                 value={loginForm.password}
                 onChange={(event) =>
                   setLoginForm((current) => ({ ...current, password: event.target.value }))
@@ -480,6 +490,8 @@ export function AuthPage() {
             <label className="auth-premium-field">
               <span>Full Name <span style={{ color: "red" }}>*</span></span>
               <input
+                id="registerForm"
+                name="registerForm"
                 type="text"
                 value={registerForm.fullName}
                 onChange={(event) =>
@@ -493,6 +505,8 @@ export function AuthPage() {
             <label className="auth-premium-field">
               <span>Email <span style={{ color: "red" }}>*</span></span>
               <input
+                id="registerForm_1"
+                name="registerForm_1"
                 type="email"
                 value={registerForm.email}
                 onChange={(event) =>
@@ -506,6 +520,8 @@ export function AuthPage() {
             <label className="auth-premium-field">
               <span>Password <span style={{ color: "red" }}>*</span></span>
               <PasswordInput
+                id="registerPassword"
+                name="registerPassword"
                 value={registerForm.password}
                 onChange={(event) =>
                   setRegisterForm((current) => ({ ...current, password: event.target.value }))
@@ -519,6 +535,8 @@ export function AuthPage() {
             <label className="auth-premium-field">
               <span>Role <span style={{ color: "red" }}>*</span></span>
               <select
+                id="registerForm_2"
+                name="registerForm_2"
                 value={registerForm.role}
                 onChange={(event) =>
                   setRegisterForm((current) => ({ ...current, role: event.target.value }))
@@ -537,6 +555,8 @@ export function AuthPage() {
 
             <label style={{ display: "flex", alignItems: "flex-start", gap: "0.75rem", margin: "1rem 0", color: "var(--color-slate-400-adaptive)", fontSize: "0.875rem", cursor: "pointer" }}>
               <input
+                id="agreedToTerms"
+                name="agreedToTerms"
                 type="checkbox"
                 checked={agreedToTerms}
                 onChange={(e) => setAgreedToTerms(e.target.checked)}
@@ -562,6 +582,8 @@ export function AuthPage() {
             <label className="auth-premium-field">
               <span>Registered Email</span>
               <input
+                id="forgotForm"
+                name="forgotForm"
                 type="email"
                 value={forgotForm.email}
                 onChange={(event) =>
@@ -587,6 +609,8 @@ export function AuthPage() {
             <label className="auth-premium-field">
               <span>Email</span>
               <input
+                id="resetForm"
+                name="resetForm"
                 type="email"
                 value={resetForm.email}
                 onChange={(event) =>
@@ -600,6 +624,8 @@ export function AuthPage() {
             <label className="auth-premium-field">
               <span>OTP</span>
               <input
+                id="resetForm_1"
+                name="resetForm_1"
                 inputMode="numeric"
                 maxLength={6}
                 minLength={6}
@@ -616,6 +642,8 @@ export function AuthPage() {
             <label className="auth-premium-field">
               <span>New Password</span>
               <PasswordInput
+                id="newPassword"
+                name="newPassword"
                 minLength={6}
                 onChange={(event) =>
                   setResetForm((current) => ({ ...current, newPassword: event.target.value }))
@@ -629,6 +657,8 @@ export function AuthPage() {
             <label className="auth-premium-field">
               <span>Confirm Password</span>
               <PasswordInput
+                id="confirmPassword"
+                name="confirmPassword"
                 minLength={6}
                 onChange={(event) =>
                   setResetForm((current) => ({ ...current, confirmPassword: event.target.value }))

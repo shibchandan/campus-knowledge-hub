@@ -16,6 +16,8 @@ export function SubjectForm({
         <label className="auth-field">
           <span>College Name</span>
           <select
+            id="collegeName"
+            name="collegeName"
             onChange={(event) => onChange("collegeName", event.target.value)}
             required
             value={formValue.collegeName}
@@ -31,6 +33,8 @@ export function SubjectForm({
         <label className="auth-field">
           <span>Program ID</span>
           <select
+            id="programId"
+            name="programId"
             onChange={(event) => onChange("programId", event.target.value)}
             required
             value={formValue.programId}
@@ -46,6 +50,8 @@ export function SubjectForm({
         <label className="auth-field">
           <span>Branch ID</span>
           <input
+            id="branchId"
+            name="branchId"
             onChange={(event) => onChange("branchId", event.target.value)}
             placeholder="cs"
             required
@@ -56,6 +62,8 @@ export function SubjectForm({
         <label className="auth-field">
           <span>Semester ID</span>
           <input
+            id="semesterId"
+            name="semesterId"
             onChange={(event) => onChange("semesterId", event.target.value)}
             placeholder="sem3"
             required
@@ -66,6 +74,8 @@ export function SubjectForm({
         <label className="auth-field">
           <span>Subject ID</span>
           <input
+            id="subjectId"
+            name="subjectId"
             onChange={(event) => onChange("subjectId", event.target.value)}
             placeholder="dsa"
             required
@@ -76,6 +86,8 @@ export function SubjectForm({
         <label className="auth-field">
           <span>Subject Name</span>
           <input
+            id="name"
+            name="name"
             onChange={(event) => onChange("name", event.target.value)}
             placeholder="Data Structures and Algorithms"
             required
