@@ -1617,11 +1617,11 @@ export function SubjectCategoryPage() {
                     {/* Expandable Comments Drawer */}
                     {expandedComments[resource._id] ? (
                       <div className="resource-comments-drawer">
-                        <div style={{ display: "flex", gap: "8px", alignItems: "flex-end" }}>
+                        <div className="resource-comment-input-row">
                           <textarea
                             id={`commentInput-${resource._id}`}
                             name={`commentInput-${resource._id}`}
-                            className="panel-textarea"
+                            className="resource-comment-input"
                             onChange={(event) =>
                               setCommentInputs((current) => ({
                                 ...current,
@@ -1631,14 +1631,12 @@ export function SubjectCategoryPage() {
                             placeholder="Write a comment..."
                             rows={1}
                             value={commentInputs[resource._id] || ""}
-                            style={{ flex: 1, fontSize: "0.8rem", resize: "vertical", minHeight: "36px" }}
                           />
                           <button
-                            className="open-college-button"
+                            className="resource-comment-post-btn"
                             disabled={feedbackBusy}
                             onClick={() => handleAddComment(resource._id)}
                             type="button"
-                            style={{ padding: "6px 14px", fontSize: "0.8rem", whiteSpace: "nowrap" }}
                           >
                             {feedbackBusy ? "..." : "Post"}
                           </button>
