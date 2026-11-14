@@ -455,16 +455,16 @@ export function CommunityPage() {
                 </div>
                 <div style={{ display: "flex", gap: "1rem", alignItems: "center" }}>
                   {user?.id === activeGroup.createdBy && (
-                    <button onClick={() => setShowUpgradeModal(true)} className="glowing-btn small" style={{ background: "linear-gradient(135deg, #10b981 0%, #059669 100%)", color: "white" }}>
-                      ⚡ Upgrade Capacity
+                    <button onClick={() => setShowUpgradeModal(true)} className="glowing-btn primary small">
+                      Upgrade capacity
                     </button>
                   )}
-                  <div style={{ background: "rgba(245, 158, 11, 0.1)", border: "1px solid rgba(245, 158, 11, 0.3)", padding: "0.6rem 1.25rem", borderRadius: "10px" }}>
-                    <span className="muted" style={{ fontSize: "0.8rem", marginRight: "0.5rem", textTransform: "uppercase", letterSpacing: "0.5px" }}>Invite:</span>
-                    <strong style={{ color: "#fbd38d", letterSpacing: "1px" }}>{activeGroup.inviteCode}</strong>
+                  <div style={{ background: "var(--glass-bg)", border: "1px solid var(--glass-border)", padding: "0.5rem 1rem", borderRadius: "8px" }}>
+                    <span className="muted" style={{ fontSize: "0.8rem", marginRight: "0.5rem" }}>Invite code:</span>
+                    <strong style={{ color: "var(--glass-text-primary)", fontVariantNumeric: "tabular-nums" }}>{activeGroup.inviteCode}</strong>
                   </div>
-                  <button onClick={() => setShowSettingsModal(true)} className="action-button neutral" style={{ padding: "0.6rem 1rem", borderRadius: "10px", display: "flex", alignItems: "center", gap: "0.5rem" }}>
-                    <span style={{ fontSize: "1.1rem" }}>⚙️</span> Settings & Members
+                  <button onClick={() => setShowSettingsModal(true)} className="action-button neutral" style={{ padding: "0.5rem 1rem", borderRadius: "8px", display: "flex", alignItems: "center", gap: "0.5rem" }}>
+                    Settings & members
                   </button>
                 </div>
               </div>
@@ -677,7 +677,7 @@ export function CommunityPage() {
               </div>
               <div style={{ display: "flex", gap: "1rem", marginTop: "1.5rem" }}>
                 <button type="button" onClick={() => setShowUpgradeModal(false)} className="action-button neutral" style={{ flex: 1, padding: "0.75rem" }}>Cancel</button>
-                <button type="submit" className="glowing-btn" style={{ flex: 1, padding: "0.75rem", background: "linear-gradient(135deg, #10b981 0%, #059669 100%)", color: "white" }}>Pay ₹{ (upgradeSlots / 100) * 25 }</button>
+                <button type="submit" className="glowing-btn primary" style={{ flex: 1, padding: "0.75rem" }}>Pay ₹{ (upgradeSlots / 100) * 25 }</button>
               </div>
             </form>
           </div>

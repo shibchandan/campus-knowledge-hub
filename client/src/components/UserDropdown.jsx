@@ -78,12 +78,11 @@ export function UserDropdown() {
               width: "max-content",
               minWidth: "220px",
               maxWidth: "calc(100vw - 2rem)",
-              backgroundColor: "var(--glass-bg-strong)",
-              backdropFilter: "blur(16px)",
+              backgroundColor: "var(--glass-bg)",
               color: "var(--glass-text-primary)",
               border: "1px solid var(--glass-border)",
-              borderRadius: "12px",
-              boxShadow: "0 10px 25px -5px rgba(0, 0, 0, 0.3)",
+              borderRadius: "10px",
+              boxShadow: "var(--glass-shadow-lg)",
               zIndex: 1000,
               padding: "16px",
               display: "flex",
@@ -92,11 +91,11 @@ export function UserDropdown() {
             }}
             onClick={(e) => e.stopPropagation()}
           >
-            <p className="user-name" style={{ margin: 0, fontSize: "1rem" }}>
+            <p className="user-name" style={{ margin: 0, fontSize: "0.95rem", fontWeight: 500 }}>
               {user?.fullName || "Guest User"}
               {user && (
-                <span title="Reputation Points" style={{ marginLeft: "8px", fontSize: "0.85em", color: "#f59e0b" }}>
-                  ⭐ {user.reputationScore || 0}
+                <span title="Reputation Points" style={{ marginLeft: "8px", fontSize: "0.85em", color: "var(--glass-text-muted)", fontVariantNumeric: "tabular-nums" }}>
+                  • {user.reputationScore || 0} pts
                 </span>
               )}
             </p>

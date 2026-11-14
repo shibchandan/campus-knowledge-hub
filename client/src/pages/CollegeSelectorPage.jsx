@@ -244,21 +244,24 @@ export function CollegeSelectorPage() {
             </button>
           </div>
 
-          <div style={{ display: "flex", alignItems: "center", gap: "10px", flexWrap: "wrap", marginTop: "6px" }}>
+          <div style={{ display: "flex", alignItems: "center", gap: "8px", flexWrap: "wrap", marginTop: "8px" }}>
             <span style={{
-              display: "inline-flex", alignItems: "center", gap: "5px",
-              background: "rgba(255,255,255,0.07)", borderRadius: "20px",
-              padding: "3px 12px", fontSize: "0.8rem", color: "var(--text-muted, #9ca3af)"
+              display: "inline-flex", alignItems: "center", gap: "6px",
+              background: "var(--glass-bg)", border: "1px solid var(--glass-border)", borderRadius: "6px",
+              padding: "4px 10px", fontSize: "0.8125rem", color: "var(--glass-text-secondary)"
             }}>
-              🏫 {selectedCollege ? <><strong style={{ color: "#e2e8f0" }}>{selectedCollege.name}</strong></> : "No college selected"}
+              <span style={{ color: "var(--glass-text-muted)" }}>Active:</span>
+              <strong style={{ color: "var(--glass-text-primary)", fontWeight: 500 }}>
+                {selectedCollege ? selectedCollege.name : "None selected"}
+              </strong>
             </span>
             <span style={{
-              display: "inline-flex", alignItems: "center", gap: "5px",
-              background: "rgba(255,255,255,0.07)", borderRadius: "20px",
-              padding: "3px 12px", fontSize: "0.8rem", color: "var(--text-muted, #9ca3af)"
+              display: "inline-flex", alignItems: "center", gap: "6px",
+              background: "var(--glass-bg)", border: "1px solid var(--glass-border)", borderRadius: "6px",
+              padding: "4px 10px", fontSize: "0.8125rem", color: "var(--glass-text-secondary)", fontVariantNumeric: "tabular-nums"
             }}>
-              📋 <strong style={{ color: "#e2e8f0" }}>{filteredColleges.length}</strong>&nbsp;colleges found
-              {activeFilterCount ? <>&nbsp;·&nbsp;<span style={{ color: "#818cf8" }}>{activeFilterCount} filter{activeFilterCount > 1 ? "s" : ""} active</span></> : null}
+              <strong style={{ color: "var(--glass-text-primary)", fontWeight: 500 }}>{filteredColleges.length}</strong> colleges
+              {activeFilterCount ? <span style={{ color: "var(--color-primary, #2563eb)", marginLeft: "4px" }}>({activeFilterCount} active filter{activeFilterCount > 1 ? "s" : ""})</span> : null}
             </span>
           </div>
         </div>
@@ -330,10 +333,6 @@ export function CollegeSelectorPage() {
         <div className="college-grid">
           {filteredColleges.map((college) => {
             const collegeType = getCollegeType(college);
-            const typeIcon =
-              collegeType === "IIT" ? "🏛️" :
-              collegeType === "NIT" ? "🎓" :
-              collegeType === "University" ? "🏫" : "🏢";
             const typeClass =
               collegeType === "IIT" ? "type-iit" :
               collegeType === "NIT" ? "type-nit" :
@@ -347,12 +346,14 @@ export function CollegeSelectorPage() {
                 <div className="college-card-accent" />
                 <div className="college-card-body">
                   <div className="college-card-top-row">
-                    <span className="college-type-icon">{typeIcon}</span>
                     <span className="college-type-badge">{collegeType}</span>
                   </div>
                   <h3 className="college-card-name">{college.name}</h3>
                   <p className="college-card-location">
-                    <span className="location-pin">📍</span>
+                    <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" style={{ flexShrink: 0, opacity: 0.7 }}>
+                      <path d="M20 10c0 6-8 12-8 12s-8-6-8-12a8 8 0 0 1 16 0Z"/>
+                      <circle cx="12" cy="10" r="3"/>
+                    </svg>
                     {college.location || "Campus location not added yet"}
                   </p>
                 </div>

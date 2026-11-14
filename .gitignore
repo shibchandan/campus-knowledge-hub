@@ -16,3 +16,8 @@ server/uploads/
 *.log
 
 package-lock.json
+
+
+# Unslop - local installation
+unslop/
+.agents/skills/unslop/

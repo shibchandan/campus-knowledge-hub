@@ -780,7 +780,6 @@ export function DashboardPage() {
           {/* Eyebrow + Title */}
           <div className="overview-hero-header">
             <span className="overview-eyebrow-chip">
-              <span>🎓</span>
               <span>Academic Overview</span>
             </span>
             <h1 className="overview-hero-title">
@@ -788,24 +787,21 @@ export function DashboardPage() {
             </h1>
             <p className="overview-hero-subtitle">
               {selectedCollege
-                ? "A command view for academic structure, representative coverage, notices, and next actions."
-                : "Select a college from the Colleges page to load its academic workspace and overview details."}
+                ? "Academic structures, representative assignments, active notices, and course management."
+                : "Select a college from the Colleges directory to load its academic workspace."}
             </p>
           </div>
 
           {/* Status Pills */}
           <div className="overview-status-row">
             {heroStatusItems.map((item) => {
-              const statusIcon =
-                item.label === "Profile" ? "👤" :
-                item.label === "Representatives" ? "👥" : "📢";
               const isActive =
                 (item.label === "Profile" && item.value === "Ready") ||
                 (item.label === "Representatives" && representativeDirectory.length > 0) ||
                 (item.label === "Notices" && notices.length > 0);
               return (
                 <span className={`overview-status-pill ${isActive ? "status-active" : ""}`} key={item.label}>
-                  <span className="status-pill-icon">{statusIcon}</span>
+                  <span className="status-pill-dot" style={{ width: 6, height: 6, borderRadius: "50%", background: isActive ? "var(--color-primary, #2563eb)" : "var(--glass-text-muted)" }} />
                   <strong>{item.label}</strong>
                   <span>{item.value}</span>
                 </span>
@@ -815,33 +811,36 @@ export function DashboardPage() {
 
           {/* Stat Cards */}
           <div className="overview-stat-strip">
-            {dashboardStats.map((item, index) => {
-              const statIcons = ["📚", "🌿", "📅", "📖"];
-              const statColors = ["#f59e0b", "#10b981", "#6366f1", "#ec4899"];
-              const statGradients = [
-                "linear-gradient(135deg, rgba(245,158,11,0.15), rgba(245,158,11,0.03))",
-                "linear-gradient(135deg, rgba(16,185,129,0.15), rgba(16,185,129,0.03))",
-                "linear-gradient(135deg, rgba(99,102,241,0.15), rgba(99,102,241,0.03))",
-                "linear-gradient(135deg, rgba(236,72,153,0.15), rgba(236,72,153,0.03))",
-              ];
-              return (
-                <article
-                  className="overview-stat-tile"
-                  key={item.label}
-                  style={{ background: statGradients[index], borderColor: `${statColors[index]}30` }}
+            {dashboardStats.map((item) => (
+              <article
+                className="overview-stat-tile"
+                key={item.label}
+                style={{
+                  background: "var(--glass-bg)",
+                  border: "1px solid var(--glass-border)",
+                  borderRadius: "10px",
+                  padding: "16px 18px",
+                  boxShadow: "none"
+                }}
+              >
+                <div className="stat-tile-header">
+                  <p className="overview-stat-label">{item.label}</p>
+                </div>
+                <h2
+                  className="stat-tile-value"
+                  style={{
+                    color: "var(--glass-text-primary)",
+                    fontSize: "1.75rem",
+                    fontWeight: 500,
+                    margin: "4px 0",
+                    fontVariantNumeric: "tabular-nums"
+                  }}
                 >
-                  <div className="stat-tile-accent" style={{ background: statColors[index] }} />
-                  <div className="stat-tile-header">
-                    <span className="stat-tile-icon" style={{ background: `${statColors[index]}20`, color: statColors[index] }}>
-                      {statIcons[index]}
-                    </span>
-                    <p className="overview-stat-label">{item.label}</p>
-                  </div>
-                  <h2 className="stat-tile-value" style={{ color: statColors[index] }}>{item.value}</h2>
-                  <p className="stat-tile-note">{item.note}</p>
-                </article>
-              );
-            })}
+                  {item.value}
+                </h2>
+                <p className="stat-tile-note">{item.note}</p>
+              </article>
+            ))}
           </div>
         </div>
 
@@ -850,7 +849,6 @@ export function DashboardPage() {
           {/* Active Workspace */}
           <div className="overview-side-block overview-side-workspace">
             <div className="side-block-header">
-              <span className="side-block-icon">🖥️</span>
               <p className="dashboard-premium-label">Active Workspace</p>
             </div>
             <div className="overview-workspace-info">
@@ -867,23 +865,22 @@ export function DashboardPage() {
           {/* Live Snapshot */}
           <div className="overview-side-block">
             <div className="side-block-header">
-              <span className="side-block-icon">📊</span>
               <p className="dashboard-premium-label">Live Snapshot</p>
             </div>
             <div className="overview-snapshot-list">
               <div className="snapshot-item">
-                <span className="snapshot-dot" style={{ background: "#10b981" }} />
-                <span className="snapshot-count" style={{ color: "#10b981" }}>{approvedCourses.length || 0}</span>
+                <span className="snapshot-dot" style={{ background: "var(--color-primary, #2563eb)" }} />
+                <span className="snapshot-count" style={{ color: "var(--glass-text-primary)" }}>{approvedCourses.length || 0}</span>
                 <span className="snapshot-label">approved courses</span>
               </div>
               <div className="snapshot-item">
-                <span className="snapshot-dot" style={{ background: "#6366f1" }} />
-                <span className="snapshot-count" style={{ color: "#6366f1" }}>{representativeDirectory.length || 0}</span>
+                <span className="snapshot-dot" style={{ background: "var(--color-primary, #2563eb)" }} />
+                <span className="snapshot-count" style={{ color: "var(--glass-text-primary)" }}>{representativeDirectory.length || 0}</span>
                 <span className="snapshot-label">representative owners</span>
               </div>
               <div className="snapshot-item">
-                <span className="snapshot-dot" style={{ background: "#f59e0b" }} />
-                <span className="snapshot-count" style={{ color: "#f59e0b" }}>{notices.length || 0}</span>
+                <span className="snapshot-dot" style={{ background: "var(--color-primary, #2563eb)" }} />
+                <span className="snapshot-count" style={{ color: "var(--glass-text-primary)" }}>{notices.length || 0}</span>
                 <span className="snapshot-label">recent notices</span>
               </div>
             </div>
@@ -892,7 +889,6 @@ export function DashboardPage() {
           {/* Latest Notice */}
           <div className="overview-side-block overview-side-notice">
             <div className="side-block-header">
-              <span className="side-block-icon">📰</span>
               <p className="dashboard-premium-label">Latest Notice</p>
             </div>
             {latestNoticePreview ? (
@@ -915,7 +911,6 @@ export function DashboardPage() {
           onClick={() => setActiveTab("workspace")}
           type="button"
         >
-          <span className="tab-icon">📚</span>
           <span>Academic Workspace</span>
         </button>
         <button
@@ -923,7 +918,6 @@ export function DashboardPage() {
           onClick={() => setActiveTab("profile")}
           type="button"
         >
-          <span className="tab-icon">🏛️</span>
           <span>Institution Profile</span>
         </button>
         <button
@@ -931,7 +925,6 @@ export function DashboardPage() {
           onClick={() => setActiveTab("notices")}
           type="button"
         >
-          <span className="tab-icon">📢</span>
           <span>Notice Desk</span>
         </button>
         <button
@@ -939,7 +932,6 @@ export function DashboardPage() {
           onClick={() => setActiveTab("analytics")}
           type="button"
         >
-          <span className="tab-icon">📈</span>
           <span>Analytics</span>
         </button>
       </div>
@@ -954,7 +946,12 @@ export function DashboardPage() {
               <ChartCard 
                 title="Program Distribution" 
                 subtitle="Semester density across programs" 
-                icon="🍩"
+                icon={
+                  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5">
+                    <circle cx="12" cy="12" r="10"/>
+                    <path d="M12 2a10 10 0 0 1 10 10h-10z"/>
+                  </svg>
+                }
               >
                 <CustomPieChart data={academicDistributionData} />
               </ChartCard>
@@ -962,13 +959,19 @@ export function DashboardPage() {
               <ChartCard 
                 title="Representative Coverage" 
                 subtitle="Top 10 Representatives by assigned courses/semesters" 
-                icon="📊"
+                icon={
+                  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5">
+                    <line x1="18" y1="20" x2="18" y2="10"/>
+                    <line x1="12" y1="20" x2="12" y2="4"/>
+                    <line x1="6" y1="20" x2="6" y2="14"/>
+                  </svg>
+                }
               >
                 <CustomBarChart 
                   data={representativeCoverageData} 
                   bars={[
-                    { dataKey: "courses", name: "Courses Managed", color: "#6366f1" },
-                    { dataKey: "semesters", name: "Total Semesters", color: "#10b981" }
+                    { dataKey: "courses", name: "Courses Managed", color: "var(--color-primary, #2563eb)" },
+                    { dataKey: "semesters", name: "Total Semesters", color: "var(--glass-text-secondary, #737373)" }
                   ]}
                 />
               </ChartCard>
@@ -1012,7 +1015,11 @@ export function DashboardPage() {
               {filteredPrograms.map((program) => (
                 <div key={program.id} className="workspace-program-block">
                   <div style={{ display: "flex", alignItems: "center", gap: "0.75rem", marginBottom: "1rem" }}>
-                    <span className="branch-icon">🏛️</span>
+                    <span className="branch-icon" style={{ display: "inline-flex", color: "var(--color-primary, #2563eb)" }}>
+                      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5">
+                        <path d="M3 21h18M3 10h18M5 10v11M9 10v11M15 10v11M19 10v11M12 2l10 5H2l10-5z"/>
+                      </svg>
+                    </span>
                     <span className="branch-program-tag">Course</span>
                     <h3 className="branch-card-name" style={{ margin: 0 }}>{program.name}</h3>
                     <span className="muted" style={{ fontSize: "0.85rem", marginLeft: "auto" }}>{program.branch}</span>
@@ -1033,7 +1040,13 @@ export function DashboardPage() {
                           <div className="branch-card-accent" />
                           <div className="branch-card-body">
                             <div className="branch-card-top-row">
-                              <span className="branch-icon">🖥️</span>
+                              <span className="branch-icon" style={{ display: "inline-flex", color: "var(--glass-text-secondary)" }}>
+                                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5">
+                                  <rect x="2" y="3" width="20" height="14" rx="2"/>
+                                  <line x1="8" y1="21" x2="16" y2="21"/>
+                                  <line x1="12" y1="17" x2="12" y2="21"/>
+                                </svg>
+                              </span>
                               <span className="branch-program-tag">{program.name}</span>
                             </div>
                             <h3 className="branch-card-name">{branch.name}</h3>
@@ -1355,8 +1368,11 @@ export function DashboardPage() {
                               transition: "all 0.2s ease"
                             }}
                           >
-                            <span>📄</span>
-                            <span>View Full Placement Report</span>
+                            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5">
+                              <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/>
+                              <polyline points="14 2 14 8 20 8"/>
+                            </svg>
+                            <span>View full placement report</span>
                           </a>
                         </div>
                       ) : null}

@@ -72,28 +72,39 @@ export function NotificationDropdown() {
 
   const getVisualForNotification = (notif) => {
     const type = notif.type?.toLowerCase() || "";
-    const title = notif.title?.toLowerCase() || "";
     
-    // Check type first
-    if (type === "success") return "✅";
-    if (type === "warning") return "⚠️";
-    if (type === "error") return "❌";
-    
-    // Infer from title or type string
-    const textToCheck = `${type} ${title}`;
-    
-    if (textToCheck.includes("comment") || textToCheck.includes("reply")) return "💬";
-    if (textToCheck.includes("assignment") || textToCheck.includes("quiz") || textToCheck.includes("test")) return "📝";
-    if (textToCheck.includes("resource") || textToCheck.includes("upload") || textToCheck.includes("material") || textToCheck.includes("book")) return "📚";
-    if (textToCheck.includes("report") || textToCheck.includes("integrity") || textToCheck.includes("violation")) return "🚨";
-    if (textToCheck.includes("community") || textToCheck.includes("post") || textToCheck.includes("discussion")) return "🗣️";
-    if (textToCheck.includes("notice") || textToCheck.includes("announcement") || textToCheck.includes("alert")) return "📢";
-    if (textToCheck.includes("like") || textToCheck.includes("upvote")) return "👍";
-    if (textToCheck.includes("video") || textToCheck.includes("lecture")) return "🎥";
-    if (textToCheck.includes("file") || textToCheck.includes("document")) return "📄";
-    if (textToCheck.includes("welcome") || textToCheck.includes("join")) return "🎉";
-    
-    return "💡";
+    if (type === "success") {
+      return (
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#16a34a" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
+          <polyline points="20 6 9 17 4 12"/>
+        </svg>
+      );
+    }
+    if (type === "warning") {
+      return (
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#d97706" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
+          <path d="m21.73 18-8-14a2 2 0 0 0-3.48 0l-8 14A2 2 0 0 0 4 21h16a2 2 0 0 0 1.73-3Z"/>
+          <line x1="12" y1="9" x2="12" y2="13"/>
+          <line x1="12" y1="17" x2="12.01" y2="17"/>
+        </svg>
+      );
+    }
+    if (type === "error") {
+      return (
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#dc2626" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
+          <circle cx="12" cy="12" r="10"/>
+          <line x1="15" y1="9" x2="9" y2="15"/>
+          <line x1="9" y1="9" x2="15" y2="15"/>
+        </svg>
+      );
+    }
+
+    return (
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="var(--glass-text-secondary)" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
+        <path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h24s-3-2-3-9"/>
+        <path d="M13.73 21a2 2 0 0 1-3.46 0"/>
+      </svg>
+    );
   };
 
   return (
@@ -146,12 +157,11 @@ export function NotificationDropdown() {
           marginTop: "8px",
           width: "320px",
           maxWidth: "calc(100vw - 32px)",
-          backgroundColor: "var(--glass-bg-strong)",
-          backdropFilter: "blur(16px)",
+          backgroundColor: "var(--glass-bg)",
           color: "var(--glass-text-primary)",
           border: "1px solid var(--glass-border)",
-          borderRadius: "12px",
-          boxShadow: "0 10px 25px -5px rgba(0, 0, 0, 0.3), 0 8px 10px -6px rgba(0, 0, 0, 0.1)",
+          borderRadius: "10px",
+          boxShadow: "var(--glass-shadow-lg)",
           zIndex: 1000,
           display: "flex",
           flexDirection: "column",

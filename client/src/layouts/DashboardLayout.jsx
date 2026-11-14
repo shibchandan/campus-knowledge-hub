@@ -11,33 +11,117 @@ import { ContactAdminModal } from "../components/ContactAdminModal";
 import { UserDropdown } from "../components/UserDropdown";
 import { PrefetchLink } from "../components/PrefetchLink";
 
+// Clean Lucide-compatible line icons (18px, 1.5 stroke)
+const IconColleges = () => (
+  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
+    <path d="M3 21h18M3 10h18M5 10v11M9 10v11M15 10v11M19 10v11M12 2l10 5H2l10-5z"/>
+  </svg>
+);
+const IconPanel = () => (
+  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
+    <rect x="3" y="3" width="7" height="7"/>
+    <rect x="14" y="3" width="7" height="7"/>
+    <rect x="14" y="14" width="7" height="7"/>
+    <rect x="3" y="14" width="7" height="7"/>
+  </svg>
+);
+const IconAccount = () => (
+  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
+    <circle cx="12" cy="7" r="4"/>
+    <path d="M6 21v-2a4 4 0 0 1 4-4h4a4 4 0 0 1 4 4v2"/>
+  </svg>
+);
+const IconOverview = () => (
+  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
+    <line x1="18" y1="20" x2="18" y2="10"/>
+    <line x1="12" y1="20" x2="12" y2="4"/>
+    <line x1="6" y1="20" x2="6" y2="14"/>
+  </svg>
+);
+const IconLectures = () => (
+  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
+    <polygon points="5 3 19 12 5 21 5 3"/>
+  </svg>
+);
+const IconLiveClasses = () => (
+  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
+    <path d="M4.9 19.1C1 15.2 1 8.8 4.9 4.9"/>
+    <path d="M7.8 16.2c-2.3-2.3-2.3-6.1 0-8.5"/>
+    <circle cx="12" cy="12" r="2"/>
+    <path d="M16.2 7.8c2.3 2.3 2.3 6.1 0 8.5"/>
+    <path d="M19.1 4.9C23 8.8 23 15.1 19.1 19.1"/>
+  </svg>
+);
+const IconNotes = () => (
+  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
+    <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/>
+    <polyline points="14 2 14 8 20 8"/>
+    <line x1="16" y1="13" x2="8" y2="13"/>
+    <line x1="16" y1="17" x2="8" y2="17"/>
+  </svg>
+);
+const IconQuizzes = () => (
+  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
+    <polyline points="9 11 12 14 22 4"/>
+    <path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"/>
+  </svg>
+);
+const IconAssignments = () => (
+  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
+    <circle cx="12" cy="12" r="10"/>
+    <polyline points="12 6 12 12 16 14"/>
+  </svg>
+);
+const IconAiStudio = () => (
+  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
+    <path d="m12 3-1.9 5.8a2 2 0 0 1-1.3 1.3L3 12l5.8 1.9a2 2 0 0 1 1.3 1.3L12 21l1.9-5.8a2 2 0 0 1 1.3-1.3L21 12l-5.8-1.9a2 2 0 0 1-1.3-1.3Z"/>
+  </svg>
+);
+const IconIntegrity = () => (
+  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
+    <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/>
+  </svg>
+);
+const IconMarketplace = () => (
+  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
+    <path d="M6 2 3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4Z"/>
+    <path d="M3 6h18"/>
+    <path d="M16 10a4 4 0 0 1-8 0"/>
+  </svg>
+);
+const IconCommunity = () => (
+  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
+    <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/>
+  </svg>
+);
+
 const navSections = [
   {
     label: "Main",
     links: [
-      { to: "/colleges", label: "Colleges", icon: "🏛️", prefetchRoute: "/governance/public-colleges" },
-      { to: "/panel", label: "Panel", icon: "⚙️" },
-      { to: "/account", label: "Account", icon: "👤", prefetchRoute: "/settings/me" }
+      { to: "/colleges", label: "Colleges", icon: <IconColleges />, prefetchRoute: "/governance/public-colleges" },
+      { to: "/panel", label: "Panel", icon: <IconPanel /> },
+      { to: "/account", label: "Account", icon: <IconAccount />, prefetchRoute: "/settings/me" }
     ]
   },
   {
     label: "Academic",
     links: [
-      { to: "/dashboard", label: "Overview", icon: "📊", prefetchRoute: "/notices" },
-      { to: "/lectures", label: "Lectures", icon: "🎬", prefetchRoute: "/lectures" },
-      { to: "/live-classes", label: "Live Classes", icon: "📡", prefetchRoute: "/live-classes" },
-      { to: "/notes", label: "Notes & PYQs", icon: "📝", prefetchRoute: "/resources" },
-      { to: "/quizzes", label: "Quizzes", icon: "✅", prefetchRoute: "/quizzes" },
-      { to: "/assignments", label: "Live Assignments", icon: "⏳", prefetchRoute: "/assignments" }
+      { to: "/dashboard", label: "Overview", icon: <IconOverview />, prefetchRoute: "/notices" },
+      { to: "/lectures", label: "Lectures", icon: <IconLectures />, prefetchRoute: "/lectures" },
+      { to: "/live-classes", label: "Live Classes", icon: <IconLiveClasses />, prefetchRoute: "/live-classes" },
+      { to: "/notes", label: "Notes & PYQs", icon: <IconNotes />, prefetchRoute: "/resources" },
+      { to: "/quizzes", label: "Quizzes", icon: <IconQuizzes />, prefetchRoute: "/quizzes" },
+      { to: "/assignments", label: "Live Assignments", icon: <IconAssignments />, prefetchRoute: "/assignments" }
     ]
   },
   {
     label: "Tools",
     links: [
-      { to: "/ai-studio", label: "AI Studio", icon: "🤖" },
-      { to: "/integrity", label: "Integrity", icon: "🛡️" },
-      { to: "/marketplace", label: "Marketplace", icon: "🛒", prefetchRoute: "/marketplace" },
-      { to: "/community", label: "Community", icon: "💬", prefetchRoute: "/community/groups" }
+      { to: "/ai-studio", label: "AI Studio", icon: <IconAiStudio /> },
+      { to: "/integrity", label: "Integrity", icon: <IconIntegrity /> },
+      { to: "/marketplace", label: "Marketplace", icon: <IconMarketplace />, prefetchRoute: "/marketplace" },
+      { to: "/community", label: "Community", icon: <IconCommunity />, prefetchRoute: "/community/groups" }
     ]
   }
 ];
@@ -102,11 +186,11 @@ export function DashboardLayout() {
             </div>
             <div className="sidebar-brand-text">
               <p className="eyebrow">Campus Knowledge Hub</p>
-              <h2>Control Center</h2>
+              <h2>Academic Portal</h2>
             </div>
           </div>
           <p className="muted sidebar-brand-desc">
-            College-managed learning operations with lectures, resources, AI study help, and governed academic workflows.
+            Verified course structures, syllabi, study materials, and campus workflows.
           </p>
         </div>
 
@@ -153,8 +237,8 @@ export function DashboardLayout() {
               <p className="sidebar-user-role">
                 {user?.role || "Visitor"}
                 {user && (
-                  <span title="Reputation Points" style={{ marginLeft: "6px", color: "#f59e0b" }}>
-                    ⭐ {user.reputationScore || 0}
+                  <span title="Reputation Points" style={{ marginLeft: "8px", color: "var(--glass-text-muted)", fontVariantNumeric: "tabular-nums" }}>
+                    • {user.reputationScore || 0} pts
                   </span>
                 )}
               </p>
@@ -227,10 +311,10 @@ export function DashboardLayout() {
           <div
             style={{
               margin: "0 1.5rem 1rem",
-              padding: "14px 20px",
-              background: "linear-gradient(135deg, rgba(251, 191, 36, 0.12), rgba(245, 158, 11, 0.08))",
-              border: "1px solid rgba(245, 158, 11, 0.3)",
-              borderRadius: "12px",
+              padding: "12px 16px",
+              background: "var(--glass-bg, #19191b)",
+              border: "1px solid var(--glass-border, rgba(255, 255, 255, 0.08))",
+              borderRadius: "10px",
               display: "flex",
               alignItems: "center",
               justifyContent: "space-between",
@@ -239,19 +323,23 @@ export function DashboardLayout() {
             }}
           >
             <div style={{ display: "flex", alignItems: "center", gap: "12px", flex: 1, minWidth: 0 }}>
-              <span style={{ fontSize: "1.5rem", flexShrink: 0 }}>⚠️</span>
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" style={{ flexShrink: 0, color: "var(--color-amber-500, #d97706)" }}>
+                <path d="m21.73 18-8-14a2 2 0 0 0-3.48 0l-8 14A2 2 0 0 0 4 21h16a2 2 0 0 0 1.73-3Z"/>
+                <line x1="12" y1="9" x2="12" y2="13"/>
+                <line x1="12" y1="17" x2="12.01" y2="17"/>
+              </svg>
               <div>
-                <p style={{ margin: 0, fontWeight: 600, fontSize: "0.9rem", color: "var(--text-primary)" }}>
-                  Complete Your Profile
+                <p style={{ margin: 0, fontWeight: 500, fontSize: "0.875rem", color: "var(--glass-text-primary)" }}>
+                  Complete your student profile
                 </p>
-                <p style={{ margin: "4px 0 0", fontSize: "0.8rem", color: "var(--color-slate-400-adaptive)", lineHeight: 1.4 }}>
+                <p style={{ margin: "2px 0 0", fontSize: "0.8125rem", color: "var(--glass-text-secondary)", lineHeight: 1.4 }}>
                   {!user?.collegeName
-                    ? "Select your college, add your College ID, and upload verification documents to access college resources."
+                    ? "Select your college, add your student ID, and upload verification documents."
                     : user?.studentVerificationStatus === "pending"
-                      ? "Your verification is under review. You'll get full access once an admin approves it."
+                      ? "Your verification is currently under review by an administrator."
                       : user?.studentVerificationStatus === "rejected"
-                        ? "Your verification was rejected. Please update your details and resubmit."
-                        : "Add your College ID and upload verification documents to unlock all features."
+                        ? "Verification was rejected. Please update your details and resubmit."
+                        : "Add your student ID and upload verification documents to unlock all course features."
                   }
                 </p>
               </div>
@@ -259,22 +347,10 @@ export function DashboardLayout() {
             {user?.studentVerificationStatus !== "pending" && (
               <button
                 onClick={() => navigate("/account")}
-                style={{
-                  padding: "8px 20px",
-                  background: "linear-gradient(135deg, #f59e0b, #d97706)",
-                  color: "#fff",
-                  border: "none",
-                  borderRadius: "8px",
-                  fontWeight: 600,
-                  fontSize: "0.85rem",
-                  cursor: "pointer",
-                  whiteSpace: "nowrap",
-                  transition: "opacity 0.2s"
-                }}
-                onMouseOver={(e) => e.currentTarget.style.opacity = "0.85"}
-                onMouseOut={(e) => e.currentTarget.style.opacity = "1"}
+                className="glowing-btn primary small"
+                style={{ whiteSpace: "nowrap" }}
               >
-                Complete Now →
+                Complete profile
               </button>
             )}
           </div>
